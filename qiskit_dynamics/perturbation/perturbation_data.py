@@ -46,8 +46,8 @@ class _LabeledData:
 
 
 class PowerSeriesData(_LabeledData):
-    """Storage container for power series data. Labels are assumed to be ``Multiset`` instances,
-    and data is assumed to be a dense ``ArrayLike``.
+    """Storage container for power series data. Labels are assumed to be ``Multiset`` instances, and
+    data is assumed to be a dense ``ArrayLike``.
     """
 
     def _preprocess_label(self, label: Multiset) -> Multiset:
@@ -56,8 +56,8 @@ class PowerSeriesData(_LabeledData):
 
 
 class DysonLikeData(_LabeledData):
-    """Storage container for DysonLike series data. Labels are assumed to be lists of ints,
-    and data is assumed to be a dense ``ArrayLike``.
+    """Storage container for DysonLike series data. Labels are assumed to be lists of ints, and data
+    is assumed to be a dense ``ArrayLike``.
     """
 
     def _preprocess_label(self, label: list) -> list:

@@ -47,8 +47,8 @@ def _multiset_to_sorted_list(multiset: Multiset) -> List:
 
 
 class _MultisetSortKey:
-    """Dummy class for usage as a key when sorting Multiset instances. This assumes the elements
-    of the multisets can themselves be sorted.
+    """Dummy class for usage as a key when sorting Multiset instances. This assumes the elements of
+    the multisets can themselves be sorted.
     """
 
     __slots__ = ("multiset",)
@@ -61,10 +61,10 @@ class _MultisetSortKey:
 
         This orders first according to length (the number of elements in each multiset). If ``self``
         and ``other`` are the same length, ``self < other`` if, when written as fully expanded and
-        sorted lists, ``self < other`` in lexicographic ordering. E.g. it holds that ``Multiset({0:
-        2, 1: 1}) < Multiset({0: 1, 1: 2})``, as the list versions are ``x = [0, 0, 1]``, and ``y =
-        [0, 1, 1]``. Here ``x[0] == y[0]``, but ``x[1] < y[1]``, and hence ``x < y`` in this
-        ordering.
+        sorted lists, ``self < other`` in lexicographic ordering. E.g. it holds that
+        ``Multiset({0: 2, 1: 1}) < Multiset({0: 1, 1: 2})``, as the list versions are
+        ``x = [0, 0, 1]``, and ``y = [0, 1, 1]``. Here ``x[0] == y[0]``, but ``x[1] < y[1]``, and
+        hence ``x < y`` in this ordering.
         """
         if len(self.multiset) < len(other.multiset):
             return True
@@ -94,8 +94,8 @@ def _sorted_multisets(multisets: Iterable[Multiset]) -> List[Multiset]:
 
 
 def _clean_multisets(multisets: List[Multiset]) -> List[Multiset]:
-    """Given a list of multisets, remove duplicates, and sort in non-decreasing order
-    according to the _sorted_multisets function.
+    """Given a list of multisets, remove duplicates, and sort in non-decreasing order according to
+    the _sorted_multisets function.
     """
 
     unique_multisets = []
@@ -111,8 +111,8 @@ def _clean_multisets(multisets: List[Multiset]) -> List[Multiset]:
 def _submultiset_filter(
     multiset_candidates: List[Multiset], multiset_list: List[Multiset]
 ) -> List[Multiset]:
-    """Filter the list of multiset_candidates based on whether they are a
-    submultiset of an element in multiset_list.
+    """Filter the list of multiset_candidates based on whether they are a submultiset of an element
+    in multiset_list.
     """
 
     filtered_multisets = []
@@ -128,15 +128,14 @@ def _submultiset_filter(
 def _submultisets_and_complements(
     multiset: Multiset, submultiset_bound: Optional[int] = None
 ) -> Tuple[List[Multiset], List[Multiset]]:
-    """Return a pair of lists giving all submultisets of size smaller than
-    submultiset_bound, and corresponding complements.
+    """Return a pair of lists giving all submultisets of size smaller than submultiset_bound, and
+    corresponding complements.
 
     Note: Submultisets and compliments are always strict submultisets.
 
     Args:
         multiset: The multiset to construct submultisets from.
-        submultiset_bound: Strict upper bound on submultiset to include.
-                           Defaults to len(multiset).
+        submultiset_bound: Strict upper bound on submultiset to include. Defaults to len(multiset).
 
     Returns:
         Submultisets and corresponding complements.
@@ -174,8 +173,8 @@ def _submultisets_and_complements(
 
 
 def _get_all_submultisets(multisets: List[Multiset]) -> List[Multiset]:
-    """Given a list of multisets, return a list of all possible submultisets
-    of multisets in the list, including the original multisets.
+    """Given a list of multisets, return a list of all possible submultisets of multisets in the
+    list, including the original multisets.
 
     This returned list is sorted according to the ordering of the _sorted_multisets function.
 

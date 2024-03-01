@@ -248,10 +248,10 @@ class InstructionToSignals:
         signals: List[DiscreteSignal], if_modulation: float
     ) -> List[DiscreteSignal]:
         r"""
-        Create signals that correspond to the output ports of an Arbitrary Waveform Generator
-        to be used with IQ mixers. For each signal in the list the number of signals is double
-        to create the I and Q components. The I and Q signals represent the real and imaginary
-        parts, respectively, of
+        Create signals that correspond to the output ports of an Arbitrary Waveform Generator to be
+        used with IQ mixers. For each signal in the list the number of signals is double to create
+        the I and Q components. The I and Q signals represent the real and imaginary parts,
+        respectively, of
 
         .. math::
             \Omega(t) e^{i \omega_{if} t}
@@ -265,8 +265,8 @@ class InstructionToSignals:
                 envelopes.
 
         Returns:
-            iq signals: A list of signals which is twice as long as the input list of signals.
-                For each input signal get_awg_signals returns two
+            iq signals: A list of signals which is twice as long as the input list of signals. For
+                each input signal get_awg_signals returns two
         """
         new_signals = []
 
@@ -327,8 +327,8 @@ class InstructionToSignals:
 
 
 def get_samples(pulse: SymbolicPulse) -> ArrayLike:
-    """Return samples filled according to the formula that the pulse
-    represents and the parameter values it contains.
+    """Return samples filled according to the formula that the pulse represents and the parameter
+    values it contains.
 
     Args:
         pulse: SymbolicPulse class.

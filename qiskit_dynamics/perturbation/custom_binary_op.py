@@ -29,39 +29,35 @@ except ImportError:
 
 
 class _CustomBinaryOp:
-    r"""A binary operation between arrays of dimension >1d built from taking linear combinations
-    of a base binary operation acting on sub-arrays.
+    r"""A binary operation between arrays of dimension >1d built from taking linear combinations of
+    a base binary operation acting on sub-arrays.
 
-    This class constructs customized binary operations between
-    lists of arrays :math:`A = (A_i)` and :math:`B = (B_i)` of the form:
+    This class constructs customized binary operations between lists of arrays :math:`A = (A_i)` and
+    :math:`B = (B_i)` of the form:
 
     .. math::
         (A \times B)_i = \sum_{jk} a_{ijk} f(A_j, B_k),
 
-    where :math:`a_{ijk}` is an array of complex scalars, and :math:`f` is a binary operation
-    (a common example being matrix multiplication).
+    where :math:`a_{ijk}` is an array of complex scalars, and :math:`f` is a binary operation (a
+    common example being matrix multiplication).
 
-    At instantiation the binary operation :math:`f`, as well
-    as the array :math:`a_{ijk}`, are specified. The array :math:`a_{ijk}` is given in a
-    sparse format, as a list where each
-    entry specifies the 2d sub-array :math:`a_{i}` as a 2-tuple
-    with entries:
+    At instantiation the binary operation :math:`f`, as well as the array :math:`a_{ijk}`, are
+    specified. The array :math:`a_{ijk}` is given in a sparse format, as a list where each entry
+    specifies the 2d sub-array :math:`a_{i}` as a 2-tuple with entries:
 
         - The non-zero entries of :math:`a_i` given as a list.
         - A 2d-array with each entry being the pair of indices ``[j,k]``.
 
-    Internally, this specification is translated into one more suited for efficient
-    evaluation:
-        - A specification of the unique pairs of required evaluations
-          :math:`f(A_j, B_k)` in terms of two arrays giving the left
-          indices and the right indices.
-        - A 2-tuple of 2d arrays specifying the linear combination of
-          unique evaluations of :math:`f` to compute the :math:`i^{th}` entry of the
-          binary operations. The :math:`i^{th}` entry of each array is:
+    Internally, this specification is translated into one more suited for efficient evaluation:
+        - A specification of the unique pairs of required evaluations :math:`f(A_j, B_k)` in terms
+          of two arrays giving the left indices and the right indices.
+        - A 2-tuple of 2d arrays specifying the linear combination of unique evaluations of
+          :math:`f` to compute the :math:`i^{th}` entry of the binary operations. The :math:`i^{th}`
+          entry of each array is:
             - The list of coefficients in the linear combination.
             - The index of the unique product for each coefficient.
-          These arrays are padded with the value ``-1`` to make each
-          linear combo the same length (relevant for JAX evaluation).
+          These arrays are padded with the value ``-1`` to make each linear combo the same length
+          (relevant for JAX evaluation).
     """
 
     def __init__(
@@ -149,27 +145,25 @@ def _compile_custom_operation_rule(
     unique_evaluation_len: Optional[int] = None,
     linear_combo_len: Optional[int] = None,
 ) -> Tuple[np.array, np.array]:
-    """Compile the list of unique evaluations and linear combinations required
-    to implement a given operation_rule.
+    """Compile the list of unique evaluations and linear combinations required to implement a given
+    operation_rule.
 
     See _CustomBinaryOp doc string for formatting details.
 
     Args:
-        operation_rule: Custom operation rule in the sparse format in the
-                        _CustomBinaryOp doc string.
-        index_offset: Integer specifying a shift to apply in the 2nd and 3rd indices in the
-                      sparse representation of :math:`a_{ijk}`.
-        unique_evaluation_len: Integer specifying a minimum length to represent the
-                               unique multiplications list. The unique multiplication list
-                               is padded with entries ``[-1, -1]`` to meet the minimum length.
-        linear_combo_len: Minimum length for linear combo specification. Coefficients are
-                          padded with zeros, and the unique multiplication indices are
-                          padded with ``-1``.
+        operation_rule: Custom operation rule in the sparse format in the _CustomBinaryOp doc
+            string.
+        index_offset: Integer specifying a shift to apply in the 2nd and 3rd indices in the sparse
+            representation of :math:`a_{ijk}`.
+        unique_evaluation_len: Integer specifying a minimum length to represent the unique
+            multiplications list. The unique multiplication list is padded with entries ``[-1, -1]``
+            to meet the minimum length.
+        linear_combo_len: Minimum length for linear combo specification. Coefficients are padded
+            with zeros, and the unique multiplication indices are padded with ``-1``.
 
     Returns:
-        Tuple[np.array, np.array]: Multiplication rule compiled into a list of
-                                   unique products and a list of linear combinations of
-                                   unique products for implementing the custom dot rule.
+        Tuple[np.array, np.array]: Multiplication rule compiled into a list of unique products and a
+            list of linear combinations of unique products for implementing the custom dot rule.
     """
 
     # force numpy usage for algebra specification
@@ -251,8 +245,8 @@ def _compute_unique_evaluations(
 def _compute_linear_combos(
     unique_evaluations: np.array, linear_combo_rule: Tuple[np.array, np.array]
 ) -> np.array:
-    r"""Compute linear combinations of the entries in the array ``unique_mults``
-    according to ``linear_combo_rule``. The :math:`j^{th}` entry of the output is given by
+    r"""Compute linear combinations of the entries in the array ``unique_mults`` according to
+    ``linear_combo_rule``. The :math:`j^{th}` entry of the output is given by
     :math:`sum_k c[j, k] unique_mults[idx[j, k]]`, where ``linear_combo_rule`` is ``(c, idx)``.
     """
     M0 = np.zeros_like(unique_evaluations[0])

@@ -38,8 +38,7 @@ class BaseTransferFunction(ABC):
         pass
 
     def __call__(self, *args, **kwargs) -> Union[Signal, List[Signal]]:
-        """
-        Apply the transfer function to the input signals.
+        """Apply the transfer function to the input signals.
 
         Args:
             *args: The signals to which the transfer function will be applied.
@@ -62,9 +61,7 @@ class BaseTransferFunction(ABC):
 
     @abstractmethod
     def _apply(self, *args, **kwargs) -> Union[Signal, List[Signal]]:
-        """
-        Applies a transformation on a signal, such as a convolution,
-        low pass filter, etc.
+        """Applies a transformation on a signal, such as a convolution, low pass filter, etc.
 
         Args:
             *args: The signals to which the transfer function will be applied.
@@ -87,9 +84,8 @@ class Convolution(BaseTransferFunction):
     def __init__(self, func: Callable):
         """
         Args:
-            func: The convolution function specified in time.
-                  This function will be normalized to one before doing
-                  the convolution. To scale signals multiply them by a float.
+            func: The convolution function specified in time. This function will be normalized to
+                one before doing the convolution. To scale signals multiply them by a float.
         """
         self._func = func
 
@@ -99,15 +95,12 @@ class Convolution(BaseTransferFunction):
 
     # pylint: disable=arguments-differ
     def _apply(self, signal: Signal) -> Signal:
-        """
-        Applies a transformation on a signal, such as a convolution,
-        low pass filter, etc. Once a convolution is applied the signal
-        can longer have a carrier as the carrier is part of the signal
-        value and gets convolved.
+        """Applies a transformation on a signal, such as a convolution, low pass filter, etc. Once a
+        convolution is applied the signal can longer have a carrier as the carrier is part of the
+        signal value and gets convolved.
 
         Args:
-            signal: A signal or list of signals to which the
-                    transfer function will be applied.
+            signal: A signal or list of signals to which the transfer function will be applied.
 
         Returns:
             signal: The transformed signal or list of signals.
@@ -130,9 +123,7 @@ class Convolution(BaseTransferFunction):
 
 
 class FFTConvolution(BaseTransferFunction):
-    """
-    Applies a convolution by moving into the fourier domain.
-    """
+    """Applies a convolution by moving into the fourier domain."""
 
     def __init__(self, func: Callable):
         self._func = func
@@ -147,9 +138,7 @@ class FFTConvolution(BaseTransferFunction):
 
 
 class Sampler(BaseTransferFunction):
-    """
-    Re sample a signal by wrapping DiscreteSignal.from_Signal.
-    """
+    """Resample a signal by wrapping DiscreteSignal.from_Signal."""
 
     def __init__(self, dt: float, n_samples: int, start_time: float = 0):
         """
@@ -176,15 +165,16 @@ class Sampler(BaseTransferFunction):
 
 
 class IQMixer(BaseTransferFunction):
-    """
-    Implements an IQ Mixer. The IQ mixer takes as input three signals:
+    """Implements an IQ Mixer.
+
+    The IQ mixer takes as input three signals:
     - in-phase signal: I cos(w_if t + phi_I)
     - quadrature: Q cos(w_if t + phi_Q)
     - local oscillator: K cos(w_lo t)
 
-    In this implementation the local oscillator is specified by its frequency
-    w_lo and, without loss of generality we assume K = 1. Furthermore, we
-    require that the carrier frequency of the I and Q be identical.
+    In this implementation the local oscillator is specified by its frequency w_lo and, without loss
+    of generality we assume K = 1. Furthermore, we require that the carrier frequency of the I and Q
+    be identical.
 
     The output RF signal is defined by
 
@@ -193,9 +183,9 @@ class IQMixer(BaseTransferFunction):
 
     where wp = w_lo + w_if and wp = w_lo - w_if.
 
-    The output of this transfer function will produce a piece-wise constant
-    that does not have a carrier frequency or phase. All information is in the
-    samples. Mixer imperfections are not included.
+    The output of this transfer function will produce a piece-wise constant that does not have a
+    carrier frequency or phase. All information is in the samples. Mixer imperfections are not
+    included.
     """
 
     def __init__(self, lo: float):
