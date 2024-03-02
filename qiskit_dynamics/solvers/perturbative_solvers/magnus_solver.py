@@ -41,7 +41,7 @@ class MagnusSolver(_PerturbativeSolver):
     """Solver for linear matrix differential equations based on the Magnus expansion.
 
     This class implements the Magnus expansion-based solver presented in
-    [:footcite:`puzzuoli_sensitivity_2022`], which is a Magnus expansion variant of the
+    [:footcite:`puzzuoli_algorithms_2023`], which is a Magnus expansion variant of the
     *Dysolve* algorithm originally introduced in [:footcite:p:`shillito_fast_2020`]. Its
     setup and behaviour are the same as as the :class:`~qiskit_dynamics.solvers.DysonSolver`
     class, with the sole exception being that it uses a truncated Magnus expansion

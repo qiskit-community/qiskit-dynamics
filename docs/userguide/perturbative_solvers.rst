@@ -7,7 +7,7 @@ How-to use Dyson and Magnus based solvers
     requires detailed knowledge of the structure of the differential equations
     involved, as well as manual tuning of the solver parameters.
     See the :class:`.DysonSolver` and :class:`.MagnusSolver` documentation for API details.
-    Also, see :footcite:`puzzuoli_sensitivity_2022` for a detailed explanation of the solvers,
+    Also, see :footcite:`puzzuoli_algorithms_2023` for a detailed explanation of the solvers,
     which varies and builds on the core idea introduced in :footcite:`shillito_fast_2020`.
 
 .. note::
