@@ -125,9 +125,10 @@ class LindbladModel(BaseGeneratorModel):
                 assumed that all operators were already in the frame basis.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
                 frame operator is diagonalized.
-            array_library: Array library for storing the operators in the model. Supported options
-                are ``'numpy'``, ``'jax'``, ``'jax_sparse'``, and ``'scipy_sparse'``. If ``None``,
-                the arrays will be handled by general dispatching rules.
+            array_library: Array library with which to represent the operators in the model, and to
+                evaluate the model. See the list of supported array libraries in the
+                :mod:`.arraylias` submodule API documentation. If ``None``, the arrays will be
+                handled by general dispatching rules.
             vectorized: Whether or not to setup the Lindblad equation in vectorized mode.
                 If ``True``, the operators in the model are stored as :math:`(dim^2,dim^2)` matrices
                 that act on vectorized density matrices by left-multiplication. Setting this to
@@ -159,7 +160,6 @@ class LindbladModel(BaseGeneratorModel):
             ):
                 raise QiskitError("""LindbladModel hamiltonian_operators must be Hermitian.""")
 
-        self._array_library = array_library
         self._vectorized = vectorized
         self._rotating_frame = RotatingFrame(rotating_frame)
         self._in_frame_basis = in_frame_basis
@@ -208,6 +208,8 @@ class LindbladModel(BaseGeneratorModel):
         )
 
         self.signals = (hamiltonian_signals, dissipator_signals)
+
+        super().__init__(array_library=array_library)
 
     @classmethod
     def from_hamiltonian(
@@ -396,11 +398,6 @@ class LindbladModel(BaseGeneratorModel):
         )
 
     @property
-    def array_library(self) -> Union[None, str]:
-        """Array library used to store the operators in the model."""
-        return self._array_library
-
-    @property
     def vectorized(self) -> bool:
         """Whether or not the Lindblad equation is vectorized."""
         return self._vectorized
@@ -417,7 +414,7 @@ class LindbladModel(BaseGeneratorModel):
             time: The time at which to evaluate the Hamiltonian.
 
         Returns:
-            Array: Hamiltonian matrix.
+            ArrayLike: Hamiltonian matrix.
         """
 
         hamiltonian_sig_vals = None
@@ -443,7 +440,7 @@ class LindbladModel(BaseGeneratorModel):
             time: The time to evaluate the model at.
 
         Returns:
-            Array: The evaluated model as an anti-Hermitian matrix.
+            ArrayLike: The evaluated model as an anti-Hermitian matrix.
 
         Raises:
             QiskitError: If model cannot be evaluated.
@@ -482,11 +479,11 @@ class LindbladModel(BaseGeneratorModel):
 
         Args:
             time: The time at which the model should be evaluated.
-            y: Density matrix as an (n,n) Array if not using a vectorized evaluation_mode, or an
-               (n^2) Array if using vectorized evaluation.
+            y: Density matrix as an (n,n) Array if not vectorized, or an (n^2) Array if using
+                vectorized evaluation.
 
         Returns:
-            Array: Either the evaluated generator or the state.
+            ArrayLike: Either the evaluated generator or the state.
 
         Raises:
             QiskitError: If signals not sufficiently specified.

@@ -201,7 +201,7 @@ class ScipySparseOperatorCollection:
             coefficients: The coefficient values :math:`c` to use on the operators.
 
         Returns:
-            An :class:`~Array` that acts on states ``y`` via multiplication.
+            A scipy sparse matrix that acts on states ``y`` via multiplication.
 
         Raises:
             QiskitError: If collection cannot be evaluated.
@@ -852,18 +852,7 @@ class VectorizedLindbladCollection:
     """Vectorized Lindblad collection class.
 
     The vectorized Lindblad equation represents the Lindblad master equation in the structure
-    of a linear matrix differential equation in standard form. Hence, this class inherits
-    from both ``BaseLindbladOperatorCollection`` and ``BaseOperatorCollection``.
-
-    This class manages the general property handling of converting operators in a Lindblad
-    collection to the correct type, constructing vectorized versions, and combining for use in a
-    BaseOperatorCollection. Requires implementation of:
-
-        - ``convert_to_internal_type``: Convert operators to the required internal type,
-          e.g. csr or Array.
-        - ``evaluation_class``: Class property that returns the subclass of BaseOperatorCollection
-          to be used when evaluating the model, e.g. DenseOperatorCollection or
-          SparseOperatorCollection.
+    of a linear matrix differential equation in standard form.
 
     This class works for ``array_library in ["numpy", "jax", "jax_sparse"]``.
     """
