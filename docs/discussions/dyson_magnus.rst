@@ -5,7 +5,7 @@ Time-dependent perturbation theory and multi-variable series expansions review
 
 The :mod:`.perturbation` module contains functionality for
 numerically computing perturbation theory expansions used in the study of the
-dynamics of quantum systems. Following :footcite:`puzzuoli_sensitivity_2022`,
+dynamics of quantum systems. Following :footcite:`puzzuoli_algorithms_2023`,
 this discussion reviews key concepts required
 to understand and utilize the module, including the Dyson series and Magnus expansion,
 their generalization to a multi-variable setting, and the notation used to represent
@@ -104,7 +104,7 @@ generator :math:`\tilde{G}`, note that
 
 and hence solution for :math:`G` and :math:`\tilde{G}` are simply related by :math:`V(t)`.
 
-Using this, :footcite:`puzzuoli_sensitivity_2022` defines the multi-variable Dyson series
+Using this, :footcite:`puzzuoli_algorithms_2023` defines the multi-variable Dyson series
 for the generator :math:`\tilde{G}(t, c_0, \dots, c_{r-1})` as:
 
 .. math::
@@ -134,7 +134,7 @@ Given a power series decomposition of the generator as above,
 the function :func:`.solve_lmde_perturbation` computes,
 in the toggling frame of the unperturbed generator, either multi-variable
 Dyson series or Magnus expansion terms via the algorithms in
-:footcite:`puzzuoli_sensitivity_2022`. It can also be used to compute Dyson-like terms via
+:footcite:`puzzuoli_algorithms_2023`. It can also be used to compute Dyson-like terms via
 the algorithm in :footcite:`haas_engineering_2019`. In the presentation here and elsewhere,
 the expansions are phrased as infinite series, but of course in practice truncated
 versions must be specified and computed.
@@ -147,7 +147,7 @@ understanding the notation and data structures used to represent power series.
 Multiset power series notation
 ------------------------------
 
-Following :footcite:`puzzuoli_sensitivity_2022`, the :mod:`.perturbation`
+Following :footcite:`puzzuoli_algorithms_2023`, the :mod:`.perturbation`
 module utilizes a *multiset* notation to more compactly represent and work with power series.
 
 Consider the power series expansion above for the generator :math:`G(t, c_0, \dots, c_{r-1})`.

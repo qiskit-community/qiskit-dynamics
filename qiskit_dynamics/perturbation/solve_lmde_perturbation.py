@@ -58,7 +58,7 @@ def solve_lmde_perturbation(
     r"""Compute time-dependent perturbation theory terms for an LMDE.
 
     This function computes multi-variable Dyson or Magnus expansion terms via the algorithm in
-    :footcite:`puzzuoli_sensitivity_2022`, or Dyson-like terms via the algorithm in
+    :footcite:`puzzuoli_algorithms_2023`, or Dyson-like terms via the algorithm in
     :footcite:`haas_engineering_2019`. See the
     :ref:`review on time-dependent perturbation theory <perturbation review>`
     to understand the details and notation used in this documentation.
