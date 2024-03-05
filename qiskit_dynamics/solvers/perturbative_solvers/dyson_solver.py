@@ -35,7 +35,7 @@ class DysonSolver(_PerturbativeSolver):
     r"""Solver for linear matrix differential equations based on the Dyson series.
 
     This class implements the Dyson-series based solver presented in
-    [:footcite:`puzzuoli_sensitivity_2022`], which is a variant of the *Dysolve* algorithm
+    [:footcite:`puzzuoli_algorithms_2023`], which is a variant of the *Dysolve* algorithm
     originally introduced in [:footcite:p:`shillito_fast_2020`].
     This solver applies to linear matrix differential equations with generators of the form:
 
@@ -111,7 +111,7 @@ class DysonSolver(_PerturbativeSolver):
     :math:`\textnormal{Im}[f_{j,m}e^{i 2 \pi \nu_j t_0}]`, and the operators being
     :math:`\cos(2 \pi \nu_j (t-t_0))T_m(t-t_0) G_j` and
     :math:`\sin(- 2 \pi \nu_j (t-t_0))T_m(t-t_0) G_j`. As shown in
-    [:footcite:`puzzuoli_sensitivity_2022`, :footcite:p:`shillito_fast_2020`],
+    [:footcite:`puzzuoli_algorithms_2023`, :footcite:p:`shillito_fast_2020`],
     the multivariable Dyson series for intervals of length :math:`\Delta t`
     with different starting times are related via a simple frame change, and as such
     these need only be computed once, and this makes up the 'pre-computation' step of this
