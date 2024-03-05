@@ -201,7 +201,7 @@ class ScipySparseOperatorCollection:
             coefficients: The coefficient values :math:`c` to use on the operators.
 
         Returns:
-            An :class:`~Array` that acts on states ``y`` via multiplication.
+            A scipy sparse matrix that acts on states ``y`` via multiplication.
 
         Raises:
             QiskitError: If collection cannot be evaluated.
