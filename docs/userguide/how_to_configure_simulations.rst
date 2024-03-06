@@ -210,7 +210,7 @@ with extra emphasis on the following:
     ``rotating_frame`` kwarg of :class:`.Solver` instantiation.
 
 For this section we use JAX as it is more performant. See the
-:ref:`userguide on using JAX <how-to use jax>` for a more detailed
+:ref:`userguide on using JAX <how-to use different array libraries>` for a more detailed
 explanation of how to work with JAX in Qiskit Dynamics.
 
 .. note::

@@ -53,7 +53,7 @@ We will walk through the following steps:
 -----------------------
 
 These simulations will be done with JAX array backend to enable
-compilation. See the :ref:`userguide on using JAX <how-to use jax>` for a more detailed
+compilation. See the :ref:`userguide on using JAX <how-to use different array libraries>` for a more detailed
 explanation of how to work with JAX in Qiskit Dynamics.
 
 .. jupyter-execute::

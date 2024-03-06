@@ -1,12 +1,107 @@
-.. _how-to use jax:
+.. _how-to use different array libraries:
 
-How-to use JAX with ``qiskit-dynamics``
-=======================================
+How-to use different array libraries and types with Qiskit Dynamics
+===================================================================
 
-JAX enables just-in-time compilation, automatic differentation, and GPU
-execution. JAX is integrated into ``qiskit-dynamics`` via the
-:class:`.Array` class, which allows most parts of the package to be
-executed with either ``numpy`` or ``jax.numpy``.
+Main points:
+- You can use JAX or numpy
+- For models/solving you can use JAX, JAX sparse, numpy, scipy sparse
+
+The simulations and computations in Qiskit Dynamics can be executed with different array libraries
+and types. A user can choose to use either NumPy or JAX to define their models, and the code in
+Qiskit Dynamics will execute as if the array operations had been natively written in either library.
+Additionally, a user can specify that the operators in a model be stored in sparse types offered by
+SciPy or JAX (see :ref:`configuring simulations for performance <configuring simulations>`).
+Internally, Qiskit Dynamics utilizes `Arraylias <https://qiskit-extensions.github.io/arraylias/>`_
+to dispatch computations on different array types to the appropriate library function.
+
+This guide addresses the following topics:
+
+1. Example: How-to use either NumPy or JAX when building a :class:`.Signal`.
+2. How-to use the Qiskit Dynamics NumPy and SciPy aliased libraries.
+
+
+1. Example: How-to use either NumPy or JAX when building a :class:`.Signal`
+---------------------------------------------------------------------------
+
+First, configure JAX and import array libraries.
+
+.. jupyter-execute::
+
+    # configure jax to use 64 bit mode
+    import jax
+    jax.config.update("jax_enable_x64", True)
+
+    # tell JAX we are using CPU
+    jax.config.update('jax_platform_name', 'cpu')
+
+    import numpy as np
+    import jax.numpy as jnp
+
+
+Defining equivalent :class:`.Signal` instances, with envelope implemented in either NumPy or JAX.
+
+.. jupyter-execute::
+
+    from qiskit_dynamics import Signal
+
+    def envelope_numpy(t):
+        return np.exp((t - 0.5)**2 / 0.025)
+    
+    def envelope_jax(t):
+        return jnp.exp((t - 0.5)**2 / 0.025)
+    
+    signal_numpy = Signal(envelope=envelope_numpy)
+    signal_jax = Signal(envelope=envelope_jax)
+
+
+Evaluation of ``signal_numpy`` is executed with NumPy:
+
+.. jupyter-execute::
+
+    type(signal_numpy(0.1))
+
+Evaluation of ``signal_jax`` is executed with JAX:
+
+.. jupyter-execute::
+
+    type(signal_jax(0.1))
+
+JAX transformations can be applied to ``signal_jax``, e.g. just-in-time compilation:
+
+.. jupyter-execute::
+
+    from jax import jit
+
+    jit_signal_jax = jit(signal_jax)
+    jit_signal_jax(0.1)
+
+
+2. How-to use the Qiskit Dynamics NumPy and SciPy aliased libraries
+-------------------------------------------------------------------
+
+Internally, Qiskit Dynamics uses an extension of the default NumPy and SciPy array libraries offered
+by `Arraylias <https://qiskit-extensions.github.io/arraylias/>`_. These can be imported as:
+
+.. jupyter-execute::
+    
+    # alias for NumPy and corresponding aliased library
+    from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
+    from qiskit_dynamics import DYNAMICS_NUMPY
+
+    # alias for SciPy and corresponding aliased library
+    from qiskit_dynamics import DYNAMICS_SCIPY_ALIAS
+    from qiskit_dynamics import DYNAMICS_SCIPY
+
+See the `Arraylias documentation <https://qiskit-extensions.github.io/arraylias/>`_ for how the
+general library aliasing framework works, as well as the Qiskit Dynamics submodule :mod:`.arraylias`
+for a description of how the default NumPy and SciPy aliases have been extended for use in this
+package.
+
+################################
+# OLD
+################################
+
 
 This guide addresses the following topics:
 
@@ -214,7 +309,7 @@ Subsequent runs of the function reveal the execution time once compiled.
     %timeit excited_pop_grad(1.).block_until_ready()
 
 
-4. Pitfalls when using JAX with Dynamics
+3. Pitfalls when using JAX with Dynamics
 ----------------------------------------
 
 4.1 JAX must be set as the default backend before building any objects in Qiskit Dynamics
