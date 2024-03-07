@@ -5,7 +5,7 @@ Gradient optimization of a pulse sequence
 
 Here, we walk through an example of optimizing a single-qubit gate using
 ``qiskit_dynamics``. This tutorial requires JAX - see the user guide
-on :ref:`How-to use JAX with qiskit-dynamics <how-to use jax>`.
+on :ref:`How-to use JAX with qiskit-dynamics <how-to use different array libraries>`.
 
 We will optimize an :math:`X`-gate on a model of a qubit system using
 the following steps:

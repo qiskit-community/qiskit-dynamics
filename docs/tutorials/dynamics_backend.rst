@@ -24,8 +24,8 @@ The sections of this tutorial are as follows:
 --------------------------------
 
 Note that the :class:`.DynamicsBackend` internally performs just-in-time compilation automatically
-when configured to use JAX. See the :ref:`User Guide entry on using JAX with Dynamics <how-to use
-jax>` for more information.
+when configured to use JAX. See the :ref:`User Guide entry on using different array libraries with
+Qiskit Dynamics <how-to use different array libraries>` for more information.
 
 .. jupyter-execute::
     :hide-code:
