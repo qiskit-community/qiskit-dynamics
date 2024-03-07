@@ -15,7 +15,7 @@ demonstrates the technical elements of utilizing this class within JAX-transform
     JAX, as the validation present in other pulse types, such as
     :class:`~qiskit.pulse.library.Gaussian`, is not JAX-compatible.
 
-This guide addresses the following topics. See the :ref:`userguide on using JAX <how-to use jax>`
+This guide addresses the following topics. See the :ref:`userguide on using JAX <how-to use different array libraries>`
 for a more detailed explanation of how to work with JAX in Qiskit Dynamics.
 
 1. Configure to use JAX.
