@@ -21,14 +21,14 @@ Solvers (:mod:`qiskit_dynamics.solvers`)
 
 This module provides classes and functions for solving differential equations.
 
-Table :ref:`1 <standard solver table>` summarizes the standard solver interfaces exposed in
-this module. It includes a high level class :class:`~qiskit_dynamics.solvers.Solver`
-for solving models of quantum systems, as well as low-level functions for solving both
-ordinary differential equations :math:`\dot{y}(t) = f(t, y(t))` and linear matrix differential
-equations :math:`\dot{y}(t) = G(t)y(t)`.
+Table :ref:`1 <standard solver table>` summarizes the standard solver interfaces exposed in this
+module. It includes a high level class :class:`~qiskit_dynamics.solvers.Solver` for solving models
+of quantum systems, as well as low-level functions for solving both ordinary differential equations
+:math:`\dot{y}(t) = f(t, y(t))` and linear matrix differential equations
+:math:`\dot{y}(t) = G(t)y(t)`.
 
-Additionally, this module contains more specialized solvers for linear matrix differential
-equations based on perturbative expansions, described :ref:`below <perturbative solvers>`.
+Additionally, this module contains more specialized solvers for linear matrix differential equations
+based on perturbative expansions, described :ref:`below <perturbative solvers>`.
 
 .. _standard solver table:
 
@@ -39,9 +39,9 @@ equations based on perturbative expansions, described :ref:`below <perturbative 
    * - Object
      - Description
    * - :class:`~qiskit_dynamics.solvers.Solver`
-     - High level solver class for both Hamiltonian and Lindblad dynamics.
-       Automatically constructs the relevant model type based on system details, and
-       the :meth:`~qiskit_dynamics.solvers.Solver.solve` method automatically handles
+     - High level solver class for both Hamiltonian and Lindblad dynamics. Automatically constructs
+       the relevant model type based on system details, and the
+       :meth:`~qiskit_dynamics.solvers.Solver.solve` method automatically handles
        ``qiskit.quantum_info`` input types.
    * - :func:`~qiskit_dynamics.solvers.solve_ode`
      - Low level solver function for ordinary differential equations:
@@ -57,8 +57,8 @@ equations based on perturbative expansions, described :ref:`below <perturbative 
        .. math::
             \dot{y}(t) = G(t)y(t),
 
-       where :math:`G(t)` is either a callable or a ``qiskit_dynamics``
-       model type, and :math:`y(t)` arrays of suitable shape for the matrix multiplication above.
+       where :math:`G(t)` is either a callable or a ``qiskit_dynamics`` model type, and :math:`y(t)`
+       arrays of suitable shape for the matrix multiplication above.
 
 .. _perturbative solvers:
 
@@ -79,8 +79,8 @@ decomposed as:
     G(t) = G_0 + \sum_j Re[f_j(t)e^{i2\pi\nu_jt}]G_j,
 
 and are fixed step with a pre-defined step size :math:`\Delta t`. The differential equation is
-solved by either computing a truncated Dyson series, or taking the exponential of a truncated
-Magnus expansion.
+solved by either computing a truncated Dyson series, or taking the exponential of a truncated Magnus
+expansion.
 
 Add reference to both userguide and perturbation theory module documentation.
 
