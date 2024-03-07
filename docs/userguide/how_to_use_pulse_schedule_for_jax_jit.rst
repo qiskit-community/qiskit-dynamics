@@ -25,8 +25,8 @@ Dynamics.
    :class:`~qiskit.pulse.library.ScalableSymbolicPulse`.
 
 
-1. Configure to use JAX
------------------------
+1. Configure JAX
+----------------
 
 First, configure JAX to run on CPU in 64 bit mode.
 
