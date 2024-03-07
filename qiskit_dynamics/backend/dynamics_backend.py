@@ -673,6 +673,9 @@ class DynamicsBackend(BackendV2):
             rotating_frame: Rotating frame argument for the internal :class:`.Solver`. Defaults to
                 ``"auto"``, allowing this method to pick a rotating frame.
             array_library: Array library with which to store the operators in the :class:`.Solver`.
+                See the
+                :ref:`model evaluation section of the Models API documentation <model evaluation>`
+                for a more detailed description of this argument.
             vectorized: If a Lindblad terms are present, whether or not to build the
                 :class:`.Solver` in a vectorized mode.
             rwa_cutoff_freq: Rotating wave approximation argument for the internal :class:`.Solver`.
