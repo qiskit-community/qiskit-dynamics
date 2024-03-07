@@ -3,39 +3,29 @@
 Gradient optimization of a pulse sequence
 =========================================
 
-Here, we walk through an example of optimizing a single-qubit gate using
-``qiskit_dynamics``. This tutorial requires JAX - see the user guide
-on :ref:`How-to use JAX with qiskit-dynamics <how-to use different array libraries>`.
+Here, we walk through an example of optimizing a single-qubit gate using Qiskit Dynamics. This
+tutorial requires JAX - see the user guide on :ref:`How-to use JAX with qiskit-dynamics <how-to use
+different array libraries>`.
 
-We will optimize an :math:`X`-gate on a model of a qubit system using
-the following steps:
+We will optimize an :math:`X`-gate on a model of a qubit system using the following steps:
 
-1. Configure ``qiskit-dynamics`` to work with the JAX backend.
+1. Configure JAX.
 2. Setup a :class:`.Solver` instance with the model of the system.
 3. Define a pulse sequence parameterization to optimize over.
 4. Define a gate fidelity function.
 5. Define an objective function for optimization.
 6. Use JAX to differentiate the objective, then do the gradient optimization.
-7. Repeat the :math:`X`-gate optimization, alternatively using pulse schedules to specify the control sequence.
+7. Repeat the :math:`X`-gate optimization, alternatively using pulse schedules to specify the
+   control sequence.
 
 
-1. Configure to use JAX
------------------------
+1. Configure JAX
+----------------
 
-First, set JAX to operate in 64-bit mode, and set JAX as the default
-backend using :class:`.Array` for performing array operations.
-This is necessary to enable automatic differentiation of the Qiskit Dynamics code
-in this tutorial. See the user guide entry on using JAX
-for a more detailed explanation of why this step is necessary.
+First, set JAX to operate in 64-bit mode and to run on CPU.
 
 .. jupyter-execute::
 
-    ################################################################################# 
-    # Remove this
-    #################################################################################
-    import warnings
-    warnings.filterwarnings("ignore")
-    
     import jax
     jax.config.update("jax_enable_x64", True)
 
@@ -48,8 +38,7 @@ for a more detailed explanation of why this step is necessary.
 2. Setup the solver
 -------------------
 
-Here we will setup a :class:`.Solver` with a simple model of a qubit. The
-Hamiltonian is:
+Here we will setup a :class:`.Solver` with a simple model of a qubit. The Hamiltonian is:
 
 .. math:: H(t) = 2 \pi \nu \frac{Z}{2} + 2 \pi r s(t) \frac{X}{2}
 
@@ -61,9 +50,6 @@ In the above:
 - :math:`X` and :math:`Z` are the Pauli X and Z operators.
 
 We will setup the problem to be in the rotating frame of the drift term.
-
-Also note: The :class:`.Solver` is initialized *without* signals, as we will
-update these and optimize over this later.
 
 .. jupyter-execute::
 
@@ -91,12 +77,11 @@ We will optimize over signals that are:
 
 -  On resonance with piecewise constant envelopes,
 -  Envelopes bounded between :math:`[-1, 1]`,
--  Envelopes are smooth, in the sense that the change between adjacent
-   samples is small, and
+-  Envelopes are smooth, in the sense that the change between adjacent samples is small, and
 -  Envelope starts and ends at :math:`0`.
 
-In setting up our parameterization, we need t keep in mind that we will
-use the BFGS optimization routine, and hence:
+In setting up our parameterization, we need t keep in mind that we will use the BFGS optimization
+routine, and hence:
 
 -  Optimization parameters must be *unconstrained*.
 -  Parameterization must be JAX-differentiable.
@@ -104,18 +89,16 @@ use the BFGS optimization routine, and hence:
 We implement a parameterization as follows:
 
 -  Input: Array ``x`` of real values.
--  “Normalize” ``x`` by applying a JAX-differentiable function from
-   :math:`\mathbb{R} \rightarrow [-1, 1]`.
+-  “Normalize” ``x`` by applying a JAX-differentiable function from :math:`\mathbb{R} \rightarrow
+   [-1, 1]`.
 -  Pad the normalized ``x`` with a :math:`0.` to start.
 -  “Smoothen” the above via convolution.
--  Construct the signal using the above as the samples for a
-   piecewise-constant envelope, with carrier frequency on resonance.
+-  Construct the signal using the above as the samples for a piecewise-constant envelope, with
+   carrier frequency on resonance.
 
-We remark that there are many other parameterizations that may achieve
-the same ends, and may have more efficient strategies for achieving a
-value of :math:`0` at the beginning and end of the pulse. This is only
-meant to demonstrate the need for such an approach, and one simple
-example of one.
+We remark that there are many other parameterizations that may achieve the same ends, and may have
+more efficient strategies for achieving a value of :math:`0` at the beginning and end of the pulse.
+This is only meant to demonstrate the need for such an approach, and one simple example of one.
 
 .. jupyter-execute::
 
@@ -149,8 +132,7 @@ example of one.
 
         return output_signal
 
-Observe, for example, the signal generated when all parameters are
-:math:`10^8`:
+Observe, for example, the signal generated when all parameters are :math:`10^8`:
 
 .. jupyter-execute::
 
@@ -161,8 +143,8 @@ Observe, for example, the signal generated when all parameters are
 4. Define gate fidelity
 -----------------------
 
-We will optimize an :math:`X` gate, and define the fidelity of the unitary :math:`U`
-implemented by the pulse via the standard fidelity measure:
+We will optimize an :math:`X` gate, and define the fidelity of the unitary :math:`U` implemented by
+the pulse via the standard fidelity measure:
 
 .. math:: f(U) = \frac{|\text{Tr}(XU)|^2}{4}
 
@@ -179,9 +161,8 @@ implemented by the pulse via the standard fidelity measure:
 The function we want to optimize consists of:
 
 -  Taking a list of input samples and applying the signal mapping.
--  Simulating the Schrodinger equation over the length of the pulse
-   sequence.
--  Computing and return the infidelity (we minimize :math:`1-f(U)`).
+-  Simulating the Schrodinger equation over the length of the pulse sequence.
+-  Computing and return the infidelity (we minimize :math:`1 - f(U)`).
 
 .. jupyter-execute::
 
@@ -210,15 +191,13 @@ The function we want to optimize consists of:
 
 Finally, we gradient optimize the objective:
 
--  Use ``jax.value_and_grad`` to transform the objective into a function
-   that computes both the objective and the gradient.
--  Use ``jax.jit`` to just-in-time compile the function into optimized
-   `XLA <https://www.tensorflow.org/xla>`__ code. For the initial cost of
-   performing the compilation, this speeds up each call of the function,
-   speeding up the optimization.
--  Call ``scipy.optimize.minimize`` with the above, with
-   ``method='BFGS'`` and ``jac=True`` to indicate that the passed
-   objective also computes the gradient.
+-  Use ``jax.value_and_grad`` to transform the objective into a function that computes both the
+   objective and the gradient.
+-  Use ``jax.jit`` to just-in-time compile the function into optimized `XLA
+   <https://www.tensorflow.org/xla>`__ code. For the initial cost of performing the compilation,
+   this speeds up each call of the function, speeding up the optimization.
+-  Call ``scipy.optimize.minimize`` with the above, with ``method='BFGS'`` and ``jac=True`` to
+   indicate that the passed objective also computes the gradient.
 
 .. jupyter-execute::
 
@@ -235,11 +214,11 @@ Finally, we gradient optimize the objective:
     print('Function value: ' + str(opt_results.fun))
 
 
-The gate is optimized to an :math:`X` gate, with deviation within the
-numerical accuracy of the solver.
+The gate is optimized to an :math:`X` gate, with deviation within the numerical accuracy of the
+solver.
 
-We can draw the optimized signal, which is retrieved by applying the
-``signal_mapping`` to the optimized parameters.
+We can draw the optimized signal, which is retrieved by applying the ``signal_mapping`` to the
+optimized parameters.
 
 .. jupyter-execute::
 
@@ -254,17 +233,16 @@ We can draw the optimized signal, which is retrieved by applying the
     )
 
 
-Summing the signal samples yields approximately :math:`\pm 50`, which is
-equivalent to what one would expect based on a rotating wave
-approximation analysis.
+Summing the signal samples yields approximately :math:`\pm 50`, which is equivalent to what one
+would expect based on a rotating wave approximation analysis.
 
 .. jupyter-execute::
 
     opt_signal.samples.sum()
 
 
-7.  Repeat the :math:`X`-gate optimization, alternatively using pulse schedules to specify the control sequence.
-----------------------------------------------------------------------------------------------------------------
+7.  Repeat the :math:`X`-gate optimization, alternatively using pulse schedules to specify the control sequence
+---------------------------------------------------------------------------------------------------------------
 
 Here, we perform the optimization again, however now we specify the parameterized control sequence
 to optimize as a pulse schedule.
