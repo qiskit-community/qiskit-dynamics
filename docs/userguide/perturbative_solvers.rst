@@ -75,9 +75,6 @@ on the perturbative solver speed.
 
 .. jupyter-execute::
 
-    import warnings
-    warnings.filterwarnings("error")
-
     import numpy as np
 
     dim = 10  # Oscillator dimension
