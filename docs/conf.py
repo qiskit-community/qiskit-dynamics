@@ -77,6 +77,3 @@ nbsphinx_timeout = 180
 nbsphinx_execute = 'always'
 nbsphinx_widgets_path = ''
 exclude_patterns = ['_build', '**.ipynb_checkpoints']
-
-import warnings
-warnings.filterwarnings("error")

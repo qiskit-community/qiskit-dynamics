@@ -30,6 +30,8 @@ array libraries>` for more information.
 
 .. jupyter-execute::
 
+    import warnings
+    warnings.filterwarnings("error")
     # Configure JAX
     import jax
     jax.config.update("jax_enable_x64", True)
