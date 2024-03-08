@@ -470,7 +470,7 @@ values for the single qubit gates calibrated above.
 
     cr_ham_experiment = CrossResonanceHamiltonian(
         physical_qubits=(0, 1), 
-        durations=np.linspace(10, 5000, 17), 
+        durations=np.linspace(1e-7, 1e-6, 17), 
         backend=backend
     )
     
