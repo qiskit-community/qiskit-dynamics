@@ -29,9 +29,14 @@ when using a JAX solver method. Here we configure JAX to run on CPU in 64 bit mo
 array libraries>` for more information.
 
 .. jupyter-execute::
+    :hide-code:
 
+    # a parallelism warning raised by JAX is being raised due to somethign outside of Dynamics
     import warnings
     warnings.filterwarnings("ignore", message="os.fork")
+
+.. jupyter-execute::
+
     # Configure JAX
     import jax
     jax.config.update("jax_enable_x64", True)
