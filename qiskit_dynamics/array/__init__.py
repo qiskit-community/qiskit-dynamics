@@ -53,9 +53,10 @@ Basic Usage
 
 .. jupyter-execute::
     :hide-code:
+    
     # suppress deprecation warnings
     import warnings
-    warnings.filterwarnings('ignore', category=DeprecationWarning)
+    warnings.simplefilter('ignore', category=DeprecationWarning)
 
 When using the default ``numpy`` backend :class:`Array`, objects can be used interchangably with
 ``numpy.ndarray``. When ``numpy`` functions are applied to an :class:`Array` object the return type
