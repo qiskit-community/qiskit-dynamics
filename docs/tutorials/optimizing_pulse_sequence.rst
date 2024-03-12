@@ -254,10 +254,6 @@ entry on :ref:`JAX-compatible pulse schedules <how-to use pulse schedules for ja
 
 .. jupyter-execute::
 
-    # how to get rid of this?
-    from qiskit_dynamics.array import Array
-    Array.set_default_backend("jax")
-    
     import sympy as sym
     from qiskit import pulse
 
