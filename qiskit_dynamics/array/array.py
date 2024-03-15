@@ -9,9 +9,11 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+# pylint: disable=invalid-name,global-statement
 
 """Array Class"""
 
+import warnings
 import copy
 from functools import wraps
 from types import BuiltinMethodType, MethodType
@@ -25,9 +27,29 @@ from qiskit_dynamics.dispatch.dispatch import Dispatch, asarray
 
 __all__ = ["Array"]
 
+_deprecation_raised = False
+
+
+def _array_deprecation_warn():
+    global _deprecation_raised
+    if not _deprecation_raised:
+        warnings.warn(
+            """The array and dispatch submodules of Qiskit Dynamics have been deprecated as of
+            version 0.5.0. The use of the Array class is no longer required to work with different
+            array libraries in Qiskit Dynamics, and is broken in some cases. Refer to the user guide
+            entry on using different array libraries with Qiskit Dynamics. Users can now work
+            directly with the supported array type of their choice, without the need to wrap them to
+            enable dispatching. The array and dispatch submodules will be removed in version 0.6.0.
+            """,
+            DeprecationWarning,
+            stacklevel=3,
+        )
+        _deprecation_raised = True
+
 
 class Array(NDArrayOperatorsMixin):
-    """Qiskit array class.
+    """Qiskit array class. This class is deprecated as of version 0.5.0 and will be removed in
+    version 0.6.0.
 
     This class provides a Numpy compatible wrapper to supported Python array libraries. Supported
     backends are ``"numpy"`` and ``"jax"``.
@@ -55,7 +77,7 @@ class Array(NDArrayOperatorsMixin):
         Raises:
             ValueError: If input cannot be converted to an :class:`Array`.
         """
-
+        _array_deprecation_warn()
         # Check if we can override setattr and
         # set _data and _backend directly
         if (
@@ -108,6 +130,7 @@ class Array(NDArrayOperatorsMixin):
     @classmethod
     def set_default_backend(cls, backend: Union[str, None]):
         """Set the default array backend."""
+        _array_deprecation_warn()
         if backend is not None:
             Dispatch.validate_backend(backend)
         Dispatch.DEFAULT_BACKEND = backend
@@ -115,11 +138,13 @@ class Array(NDArrayOperatorsMixin):
     @classmethod
     def default_backend(cls) -> str:
         """Return the default array backend."""
+        _array_deprecation_warn()
         return Dispatch.DEFAULT_BACKEND
 
     @classmethod
     def available_backends(cls) -> Set[str]:
         """Return a tuple of available array backends."""
+        _array_deprecation_warn()
         return Dispatch.REGISTERED_BACKENDS
 
     def __repr__(self):

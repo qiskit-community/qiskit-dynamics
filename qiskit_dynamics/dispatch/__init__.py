@@ -19,8 +19,18 @@ Dispatch Module (:mod:`qiskit_dynamics.dispatch`)
 
 .. currentmodule:: qiskit_dynamics.dispatch
 
-This module contains dispatch methods used by the
-:class:`~qiskit_dynamics.array.Array` class.
+.. warning::
+
+    The ``array`` and ``dispatch`` submodules of Qiskit Dynamics have been deprecated as of version
+    0.5.0. The use of the ``Array`` class is no longer required to work with different array
+    libraries in Qiskit Dynamics, and is broken in some cases. Refer to the :ref:`user guide entry
+    on using different array libraries with Qiskit Dynamics <how-to use different array libraries>`.
+    Users can now work directly with the supported array type of their choice, without the need to
+    wrap them to enable dispatching. The ``array`` and ``dispatch`` submodules will be removed in
+    version 0.6.0.
+
+
+This module contains dispatch methods used by the :class:`~qiskit_dynamics.array.Array` class.
 
 
 Dispatch Functions
