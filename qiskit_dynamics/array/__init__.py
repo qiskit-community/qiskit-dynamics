@@ -24,10 +24,11 @@ Array Module (:mod:`qiskit_dynamics.array`)
 
     The ``array`` and ``dispatch`` submodules of Qiskit Dynamics have been deprecated as of version
     0.5.0. The use of the ``Array`` class is no longer required to work with different array
-    libraries in Qiskit Dynamics, and is broken in some cases. Refer to the user guide entry on
-    using different array libraries with Qiskit Dynamics. Users can now work directly with the
-    supported array type of their choice, without the need to wrap them to enable dispatching. The
-    ``array`` and ``dispatch`` submodules will be removed in version 0.6.0.
+    libraries in Qiskit Dynamics, and is broken in some cases. Refer to the :ref:`user guide entry
+    on using different array libraries with Qiskit Dynamics <how-to use different array libraries>`.
+    Users can now work directly with the supported array type of their choice, without the need to
+    wrap them to enable dispatching. The ``array`` and ``dispatch`` submodules will be removed in
+    version 0.6.0.
 
 This module contains an :class:`Array` class that wraps N-dimensional array objects from different
 libraries. It enables working with different array libraries through a common NumPy-based interface,
