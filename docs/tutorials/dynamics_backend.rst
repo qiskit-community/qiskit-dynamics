@@ -13,29 +13,31 @@ definitions, and calibration and characterization experiments from Qiskit Experi
 
 The sections of this tutorial are as follows: 
 
-1. Configure Dynamics to use JAX.
+1. Configure JAX.
 2. Instantiating a minimally-configured :class:`.DynamicsBackend` with a 2 qubit model.
 3. Simulating pulse schedules on the :class:`.DynamicsBackend`.
 4. Simulating circuits at the pulse level using the :class:`.DynamicsBackend`.
 5. Simulating single-qubit calibration processes via Qiskit Experiments.
 6. Simulating 2 qubit interaction characterization via the |CRHamitonian| experiment.
 
-1. Configure Dynamics to use JAX
---------------------------------
+1. Configure JAX
+----------------
 
 Note that the :class:`.DynamicsBackend` internally performs just-in-time compilation automatically
-when configured to use JAX. See the :ref:`User Guide entry on using different array libraries with
-Qiskit Dynamics <how-to use different array libraries>` for more information.
+when using a JAX solver method. Here we configure JAX to run on CPU in 64 bit mode. See the
+:ref:`User Guide entry on using different array libraries with Qiskit Dynamics <how-to use different
+array libraries>` for more information.
 
 .. jupyter-execute::
     :hide-code:
 
+    # a parallelism warning raised by JAX is being raised due to somethign outside of Dynamics
     import warnings
-    warnings.filterwarnings('ignore', message='', category=Warning, module='', lineno=0, append=False)
+    warnings.filterwarnings("ignore", message="os.fork")
 
 .. jupyter-execute::
 
-    # Configure to use JAX internally
+    # Configure JAX
     import jax
     jax.config.update("jax_enable_x64", True)
     jax.config.update("jax_platform_name", "cpu")
@@ -46,9 +48,7 @@ Qiskit Dynamics <how-to use different array libraries>` for more information.
 To create the :class:`.DynamicsBackend`, first specify a :class:`.Solver` instance using the model
 details. Note that the choice of model depends on the type of device you wish to simulate. Here, we
 will use a :math:`2` qubit fixed-frequency transmon model with fixed coupling, with the following
-Hamiltonian (see the `Qiskit Textbook page on Circuit Quantum Electrodynamics
-<https://github.com/Qiskit/platypus/blob/main/notebooks/v2/quantum-hardware-pulses/cQED-JC-SW.ipynb>`_ for details on how transmon
-Hamiltonians are derived):
+Hamiltonian:
 
 .. math:: 
     
@@ -132,6 +132,7 @@ performance.
         hamiltonian_channels=["d0", "d1", "u0", "u1"],
         channel_carrier_freqs={"d0": v0, "d1": v1, "u0": v1, "u1": v0},
         dt=dt,
+        array_library="jax",
     )
 
 Next, instantiate the :class:`.DynamicsBackend`. The ``solver`` is used for simulation,
@@ -472,27 +473,27 @@ values for the single qubit gates calibrated above.
 
 .. jupyter-execute::
 
-    #from qiskit_experiments.library import CrossResonanceHamiltonian
+    from qiskit_experiments.library import CrossResonanceHamiltonian
 
-    #cr_ham_experiment = CrossResonanceHamiltonian(
-    #    physical_qubits=(0, 1), 
-    #    durations=np.linspace(10, 5000, 17), 
-    #    backend=backend
-    #)
+    cr_ham_experiment = CrossResonanceHamiltonian(
+        physical_qubits=(0, 1), 
+        durations=np.linspace(1e-7, 1e-6, 17), 
+        backend=backend
+    )
     
-    #backend.target.update_from_instruction_schedule_map(cals.get_inst_map())
+    backend.target.update_from_instruction_schedule_map(cals.get_inst_map())
 
 .. jupyter-execute::
 
-    #cr_ham_experiment.circuits()[10].draw("mpl")
+    cr_ham_experiment.circuits()[10].draw("mpl")
 
 Run the simulation.
 
 .. jupyter-execute::
 
-    #%time data_cr = cr_ham_experiment.run().block_for_results()
+    %time data_cr = cr_ham_experiment.run().block_for_results()
 
 
 .. jupyter-execute::
 
-    #data_cr.figure(0)
+    data_cr.figure(0)
