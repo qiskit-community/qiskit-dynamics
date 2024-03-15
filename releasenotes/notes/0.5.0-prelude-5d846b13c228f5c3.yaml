@@ -9,12 +9,12 @@ prelude: >
     work directly with their array library of choice without the need to be aware of, or interact
     with, the dispatching mechanism. See the :ref:`user guide entry on using different array
     libraries with Qiskit Dynamics <how-to use different array libraries>` for more details on the
-    new .
+    updated approach.
 
     To accompany this change, arguments that explicitly control the array library used to store
     matrices (e.g. ``evaluation_mode``) in models have also been changed. See the upgrade notes for
-    a list of such changes, as well as the updated :ref:`user guide entry configuring simulations
-    for performance <configuring simulations>` for how to use the new versions of these arguments.
+    a list of such changes, as well as the updated :ref:`user guide on configuring simulations for
+    performance <configuring simulations>` for how to use the new versions of these arguments.
     
     Due to the scale of these changes, this release will generally break any pre-existing Dynamics
     code utilizing :class:`.Array` or any of the aformentioned model and solver arguments. The
