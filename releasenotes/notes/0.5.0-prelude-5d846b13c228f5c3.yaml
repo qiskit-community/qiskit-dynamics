@@ -1,0 +1,22 @@
+---
+prelude: >
+    Qiskit Dynamics ``0.5.0`` introduces a major and breaking change to the internal array
+    dispatching mechanism. To enable dispatching in previous versions, e.g. when using JAX, it was
+    necessary for a user to first configure Dynamics to use JAX using
+    :meth:`.Array.set_default_backend`, and then to wrap all JAX arrays in the :class:`.Array`
+    class. In ``0.5.0`` this is no longer necessary. Dynamics has been updated to use `Arraylias
+    <https://qiskit-extensions.github.io/arraylias/>`_ for dispatching internally, and users can now
+    work directly with their array library of choice without the need to be aware of, or interact
+    with, the dispatching mechanism. See the :ref:`user guide entry on using different array
+    libraries with Qiskit Dynamics <how-to use different array libraries>` for more details on the
+    new .
+
+    To accompany this change, arguments that explicitly control the array library used to store
+    matrices (e.g. ``evaluation_mode``) in models have also been changed. See the upgrade notes for
+    a list of such changes, as well as the updated :ref:`user guide entry configuring simulations
+    for performance <configuring simulations>` for how to use the new versions of these arguments.
+    
+    Due to the scale of these changes, this release will generally break any pre-existing Dynamics
+    code utilizing :class:`.Array` or any of the aformentioned model and solver arguments. The
+    :class:`.Array` class and ``array`` and ``dispatch`` submodules have been deprecated, and will
+    be removed in ``0.6.0``. 
