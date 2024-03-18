@@ -57,7 +57,9 @@ bibtex_footbibliography_header = bibtex_bibliography_header
 html_theme = 'qiskit-ecosystem'
 html_last_updated_fmt = '%Y/%m/%d'
 
-html_context = {"analytics_enabled": True}
+docs_url_prefix = "qiskit-dynamics"
+
+html_context = {"version_list": ["0.4"]}
 
 # autodoc/autosummary options
 autosummary_generate = True
