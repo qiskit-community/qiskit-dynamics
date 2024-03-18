@@ -1,5 +1,0 @@
----
-fixes:
-  - |
-    Fixes bug in :meth:`DynamicsBackend.run` that caused miscounting of the number of classical
-    registers in a `QuantumCircuit` (issue #251).
