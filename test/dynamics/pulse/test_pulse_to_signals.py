@@ -378,7 +378,7 @@ class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
             )
             valid_amp_conditions_expr = sym.Abs(_amp) <= 1.0
             # we need to set disable_validation True to enable jax-jitting.
-            pulse.ScalableSymbolicPulse.disable_validation = True
+            pulse.SymbolicPulse.disable_validation = True
 
             instance = pulse.SymbolicPulse(
                 pulse_type="Constant",
@@ -408,6 +408,7 @@ class TestPulseToSignalsJAXTransformations(QiskitDynamicsTestCase, TestJaxBase):
                 (1, sym.And(_time >= 0, _time <= _duration)), (0, True)
             )
             valid_amp_conditions_expr = sym.Abs(_amp) <= 1.0
+            pulse.SymbolicPulse.disable_validation = True
             instance = pulse.SymbolicPulse(
                 pulse_type="Constant",
                 duration=5,
