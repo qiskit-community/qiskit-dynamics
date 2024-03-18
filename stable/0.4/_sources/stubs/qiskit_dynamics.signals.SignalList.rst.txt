@@ -1,0 +1,24 @@
+﻿SignalList
+==========
+
+.. currentmodule:: qiskit_dynamics.signals
+
+.. autoclass:: SignalList
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: SignalList.complex_value
+   .. automethod:: SignalList.conjugate
+   .. automethod:: SignalList.flatten
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: components
+   .. autoattribute:: drift

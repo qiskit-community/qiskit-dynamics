@@ -1,0 +1,33 @@
+﻿ArrayPolynomial
+===============
+
+.. currentmodule:: qiskit_dynamics.perturbation
+
+.. autoclass:: ArrayPolynomial
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: ArrayPolynomial.add
+   .. automethod:: ArrayPolynomial.compute_monomials
+   .. automethod:: ArrayPolynomial.conj
+   .. automethod:: ArrayPolynomial.matmul
+   .. automethod:: ArrayPolynomial.mul
+   .. automethod:: ArrayPolynomial.sum
+   .. automethod:: ArrayPolynomial.trace
+   .. automethod:: ArrayPolynomial.transpose
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: array_coefficients
+   .. autoattribute:: constant_term
+   .. autoattribute:: monomial_labels
+   .. autoattribute:: ndim
+   .. autoattribute:: real
+   .. autoattribute:: shape

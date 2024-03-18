@@ -1,0 +1,6 @@
+﻿qiskit\_dynamics.backend.parse\_backend\_hamiltonian\_dict
+==========================================================
+
+.. currentmodule:: qiskit_dynamics.backend
+
+.. autofunction:: parse_backend_hamiltonian_dict

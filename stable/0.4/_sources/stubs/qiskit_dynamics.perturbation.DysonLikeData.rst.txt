@@ -1,0 +1,23 @@
+﻿DysonLikeData
+=============
+
+.. currentmodule:: qiskit_dynamics.perturbation
+
+.. autoclass:: DysonLikeData
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: DysonLikeData.get_item
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: metadata
+   .. autoattribute:: data
+   .. autoattribute:: labels

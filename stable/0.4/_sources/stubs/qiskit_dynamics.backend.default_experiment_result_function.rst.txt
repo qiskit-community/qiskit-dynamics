@@ -1,0 +1,6 @@
+﻿qiskit\_dynamics.backend.default\_experiment\_result\_function
+==============================================================
+
+.. currentmodule:: qiskit_dynamics.backend
+
+.. autofunction:: default_experiment_result_function
