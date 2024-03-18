@@ -30,8 +30,6 @@ from arraylias.exceptions import LibraryError
 
 from qiskit import QiskitError
 
-from qiskit_dynamics.array import Array
-
 from .register_functions import (
     register_asarray,
     register_matmul,
@@ -45,10 +43,6 @@ from .register_functions import (
 # global NumPy and SciPy aliases
 DYNAMICS_NUMPY_ALIAS = numpy_alias()
 DYNAMICS_SCIPY_ALIAS = scipy_alias()
-
-DYNAMICS_NUMPY_ALIAS.register_type(Array, "numpy")
-DYNAMICS_SCIPY_ALIAS.register_type(Array, "numpy")
-
 
 DYNAMICS_NUMPY = DYNAMICS_NUMPY_ALIAS()
 DYNAMICS_SCIPY = DYNAMICS_SCIPY_ALIAS()
