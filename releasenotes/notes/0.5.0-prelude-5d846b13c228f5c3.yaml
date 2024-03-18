@@ -19,4 +19,5 @@ prelude: >
     Due to the scale of these changes, this release will generally break any pre-existing Dynamics
     code utilizing :class:`.Array` or any of the aformentioned model and solver arguments. The
     :class:`.Array` class and ``array`` and ``dispatch`` submodules have been deprecated, and will
-    be removed in ``0.6.0``. 
+    be removed in ``0.6.0``. The documentation for the previous release ``0.4.5`` can be still be
+    found `here <https://qiskit-extensions.github.io/qiskit-dynamics/stable/0.4/>`_.
