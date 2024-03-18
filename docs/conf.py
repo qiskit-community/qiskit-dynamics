@@ -59,8 +59,6 @@ html_last_updated_fmt = '%Y/%m/%d'
 
 docs_url_prefix = "qiskit-dynamics"
 
-html_context = {"version_list": ["0.4"]}
-
 # autodoc/autosummary options
 autosummary_generate = True
 autosummary_generate_overwrite = False
