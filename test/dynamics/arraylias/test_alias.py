@@ -41,7 +41,7 @@ except ImportError:
     pass
 
 
-@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+@test_array_backends
 class TestDynamicsNumpy:
     """Test cases for global numpy configuration."""
 
