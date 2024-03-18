@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="How-to use JAX with qiskit-dynamics" href="how_to_use_jax.html" /><link rel="prev" title="Simulating backends at the pulse-level with DynamicsBackend" href="../tutorials/dynamics_backend.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="How-to use different array libraries and types with Qiskit Dynamics" href="how_to_use_different_array_libraries.html" /><link rel="prev" title="Simulating backends at the pulse-level with DynamicsBackend" href="../tutorials/dynamics_backend.html" />
 
-    <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>Qiskit Dynamics User Guide - Qiskit Dynamics 0.4.5 documentation</title>
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>Qiskit Dynamics User Guide - Qiskit Dynamics 0.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -39,64 +39,7 @@
   }
 </style><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<script src="../_static/js/web-components/top-nav-bar.js"></script>
-<script>
-  (function () {
-    window._analytics = {
-      segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
-      coremetrics: false,
-      optimizely: false,
-      googleAddServices: false,
-      fullStory: false,
-      autoPageEventSpa: false,
-      autoFormEvents: false,
-      autoPageView: false
-    }
-
-    window.digitalData = {
-      page: {
-        pageInfo: {
-          productTitle: 'IBM Q Experience',
-          analytics: {
-            category: 'Qiskit.org'
-          }
-        }
-      }
-    }
-  }());
-</script>
-<script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
-<script>
-  (function () {
-    'use strict'
-
-    if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-    const category = window.digitalData.page.pageInfo.analytics.category
-    const productTitle = window.digitalData.page.pageInfo.productTitle
-    const routeName = 'documentation'
-
-    window.bluemixAnalytics.pageEvent(category, routeName, {
-      navigationType: 'pushState',
-      productTitle: productTitle,
-      title: document.title
-    })
-
-    window.trackCta = (action) => {
-      if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-      const category = window.digitalData.page.pageInfo.analytics.category
-      const productTitle = window.digitalData.page.pageInfo.productTitle
-
-      window.bluemixAnalytics.trackEvent('CTA Clicked', {
-        productTitle,
-        category,
-        CTA: action
-      })
-    }
-
-  }());
-</script></head>
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
   <body>
     
     <script>document.body.dataset.theme = "light";</script>
@@ -200,7 +143,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.5 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.5.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +170,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.5 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.5.0 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -244,10 +187,10 @@
 </ul>
 </li>
 <li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">User Guide</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="how_to_use_jax.html">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="how_to_configure_simulations.html">How-to customize simulations using model transformations and evaluation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by <code class="docutils literal notranslate"><span class="pre">qiskit-pulse</span></code> with JAX transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -294,6 +237,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../apidocs/arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/array.html">Array Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Array Module (qiskit_dynamics.array)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html">Array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.wrap.html">qiskit_dynamics.array.wrap</a></li>
@@ -313,7 +257,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
 </ul>
 
-</div></div>
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
       </div>
       
     </div>
@@ -343,33 +305,32 @@
           </label>
         </div>
         <article role="main">
-          <span class="target" id="module-qiskit_dynamics_userguide"><span id="qiskit-dynamics-userguide"></span></span><section id="qiskit-dynamics-user-guide">
-<h1>Qiskit Dynamics User Guide<a class="headerlink" href="#qiskit-dynamics-user-guide" title="Permalink to this heading">#</a></h1>
+          <section id="qiskit-dynamics-user-guide">
+<span id="module-qiskit_dynamics_userguide"></span><span id="qiskit-dynamics-userguide"></span><h1>Qiskit Dynamics User Guide<a class="headerlink" href="#qiskit-dynamics-user-guide" title="Link to this heading">#</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="how_to_use_jax.html">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a><ul>
-<li class="toctree-l2"><a class="reference internal" href="how_to_use_jax.html#how-do-i-configure-dynamics-to-run-with-jax">1. How do I configure dynamics to run with JAX?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how_to_use_jax.html#how-do-i-write-code-using-array-that-can-be-executed-with-either-numpy-or-jax">2. How do I write code using Array that can be executed with either <code class="docutils literal notranslate"><span class="pre">numpy</span></code> or JAX?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how_to_use_jax.html#how-do-i-write-jax-transformable-functions-using-the-objects-and-functions-in-qiskit-dynamics">3. How do I write JAX-transformable functions using the objects and functions in <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code>?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how_to_use_jax.html#pitfalls-when-using-jax-with-dynamics">4. Pitfalls when using JAX with Dynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="how_to_use_different_array_libraries.html#example-how-to-use-either-numpy-or-jax-when-building-a-signal">1. Example: How-to use either NumPy or JAX when building a <code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_use_different_array_libraries.html#how-to-use-the-qiskit-dynamics-numpy-and-scipy-aliased-libraries">2. How-to use the Qiskit Dynamics NumPy and SciPy aliased libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_use_different_array_libraries.html#how-to-write-jax-transformable-simulations">3. How-to write JAX-transformable simulations</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="how_to_configure_simulations.html">How-to customize simulations using model transformations and evaluation modes</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="how_to_configure_simulations.html#how-to-set-up-a-simulation-in-a-rotating-frame-and-its-potential-benefits">1. How-to set up a simulation in a rotating frame, and its potential benefits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_configure_simulations.html#how-to-perform-a-rotating-wave-approximation-and-its-potential-benefits">2. How-to perform a rotating wave approximation, and its potential benefits</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how_to_configure_simulations.html#how-to-use-a-sparse-evaluation-mode-and-how-to-appropriately-set-a-rotating-frame-to-preserve-sparsity">3. How-to use a sparse evaluation mode, and how-to appropriately set a rotating frame to preserve sparsity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_configure_simulations.html#how-to-use-a-sparse-array-library-and-how-to-appropriately-set-a-rotating-frame-to-preserve-sparsity">3. How-to use a sparse array library, and how-to appropriately set a rotating frame to preserve sparsity</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="perturbative_solvers.html#configure-to-use-jax">1. Configure to use JAX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="perturbative_solvers.html#configure-jax">1. Configure JAX</a></li>
 <li class="toctree-l2"><a class="reference internal" href="perturbative_solvers.html#construct-the-model">2. Construct the model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="perturbative_solvers.html#how-to-construct-and-simulate-using-the-dyson-based-perturbative-solver">3. How-to construct and simulate using the Dyson-based perturbative solver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="perturbative_solvers.html#comparison-to-traditional-ode-solver">4. Comparison to traditional ODE solver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="perturbative_solvers.html#how-to-construct-and-simulate-using-the-magnus-based-perturbation-solver">5. How-to construct and simulate using the Magnus-based perturbation solver</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by <code class="docutils literal notranslate"><span class="pre">qiskit-pulse</span></code> with JAX transformations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="how_to_use_pulse_schedule_for_jax_jit.html#configure-to-use-jax">1. Configure to use JAX</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="how_to_use_pulse_schedule_for_jax_jit.html#configure-jax">1. Configure JAX</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_use_pulse_schedule_for_jax_jit.html#how-to-define-a-gaussian-pulse-using-scalablesymbolicpulse">2. How to define a Gaussian pulse using <code class="xref py py-class docutils literal notranslate"><span class="pre">ScalableSymbolicPulse</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_use_pulse_schedule_for_jax_jit.html#jax-transforming-pulse-to-signal-conversion-involving-scalablesymbolicpulse">3. JAX transforming Pulse to Signal conversion involving <code class="xref py py-class docutils literal notranslate"><span class="pre">ScalableSymbolicPulse</span></code></a></li>
 </ul>
@@ -381,26 +342,13 @@
         </article>
       </div>
       <footer>
-        
-  <script>
-    function userFeedbackClicked(ctaType) {
-      document.getElementById('qiskit-analytics-thank-you').style.visibility = 'visible';
-      window.trackCta(`Helpful - ${ctaType}`);
-    }
-  </script>
-    <div class="qiskit-analytics-container">
-      <div>Was this page helpful?</div>
-      <a onclick="userFeedbackClicked('yes')">Yes</a>
-      <a onclick="userFeedbackClicked('no')">No</a>
-      <div id="qiskit-analytics-thank-you">Thank you!</div>
-    </div>
-<div class="related-pages">
-          <a class="next-page" href="how_to_use_jax.html">
+        <div class="related-pages">
+          <a class="next-page" href="how_to_use_different_array_libraries.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></div>
+                <div class="title">How-to use different array libraries and types with Qiskit Dynamics</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -425,7 +373,7 @@
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/02/02</div>
+              Last updated on 2024/03/18</div>
           </div>
           <div class="right-details">
             
@@ -442,9 +390,9 @@
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=16716fad"></script>
+    <script src="../_static/documentation_options.js?v=1dd76d02"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>

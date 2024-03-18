@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Release Notes" href="../release_notes.html" /><link rel="prev" title="Dynamics Discussions" href="index.html" />
 
-    <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>Time-dependent perturbation theory and multi-variable series expansions review - Qiskit Dynamics 0.4.5 documentation</title>
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>Time-dependent perturbation theory and multi-variable series expansions review - Qiskit Dynamics 0.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -39,64 +39,7 @@
   }
 </style><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<script src="../_static/js/web-components/top-nav-bar.js"></script>
-<script>
-  (function () {
-    window._analytics = {
-      segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
-      coremetrics: false,
-      optimizely: false,
-      googleAddServices: false,
-      fullStory: false,
-      autoPageEventSpa: false,
-      autoFormEvents: false,
-      autoPageView: false
-    }
-
-    window.digitalData = {
-      page: {
-        pageInfo: {
-          productTitle: 'IBM Q Experience',
-          analytics: {
-            category: 'Qiskit.org'
-          }
-        }
-      }
-    }
-  }());
-</script>
-<script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
-<script>
-  (function () {
-    'use strict'
-
-    if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-    const category = window.digitalData.page.pageInfo.analytics.category
-    const productTitle = window.digitalData.page.pageInfo.productTitle
-    const routeName = 'documentation'
-
-    window.bluemixAnalytics.pageEvent(category, routeName, {
-      navigationType: 'pushState',
-      productTitle: productTitle,
-      title: document.title
-    })
-
-    window.trackCta = (action) => {
-      if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-      const category = window.digitalData.page.pageInfo.analytics.category
-      const productTitle = window.digitalData.page.pageInfo.productTitle
-
-      window.bluemixAnalytics.trackEvent('CTA Clicked', {
-        productTitle,
-        category,
-        CTA: action
-      })
-    }
-
-  }());
-</script></head>
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
   <body>
     
     <script>document.body.dataset.theme = "light";</script>
@@ -200,7 +143,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.5 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.5.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +170,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.5 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.5.0 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -244,10 +187,10 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../userguide/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_jax.html">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and evaluation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../userguide/perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by <code class="docutils literal notranslate"><span class="pre">qiskit-pulse</span></code> with JAX transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -294,6 +237,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../apidocs/arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/array.html">Array Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Array Module (qiskit_dynamics.array)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html">Array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.wrap.html">qiskit_dynamics.array.wrap</a></li>
@@ -313,7 +257,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
 </ul>
 
-</div></div>
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
       </div>
       
     </div>
@@ -344,20 +306,18 @@
         </div>
         <article role="main">
           <section id="time-dependent-perturbation-theory-and-multi-variable-series-expansions-review">
-<span id="perturbation-review"></span><h1>Time-dependent perturbation theory and multi-variable series expansions review<a class="headerlink" href="#time-dependent-perturbation-theory-and-multi-variable-series-expansions-review" title="Permalink to this heading">#</a></h1>
-<p>The <a class="reference internal" href="../apidocs/perturbation.html#module-qiskit_dynamics.perturbation" title="qiskit_dynamics.perturbation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">perturbation</span></code></a> module contains functionality for
-numerically computing perturbation theory expansions used in the study of the
-dynamics of quantum systems. Following <a class="footnote-reference brackets" href="#footcite-puzzuoli-sensitivity-2022" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>,
-this discussion reviews key concepts required
-to understand and utilize the module, including the Dyson series and Magnus expansion,
-their generalization to a multi-variable setting, and the notation used to represent
-multi-variable power series in terms of multisets.</p>
+<span id="perturbation-review"></span><h1>Time-dependent perturbation theory and multi-variable series expansions review<a class="headerlink" href="#time-dependent-perturbation-theory-and-multi-variable-series-expansions-review" title="Link to this heading">#</a></h1>
+<p>The <a class="reference internal" href="../apidocs/perturbation.html#module-qiskit_dynamics.perturbation" title="qiskit_dynamics.perturbation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">perturbation</span></code></a> module contains functionality for numerically computing perturbation theory
+expansions used in the study of the dynamics of quantum systems. Following
+<a class="footnote-reference brackets" href="#footcite-puzzuoli-algorithms-2023" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, this discussion reviews key concepts required to understand
+and utilize the module, including the Dyson series and Magnus expansion, their generalization to a
+multi-variable setting, and the notation used to represent multi-variable power series in terms of
+multisets.</p>
 <section id="the-dyson-series-and-magnus-expansion">
-<h2>The Dyson series and Magnus expansion<a class="headerlink" href="#the-dyson-series-and-magnus-expansion" title="Permalink to this heading">#</a></h2>
+<h2>The Dyson series and Magnus expansion<a class="headerlink" href="#the-dyson-series-and-magnus-expansion" title="Link to this heading">#</a></h2>
 <p>The Dyson series <a class="footnote-reference brackets" href="#footcite-dyson-radiation-1949" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> and Magnus expansion
-<a class="footnote-reference brackets" href="#footcite-magnus-exponential-1954" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a><a class="footnote-reference brackets" href="#footcite-blanes-magnus-2009" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>
-are time-dependent perturbation theory expansions for solutions of linear matrix differential
-equations (LMDEs). For an LMDE</p>
+<a class="footnote-reference brackets" href="#footcite-magnus-exponential-1954" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a><a class="footnote-reference brackets" href="#footcite-blanes-magnus-2009" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a> are time-dependent perturbation theory
+expansions for solutions of linear matrix differential equations (LMDEs). For an LMDE</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[\dot{U}(t) = G(t)U(t)\]</div>
@@ -374,9 +334,8 @@ D_k(t) &amp;= \int_0^t dt_1 \dots \int_0^{t_{k-1}} dt_k G(t_1) \dots G(t_k).\end
 <div class="math notranslate nohighlight">
 \[U(t) = \exp(\Omega(t)).\]</div>
 </div>
-<p>The Magnus expansion provides
-a series expansion, which, under certain conditions <a class="footnote-reference brackets" href="#footcite-blanes-magnus-2009" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>,
-converges to <span class="math notranslate nohighlight">\(\Omega(t)\)</span>:</p>
+<p>The Magnus expansion provides a series expansion, which, under certain conditions
+<a class="footnote-reference brackets" href="#footcite-blanes-magnus-2009" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>, converges to <span class="math notranslate nohighlight">\(\Omega(t)\)</span>:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[\Omega(t) = \sum_{k=1}^\infty \Omega_k(t),\]</div>
@@ -385,16 +344,15 @@ converges to <span class="math notranslate nohighlight">\(\Omega(t)\)</span>:</p
 <a class="footnote-reference brackets" href="#footcite-blanes-magnus-2009" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>.</p>
 </section>
 <section id="generalizing-to-the-multi-variable-case">
-<h2>Generalizing to the multi-variable case<a class="headerlink" href="#generalizing-to-the-multi-variable-case" title="Permalink to this heading">#</a></h2>
-<p>In applications, these expansions are often used in a <em>multi-variable</em> setting, in which
-the generator <span class="math notranslate nohighlight">\(G(t)\)</span> depends on several variables <span class="math notranslate nohighlight">\(c_0, \dots, c_{r-1}\)</span>,
-and the Dyson series or Magnus expansion are used to understand how the evolution changes
-under perturbations to several of these parameters simultaneously. For working with
-these expansions algorithmically it is necessary to formalize
-the expression of these expansions in the multi-variable setting.</p>
-<p>Mathematically, we explicitly write the generator as a function of these variables
-<span class="math notranslate nohighlight">\(G(t, c_0, \dots, c_{r-1})\)</span>, and expand <span class="math notranslate nohighlight">\(G\)</span> in a
-multi-variable power series in the variables <span class="math notranslate nohighlight">\(c_i\)</span>:</p>
+<h2>Generalizing to the multi-variable case<a class="headerlink" href="#generalizing-to-the-multi-variable-case" title="Link to this heading">#</a></h2>
+<p>In applications, these expansions are often used in a <em>multi-variable</em> setting, in which the
+generator <span class="math notranslate nohighlight">\(G(t)\)</span> depends on several variables <span class="math notranslate nohighlight">\(c_0, \dots, c_{r-1}\)</span>, and the Dyson
+series or Magnus expansion are used to understand how the evolution changes under perturbations to
+several of these parameters simultaneously. For working with these expansions algorithmically it is
+necessary to formalize the expression of these expansions in the multi-variable setting.</p>
+<p>Mathematically, we explicitly write the generator as a function of these variables <span class="math notranslate nohighlight">\(G(t, c_0,
+\dots, c_{r-1})\)</span>, and expand <span class="math notranslate nohighlight">\(G\)</span> in a multi-variable power series in the variables
+<span class="math notranslate nohighlight">\(c_i\)</span>:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[G(t, c_0, \dots, c_{r-1}) =
@@ -402,19 +360,19 @@ G_\emptyset(t) +
 \sum_{k=1}^\infty \sum_{0 \leq i_1 \leq \dots \leq i_k \leq r-1}
 c_{i_1} \dots c_{i_k} G_{i_1, \dots, i_k}(t).\]</div>
 </div>
-<p>For physical applications we take the existence of such a power series for granted:
-up to constant factors, the coefficients <span class="math notranslate nohighlight">\(G_{i_1, \dots, i_k}(t)\)</span> are the partial
-derivatives of <span class="math notranslate nohighlight">\(G\)</span> with respect to the variables <span class="math notranslate nohighlight">\(c_i\)</span>. Commonly, <span class="math notranslate nohighlight">\(G\)</span>
-depends linearly on the variables, e.g. when representing couplings between quantum systems.</p>
-<p>Before defining the multi-variable Dyson series and Magnus expansions, we transform
-the generator into the <em>toggling frame</em> of <span class="math notranslate nohighlight">\(G_\emptyset(t)\)</span>
+<p>For physical applications we take the existence of such a power series for granted: up to constant
+factors, the coefficients <span class="math notranslate nohighlight">\(G_{i_1, \dots, i_k}(t)\)</span> are the partial derivatives of <span class="math notranslate nohighlight">\(G\)</span>
+with respect to the variables <span class="math notranslate nohighlight">\(c_i\)</span>. Commonly, <span class="math notranslate nohighlight">\(G\)</span> depends linearly on the variables,
+e.g. when representing couplings between quantum systems.</p>
+<p>Before defining the multi-variable Dyson series and Magnus expansions, we transform the generator
+into the <em>toggling frame</em> of <span class="math notranslate nohighlight">\(G_\emptyset(t)\)</span>
 <a class="footnote-reference brackets" href="#footcite-evans-timedependent-1967" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a><a class="footnote-reference brackets" href="#footcite-haeberlen-1968" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>. Denoting</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[V(t) = \mathcal{T}\exp\left(\int_{t_0}^t ds G_\emptyset(s)\right),\]</div>
 </div>
-<p>the generator <span class="math notranslate nohighlight">\(G\)</span> in the toggling frame of <span class="math notranslate nohighlight">\(G_\emptyset(t)\)</span>,
-the unperturbed generator, is given by:</p>
+<p>the generator <span class="math notranslate nohighlight">\(G\)</span> in the toggling frame of <span class="math notranslate nohighlight">\(G_\emptyset(t)\)</span>, the unperturbed generator,
+is given by:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[\begin{split}\tilde{G}(t, c_0, \dots, c_{r-1}) &amp;=
@@ -422,25 +380,25 @@ the unperturbed generator, is given by:</p>
 c_{i_1} \dots c_{i_k} \tilde{G}_{i_1, \dots, i_k}(t)\textnormal{, with} \\
 \tilde{G}_{i_1, \dots, i_k}(t) &amp;= V^{-1}(t) G_{i_1, \dots, i_k}(t)V(t)\end{split}\]</div>
 </div>
-<p>Denoting <span class="math notranslate nohighlight">\(U(t, c_0, \dots, c_{r-1})\)</span> as the solution of the LMDE with
-generator <span class="math notranslate nohighlight">\(\tilde{G}\)</span>, note that</p>
+<p>Denoting <span class="math notranslate nohighlight">\(U(t, c_0, \dots, c_{r-1})\)</span> as the solution of the LMDE with generator
+<span class="math notranslate nohighlight">\(\tilde{G}\)</span>, note that</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[U(t, c_0, \dots, c_{r-1}) =
 V(t)\mathcal{T}\exp\left(\int_{t_0}^t ds \tilde{G}(s, c_0, \dots, c_{r-1})\right),\]</div>
 </div>
 <p>and hence solution for <span class="math notranslate nohighlight">\(G\)</span> and <span class="math notranslate nohighlight">\(\tilde{G}\)</span> are simply related by <span class="math notranslate nohighlight">\(V(t)\)</span>.</p>
-<p>Using this, <a class="footnote-reference brackets" href="#footcite-puzzuoli-sensitivity-2022" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> defines the multi-variable Dyson series
-for the generator <span class="math notranslate nohighlight">\(\tilde{G}(t, c_0, \dots, c_{r-1})\)</span> as:</p>
+<p>Using this, <a class="footnote-reference brackets" href="#footcite-puzzuoli-algorithms-2023" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> defines the multi-variable Dyson series for the
+generator <span class="math notranslate nohighlight">\(\tilde{G}(t, c_0, \dots, c_{r-1})\)</span> as:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[U(t, c_0, \dots, c_{r-1}) = I +
 \sum_{k=1}^\infty \sum_{0 \leq i_1 \leq \dots \leq i_k \leq r-1}
 c_{i_1} \dots c_{i_k} \mathcal{D}_{i_1, \dots, i_k}(t),\]</div>
 </div>
-<p>where the <span class="math notranslate nohighlight">\(\mathcal{D}_{i_1, \dots, i_k}(t)\)</span> are defined implicitly by the above
-equation, and are called the <em>multi-variable Dyson series terms</em>. Similarly the
-multi-variable Magnus expansion for <span class="math notranslate nohighlight">\(\tilde{G}\)</span> is given as:</p>
+<p>where the <span class="math notranslate nohighlight">\(\mathcal{D}_{i_1, \dots, i_k}(t)\)</span> are defined implicitly by the above equation, and
+are called the <em>multi-variable Dyson series terms</em>. Similarly the multi-variable Magnus expansion
+for <span class="math notranslate nohighlight">\(\tilde{G}\)</span> is given as:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[\Omega(t, c_0, \dots, c_{r-1}) =
@@ -451,36 +409,35 @@ c_{i_1} \dots c_{i_k} \mathcal{O}_{i_1, \dots, i_k}(t),\]</div>
 <em>multi-variable Magnus expansion terms</em>.</p>
 </section>
 <section id="computing-multi-variable-dyson-series-and-magnus-expansion-terms">
-<h2>Computing multi-variable Dyson series and Magnus expansion terms<a class="headerlink" href="#computing-multi-variable-dyson-series-and-magnus-expansion-terms" title="Permalink to this heading">#</a></h2>
-<p>Given a power series decomposition of the generator as above,
-the function <a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.solve_lmde_perturbation.html#qiskit_dynamics.perturbation.solve_lmde_perturbation" title="qiskit_dynamics.perturbation.solve_lmde_perturbation"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_lmde_perturbation()</span></code></a> computes,
-in the toggling frame of the unperturbed generator, either multi-variable
-Dyson series or Magnus expansion terms via the algorithms in
-<a class="footnote-reference brackets" href="#footcite-puzzuoli-sensitivity-2022" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. It can also be used to compute Dyson-like terms via
-the algorithm in <a class="footnote-reference brackets" href="#footcite-haas-engineering-2019" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a>. In the presentation here and elsewhere,
-the expansions are phrased as infinite series, but of course in practice truncated
-versions must be specified and computed.</p>
-<p>Utilizing this function, and working with the other objects in the module, requires
-understanding the notation and data structures used to represent power series.</p>
+<h2>Computing multi-variable Dyson series and Magnus expansion terms<a class="headerlink" href="#computing-multi-variable-dyson-series-and-magnus-expansion-terms" title="Link to this heading">#</a></h2>
+<p>Given a power series decomposition of the generator as above, the function
+<a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.solve_lmde_perturbation.html#qiskit_dynamics.perturbation.solve_lmde_perturbation" title="qiskit_dynamics.perturbation.solve_lmde_perturbation"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_lmde_perturbation()</span></code></a> computes, in the toggling frame of the unperturbed generator,
+either multi-variable Dyson series or Magnus expansion terms via the algorithms in
+<a class="footnote-reference brackets" href="#footcite-puzzuoli-algorithms-2023" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. It can also be used to compute Dyson-like terms via the
+algorithm in <a class="footnote-reference brackets" href="#footcite-haas-engineering-2019" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a>. In the presentation here and elsewhere, the
+expansions are phrased as infinite series, but of course in practice truncated versions must be
+specified and computed.</p>
+<p>Utilizing this function, and working with the other objects in the module, requires understanding
+the notation and data structures used to represent power series.</p>
 </section>
 <section id="multiset-power-series-notation">
-<span id="multiset-power-series"></span><h2>Multiset power series notation<a class="headerlink" href="#multiset-power-series-notation" title="Permalink to this heading">#</a></h2>
-<p>Following <a class="footnote-reference brackets" href="#footcite-puzzuoli-sensitivity-2022" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, the <a class="reference internal" href="../apidocs/perturbation.html#module-qiskit_dynamics.perturbation" title="qiskit_dynamics.perturbation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">perturbation</span></code></a>
-module utilizes a <em>multiset</em> notation to more compactly represent and work with power series.</p>
+<span id="multiset-power-series"></span><h2>Multiset power series notation<a class="headerlink" href="#multiset-power-series-notation" title="Link to this heading">#</a></h2>
+<p>Following <a class="footnote-reference brackets" href="#footcite-puzzuoli-algorithms-2023" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, the <a class="reference internal" href="../apidocs/perturbation.html#module-qiskit_dynamics.perturbation" title="qiskit_dynamics.perturbation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">perturbation</span></code></a> module utilizes a
+<em>multiset</em> notation to more compactly represent and work with power series.</p>
 <p>Consider the power series expansion above for the generator <span class="math notranslate nohighlight">\(G(t, c_0, \dots, c_{r-1})\)</span>.
-Structurally, each term in the power series is labelled by the number of times each
-variable <span class="math notranslate nohighlight">\(c_0, \dots, c_{r-1}\)</span> appears in the product <span class="math notranslate nohighlight">\(c_{i_1} \dots c_{i_k}\)</span>.
-Equivalently, each term may be indexed by the number of times each variable label
-<span class="math notranslate nohighlight">\(0, \dots, r-1\)</span> appears. The data structure used to represent these labels in this
-module is that of a <em>multiset</em>, i.e. a “set with repeated entries”. Denoting multisets
-with round brackets, e.g. <span class="math notranslate nohighlight">\(I = (i_1, \dots, i_k)\)</span>, we define</p>
+Structurally, each term in the power series is labelled by the number of times each variable
+<span class="math notranslate nohighlight">\(c_0, \dots, c_{r-1}\)</span> appears in the product <span class="math notranslate nohighlight">\(c_{i_1} \dots c_{i_k}\)</span>. Equivalently, each
+term may be indexed by the number of times each variable label <span class="math notranslate nohighlight">\(0, \dots, r-1\)</span> appears. The
+data structure used to represent these labels in this module is that of a <em>multiset</em>, i.e. a “set
+with repeated entries”. Denoting multisets with round brackets, e.g. <span class="math notranslate nohighlight">\(I = (i_1, \dots, i_k)\)</span>,
+we define</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[c_I = c_{i_1} \times \dots \times c_{i_k}.\]</div>
 </div>
-<p>and similarly denote <span class="math notranslate nohighlight">\(G_I = G_{i_1, \dots, i_k}\)</span>. This notation is chosen due to
-the simple relationship between algebraic operations and multiset operations. E.g.,
-for two multisets <span class="math notranslate nohighlight">\(I, J\)</span>, it holds that:</p>
+<p>and similarly denote <span class="math notranslate nohighlight">\(G_I = G_{i_1, \dots, i_k}\)</span>. This notation is chosen due to the simple
+relationship between algebraic operations and multiset operations. E.g., for two multisets <span class="math notranslate nohighlight">\(I,
+J\)</span>, it holds that:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[c_{I + J} = c_I \times c_J,\]</div>
@@ -495,9 +452,8 @@ for two multisets <span class="math notranslate nohighlight">\(I, J\)</span>, it
 <li><p><span class="math notranslate nohighlight">\(c_{(1, 2, 2, 3)} = c_1 c_2^2 c_3\)</span>.</p></li>
 </ul>
 </div></blockquote>
-<p>Finally, we denote the set of multisets of size $k$ with elements in <span class="math notranslate nohighlight">\(\{0, \dots, r-1\}\)</span>
-as <span class="math notranslate nohighlight">\(\mathcal{I}_k(r)\)</span>. Combining everything, the power series for <span class="math notranslate nohighlight">\(G\)</span> may be
-rewritten as:</p>
+<p>Finally, we denote the set of multisets of size $k$ with elements in <span class="math notranslate nohighlight">\(\{0, \dots, r-1\}\)</span> as
+<span class="math notranslate nohighlight">\(\mathcal{I}_k(r)\)</span>. Combining everything, the power series for <span class="math notranslate nohighlight">\(G\)</span> may be rewritten as:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[G(t, c_0, \dots, c_{r-1}) = G_\emptyset(t)
@@ -515,18 +471,17 @@ rewritten as:</p>
 \[\Omega(t, c_0, \dots, c_{r-1}) =
         \sum_{k=1}^\infty \sum_{I \in \mathcal{I}_k(r)} c_I \mathcal{O}_I(t).\]</div>
 </div>
-<p>In the module, multisets are represented using the <code class="docutils literal notranslate"><span class="pre">Multiset</span></code> object in the
-<a class="reference external" href="https://pypi.org/project/multiset/">multiset package</a>. Arguments to functions
-which must specify a multiset or a list of multisets accept either <code class="docutils literal notranslate"><span class="pre">Multiset</span></code> instances
-directly, or a valid argument to the constructor to <code class="docutils literal notranslate"><span class="pre">Multiset</span></code>, with the restriction that
-the multiset entries must be non-negative integers.</p>
+<p>In the module, multisets are represented using the <code class="docutils literal notranslate"><span class="pre">Multiset</span></code> object in the <a class="reference external" href="https://pypi.org/project/multiset/">multiset package</a>. Arguments to functions which must specify a multiset or a
+list of multisets accept either <code class="docutils literal notranslate"><span class="pre">Multiset</span></code> instances directly, or a valid argument to the
+constructor to <code class="docutils literal notranslate"><span class="pre">Multiset</span></code>, with the restriction that the multiset entries must be non-negative
+integers.</p>
 <div class="docutils container" id="id13">
 <p class="rubric">References</p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="footcite-puzzuoli-sensitivity-2022" role="doc-footnote">
+<aside class="footnote brackets" id="footcite-puzzuoli-algorithms-2023" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id9">2</a>,<a role="doc-backlink" href="#id10">3</a>,<a role="doc-backlink" href="#id12">4</a>)</span>
-<p>D. Puzzuoli, S. F. Lin, M. Malekakhlagh, E. Pritchett, B. Rosand, and C. J. Wood. Algorithms for perturbative analysis and simulation of quantum dynamics. <em>arXiv:2210.11595</em>, 2022. <a class="reference external" href="https://doi.org/10.48550/arXiv.2210.11595">doi:10.48550/arXiv.2210.11595</a>.</p>
+<p>D. Puzzuoli, S. F. Lin, M. Malekakhlagh, E. Pritchett, B. Rosand, and C. J. Wood. Algorithms for perturbative analysis and simulation of quantum dynamics. <em>Journal of Computational Physics</em>, 2023. <a class="reference external" href="https://doi.org/10.1016/j.jcp.2023.112262">doi:10.1016/j.jcp.2023.112262</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-dyson-radiation-1949" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
@@ -561,20 +516,7 @@ the multiset entries must be non-negative integers.</p>
         </article>
       </div>
       <footer>
-        
-  <script>
-    function userFeedbackClicked(ctaType) {
-      document.getElementById('qiskit-analytics-thank-you').style.visibility = 'visible';
-      window.trackCta(`Helpful - ${ctaType}`);
-    }
-  </script>
-    <div class="qiskit-analytics-container">
-      <div>Was this page helpful?</div>
-      <a onclick="userFeedbackClicked('yes')">Yes</a>
-      <a onclick="userFeedbackClicked('no')">No</a>
-      <div id="qiskit-analytics-thank-you">Thank you!</div>
-    </div>
-<div class="related-pages">
+        <div class="related-pages">
           <a class="next-page" href="../release_notes.html">
               <div class="page-info">
                 <div class="context">
@@ -605,7 +547,7 @@ the multiset entries must be non-negative integers.</p>
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/02/02</div>
+              Last updated on 2024/03/18</div>
           </div>
           <div class="right-details">
             
@@ -644,9 +586,9 @@ the multiset entries must be non-negative integers.</p>
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=16716fad"></script>
+    <script src="../_static/documentation_options.js?v=1dd76d02"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>

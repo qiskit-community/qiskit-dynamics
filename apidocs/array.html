@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Array" href="../stubs/qiskit_dynamics.array.Array.html" /><link rel="prev" title="DysonLikeData" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Array" href="../stubs/qiskit_dynamics.array.Array.html" /><link rel="prev" title="Arraylias (qiskit_dynamics.arraylias)" href="arraylias.html" />
 
-    <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>Array Module (qiskit_dynamics.array) - Qiskit Dynamics 0.4.5 documentation</title>
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>Array Module (qiskit_dynamics.array) - Qiskit Dynamics 0.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -39,64 +39,7 @@
   }
 </style><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<script src="../_static/js/web-components/top-nav-bar.js"></script>
-<script>
-  (function () {
-    window._analytics = {
-      segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
-      coremetrics: false,
-      optimizely: false,
-      googleAddServices: false,
-      fullStory: false,
-      autoPageEventSpa: false,
-      autoFormEvents: false,
-      autoPageView: false
-    }
-
-    window.digitalData = {
-      page: {
-        pageInfo: {
-          productTitle: 'IBM Q Experience',
-          analytics: {
-            category: 'Qiskit.org'
-          }
-        }
-      }
-    }
-  }());
-</script>
-<script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
-<script>
-  (function () {
-    'use strict'
-
-    if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-    const category = window.digitalData.page.pageInfo.analytics.category
-    const productTitle = window.digitalData.page.pageInfo.productTitle
-    const routeName = 'documentation'
-
-    window.bluemixAnalytics.pageEvent(category, routeName, {
-      navigationType: 'pushState',
-      productTitle: productTitle,
-      title: document.title
-    })
-
-    window.trackCta = (action) => {
-      if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-      const category = window.digitalData.page.pageInfo.analytics.category
-      const productTitle = window.digitalData.page.pageInfo.productTitle
-
-      window.bluemixAnalytics.trackEvent('CTA Clicked', {
-        productTitle,
-        category,
-        CTA: action
-      })
-    }
-
-  }());
-</script></head>
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
   <body>
     
     <script>document.body.dataset.theme = "light";</script>
@@ -200,7 +143,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.5 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.5.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +170,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.5 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.5.0 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -244,10 +187,10 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../userguide/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_jax.html">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and evaluation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../userguide/perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by <code class="docutils literal notranslate"><span class="pre">qiskit-pulse</span></code> with JAX transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
@@ -294,6 +237,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
 <li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">Array Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code>)</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Array Module (qiskit_dynamics.array)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html">Array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.wrap.html">qiskit_dynamics.array.wrap</a></li>
@@ -313,7 +257,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
 </ul>
 
-</div></div>
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
       </div>
       
     </div>
@@ -343,13 +305,23 @@
           </label>
         </div>
         <article role="main">
-          <span class="target" id="module-qiskit_dynamics.array"><span id="qiskit-dynamics-array"></span></span><section id="array-module-qiskit-dynamics-array">
-<h1>Array Module (<a class="reference internal" href="#module-qiskit_dynamics.array" title="qiskit_dynamics.array"><code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code></a>)<a class="headerlink" href="#array-module-qiskit-dynamics-array" title="Permalink to this heading">#</a></h1>
+          <section id="array-module-qiskit-dynamics-array">
+<span id="module-qiskit_dynamics.array"></span><span id="qiskit-dynamics-array"></span><h1>Array Module (<a class="reference internal" href="#module-qiskit_dynamics.array" title="qiskit_dynamics.array"><code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code></a>)<a class="headerlink" href="#array-module-qiskit-dynamics-array" title="Link to this heading">#</a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">array</span></code> and <code class="docutils literal notranslate"><span class="pre">dispatch</span></code> submodules of Qiskit Dynamics have been deprecated as of version
+0.5.0. The use of the <code class="docutils literal notranslate"><span class="pre">Array</span></code> class is no longer required to work with different array
+libraries in Qiskit Dynamics, and is broken in some cases. Refer to the <a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html#how-to-use-different-array-libraries"><span class="std std-ref">user guide entry
+on using different array libraries with Qiskit Dynamics</span></a>.
+Users can now work directly with the supported array type of their choice, without the need to
+wrap them to enable dispatching. The <code class="docutils literal notranslate"><span class="pre">array</span></code> and <code class="docutils literal notranslate"><span class="pre">dispatch</span></code> submodules will be removed in
+version 0.6.0.</p>
+</div>
 <p>This module contains an <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> class that wraps N-dimensional array objects from different
 libraries. It enables working with different array libraries through a common NumPy-based interface,
 along with other functionality for writing array-library agnostic code.</p>
 <section id="array-class">
-<h2>Array Class<a class="headerlink" href="#array-class" title="Permalink to this heading">#</a></h2>
+<h2>Array Class<a class="headerlink" href="#array-class" title="Link to this heading">#</a></h2>
 <p>The <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> class provides a NumPy compatible wrapper to supported Python array libraries.
 NumPy functions applied to an <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> class instance will be dispatched to the corresponding
 function for the current Array backend, if a compatible function has been specified in the
@@ -361,7 +333,11 @@ function for the current Array backend, if a compatible function has been specif
 <li><p><a class="reference external" href="https://github.com/google/jax">JAX</a></p></li>
 </ul>
 <section id="basic-usage">
-<h3>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this heading">#</a></h3>
+<h3>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">#</a></h3>
+<div class="jupyter_cell docutils container">
+<div class="cell_output docutils container">
+</div>
+</div>
 <p>When using the default <code class="docutils literal notranslate"><span class="pre">numpy</span></code> backend <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, objects can be used interchangably with
 <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>. When <code class="docutils literal notranslate"><span class="pre">numpy</span></code> functions are applied to an <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> object the return type
 will be an <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> instead of an <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>.</p>
@@ -393,7 +369,7 @@ library that have been registered with the dispatch module can be applied to the
 to apply an unsupported <code class="docutils literal notranslate"><span class="pre">numpy</span></code> function to these arrays will raise an exception.</p>
 </section>
 <section id="default-backend">
-<h3>Default Backend<a class="headerlink" href="#default-backend" title="Permalink to this heading">#</a></h3>
+<h3>Default Backend<a class="headerlink" href="#default-backend" title="Link to this heading">#</a></h3>
 <p>When initializing a new <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, the <code class="docutils literal notranslate"><span class="pre">backend</span></code> kwarg is used to specify which array backend
 to use. This will convert the input data to an array of this backend if required. If
 <code class="docutils literal notranslate"><span class="pre">backend=None</span></code>, the default backend will be used. The initial default backend is always set to
@@ -403,7 +379,7 @@ different default backend can be set for all <a class="reference internal" href=
 <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array.set_default_backend" title="qiskit_dynamics.array.Array.set_default_backend"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Array.set_default_backend()</span></code></a> class method.</p>
 </section>
 <section id="attributes-and-methods">
-<h3>Attributes and Methods<a class="headerlink" href="#attributes-and-methods" title="Permalink to this heading">#</a></h3>
+<h3>Attributes and Methods<a class="headerlink" href="#attributes-and-methods" title="Link to this heading">#</a></h3>
 <p>The <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> class exposes the same methods and attributes of the wrapped array class and adds
 two additional attributes:</p>
 <ul class="simple">
@@ -428,7 +404,7 @@ any array return types wrapped into <a class="reference internal" href="../stubs
 </div>
 </section>
 <section id="array-initialization">
-<h3>Array Initialization<a class="headerlink" href="#array-initialization" title="Permalink to this heading">#</a></h3>
+<h3>Array Initialization<a class="headerlink" href="#array-initialization" title="Link to this heading">#</a></h3>
 <p>An <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> object can be initialized as <code class="docutils literal notranslate"><span class="pre">Array(data)</span></code> from any <code class="docutils literal notranslate"><span class="pre">data</span></code> that is:</p>
 <ol class="arabic">
 <li><p>An <code class="docutils literal notranslate"><span class="pre">array</span></code> object of one of the supported backends.</p></li>
@@ -459,11 +435,11 @@ input data type if it is a backend array instance, otherwise it will be the
 </section>
 </section>
 <section id="using-arrays-with-other-libraries">
-<h2>Using Arrays with other Libraries<a class="headerlink" href="#using-arrays-with-other-libraries" title="Permalink to this heading">#</a></h2>
+<h2>Using Arrays with other Libraries<a class="headerlink" href="#using-arrays-with-other-libraries" title="Link to this heading">#</a></h2>
 <p>The <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> class is intended to be used with array functions in
 Python libraries that work with any of the supported Array backends.</p>
 <section id="wrapping-functions">
-<h3>Wrapping Functions<a class="headerlink" href="#wrapping-functions" title="Permalink to this heading">#</a></h3>
+<h3>Wrapping Functions<a class="headerlink" href="#wrapping-functions" title="Link to this heading">#</a></h3>
 <p>Functions from other libraries can be wrapped to work with Array objects using
 the <a class="reference internal" href="../stubs/qiskit_dynamics.array.wrap.html#qiskit_dynamics.array.wrap" title="qiskit_dynamics.array.wrap"><code class="xref py py-func docutils literal notranslate"><span class="pre">wrap()</span></code></a> function as</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span><span class="p">,</span> <span class="n">wrap</span>
@@ -486,7 +462,7 @@ function will return this as an Array object. Similarly, if the result is a tupl
 this conversion will be applied to each element of the tuple where appropriate.</p>
 </section>
 <section id="wrapping-decorators">
-<h3>Wrapping Decorators<a class="headerlink" href="#wrapping-decorators" title="Permalink to this heading">#</a></h3>
+<h3>Wrapping Decorators<a class="headerlink" href="#wrapping-decorators" title="Link to this heading">#</a></h3>
 <p>The <a class="reference internal" href="../stubs/qiskit_dynamics.array.wrap.html#qiskit_dynamics.array.wrap" title="qiskit_dynamics.array.wrap"><code class="xref py py-func docutils literal notranslate"><span class="pre">wrap()</span></code></a> function can also be used to wrap function decorators by setting
 the <code class="docutils literal notranslate"><span class="pre">decorator=True</span></code> kwarg.</p>
 <p>For example, to wrap autograd and jit decorators from the JAX library to work with
@@ -505,7 +481,7 @@ Array functions, we can do the following</p>
 </section>
 </section>
 <section id="id1">
-<h2>Array Class<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h2>
+<h2>Array Class<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -517,7 +493,7 @@ Array functions, we can do the following</p>
 </div>
 </section>
 <section id="array-functions">
-<h2>Array Functions<a class="headerlink" href="#array-functions" title="Permalink to this heading">#</a></h2>
+<h2>Array Functions<a class="headerlink" href="#array-functions" title="Link to this heading">#</a></h2>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -533,20 +509,7 @@ Array functions, we can do the following</p>
         </article>
       </div>
       <footer>
-        
-  <script>
-    function userFeedbackClicked(ctaType) {
-      document.getElementById('qiskit-analytics-thank-you').style.visibility = 'visible';
-      window.trackCta(`Helpful - ${ctaType}`);
-    }
-  </script>
-    <div class="qiskit-analytics-container">
-      <div>Was this page helpful?</div>
-      <a onclick="userFeedbackClicked('yes')">Yes</a>
-      <a onclick="userFeedbackClicked('no')">No</a>
-      <div id="qiskit-analytics-thank-you">Thank you!</div>
-    </div>
-<div class="related-pages">
+        <div class="related-pages">
           <a class="next-page" href="../stubs/qiskit_dynamics.array.Array.html">
               <div class="page-info">
                 <div class="context">
@@ -556,14 +519,14 @@ Array functions, we can do the following</p>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html">
+          <a class="prev-page" href="arraylias.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">DysonLikeData</div>
+                <div class="title">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</div>
                 
               </div>
             </a>
@@ -577,7 +540,7 @@ Array functions, we can do the following</p>
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/02/02</div>
+              Last updated on 2024/03/18</div>
           </div>
           <div class="right-details">
             
@@ -626,9 +589,9 @@ Array functions, we can do the following</p>
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=16716fad"></script>
+    <script src="../_static/documentation_options.js?v=1dd76d02"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>

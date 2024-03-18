@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Simulating backends at the pulse-level with DynamicsBackend" href="dynamics_backend.html" /><link rel="prev" title="Simulating Qiskit Pulse Schedules with Qiskit Dynamics" href="qiskit_pulse.html" />
 
-    <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>Gradient optimization of a pulse sequence - Qiskit Dynamics 0.4.5 documentation</title>
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>Gradient optimization of a pulse sequence - Qiskit Dynamics 0.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -39,64 +39,7 @@
   }
 </style><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<script src="../_static/js/web-components/top-nav-bar.js"></script>
-<script>
-  (function () {
-    window._analytics = {
-      segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
-      coremetrics: false,
-      optimizely: false,
-      googleAddServices: false,
-      fullStory: false,
-      autoPageEventSpa: false,
-      autoFormEvents: false,
-      autoPageView: false
-    }
-
-    window.digitalData = {
-      page: {
-        pageInfo: {
-          productTitle: 'IBM Q Experience',
-          analytics: {
-            category: 'Qiskit.org'
-          }
-        }
-      }
-    }
-  }());
-</script>
-<script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
-<script>
-  (function () {
-    'use strict'
-
-    if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-    const category = window.digitalData.page.pageInfo.analytics.category
-    const productTitle = window.digitalData.page.pageInfo.productTitle
-    const routeName = 'documentation'
-
-    window.bluemixAnalytics.pageEvent(category, routeName, {
-      navigationType: 'pushState',
-      productTitle: productTitle,
-      title: document.title
-    })
-
-    window.trackCta = (action) => {
-      if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-      const category = window.digitalData.page.pageInfo.analytics.category
-      const productTitle = window.digitalData.page.pageInfo.productTitle
-
-      window.bluemixAnalytics.trackEvent('CTA Clicked', {
-        productTitle,
-        category,
-        CTA: action
-      })
-    }
-
-  }());
-</script></head>
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
   <body>
     
     <script>document.body.dataset.theme = "light";</script>
@@ -200,7 +143,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.5 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.5.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +170,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.5 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.5.0 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -244,10 +187,10 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../userguide/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_jax.html">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and evaluation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../userguide/perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by <code class="docutils literal notranslate"><span class="pre">qiskit-pulse</span></code> with JAX transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -294,6 +237,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../apidocs/arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/array.html">Array Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Array Module (qiskit_dynamics.array)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html">Array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.wrap.html">qiskit_dynamics.array.wrap</a></li>
@@ -313,7 +257,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
 </ul>
 
-</div></div>
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
       </div>
       
     </div>
@@ -344,28 +306,23 @@
         </div>
         <article role="main">
           <section id="gradient-optimization-of-a-pulse-sequence">
-<span id="optimization-tutorial"></span><h1>Gradient optimization of a pulse sequence<a class="headerlink" href="#gradient-optimization-of-a-pulse-sequence" title="Permalink to this heading">#</a></h1>
-<p>Here, we walk through an example of optimizing a single-qubit gate using
-<code class="docutils literal notranslate"><span class="pre">qiskit_dynamics</span></code>. This tutorial requires JAX - see the user guide
-on <a class="reference internal" href="../userguide/how_to_use_jax.html#how-to-use-jax"><span class="std std-ref">How-to use JAX with qiskit-dynamics</span></a>.</p>
-<p>We will optimize an <span class="math notranslate nohighlight">\(X\)</span>-gate on a model of a qubit system using
-the following steps:</p>
+<span id="optimization-tutorial"></span><h1>Gradient optimization of a pulse sequence<a class="headerlink" href="#gradient-optimization-of-a-pulse-sequence" title="Link to this heading">#</a></h1>
+<p>Here, we walk through an example of optimizing a single-qubit gate using Qiskit Dynamics. This
+tutorial requires JAX - see the user guide on <a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html#how-to-use-different-array-libraries"><span class="std std-ref">How-to use JAX with qiskit-dynamics</span></a>.</p>
+<p>We will optimize an <span class="math notranslate nohighlight">\(X\)</span>-gate on a model of a qubit system using the following steps:</p>
 <ol class="arabic simple">
-<li><p>Configure <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code> to work with the JAX backend.</p></li>
+<li><p>Configure JAX.</p></li>
 <li><p>Setup a <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instance with the model of the system.</p></li>
 <li><p>Define a pulse sequence parameterization to optimize over.</p></li>
 <li><p>Define a gate fidelity function.</p></li>
 <li><p>Define an objective function for optimization.</p></li>
 <li><p>Use JAX to differentiate the objective, then do the gradient optimization.</p></li>
-<li><p>Repeat the <span class="math notranslate nohighlight">\(X\)</span>-gate optimization, alternatively using pulse schedules to specify the control sequence.</p></li>
+<li><p>Repeat the <span class="math notranslate nohighlight">\(X\)</span>-gate optimization, alternatively using pulse schedules to specify the
+control sequence.</p></li>
 </ol>
-<section id="configure-to-use-jax">
-<h2>1. Configure to use JAX<a class="headerlink" href="#configure-to-use-jax" title="Permalink to this heading">#</a></h2>
-<p>First, set JAX to operate in 64-bit mode, and set JAX as the default
-backend using <a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> for performing array operations.
-This is necessary to enable automatic differentiation of the Qiskit Dynamics code
-in this tutorial. See the user guide entry on using JAX
-for a more detailed explanation of why this step is necessary.</p>
+<section id="configure-jax">
+<h2>1. Configure JAX<a class="headerlink" href="#configure-jax" title="Link to this heading">#</a></h2>
+<p>First, set JAX to operate in 64-bit mode and to run on CPU.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">jax</span>
@@ -374,8 +331,7 @@ for a more detailed explanation of why this step is necessary.</p>
 <span class="c1"># tell JAX we are using CPU</span>
 <span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s1">&#39;jax_platform_name&#39;</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
-<span class="n">Array</span><span class="o">.</span><span class="n">set_default_backend</span><span class="p">(</span><span class="s1">&#39;jax&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
 </pre></div>
 </div>
 </div>
@@ -384,9 +340,8 @@ for a more detailed explanation of why this step is necessary.</p>
 </div>
 </section>
 <section id="setup-the-solver">
-<h2>2. Setup the solver<a class="headerlink" href="#setup-the-solver" title="Permalink to this heading">#</a></h2>
-<p>Here we will setup a <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> with a simple model of a qubit. The
-Hamiltonian is:</p>
+<h2>2. Setup the solver<a class="headerlink" href="#setup-the-solver" title="Link to this heading">#</a></h2>
+<p>Here we will setup a <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> with a simple model of a qubit. The Hamiltonian is:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[H(t) = 2 \pi \nu \frac{Z}{2} + 2 \pi r s(t) \frac{X}{2}\]</div>
@@ -399,8 +354,6 @@ Hamiltonian is:</p>
 <li><p><span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Z\)</span> are the Pauli X and Z operators.</p></li>
 </ul>
 <p>We will setup the problem to be in the rotating frame of the drift term.</p>
-<p>Also note: The <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> is initialized <em>without</em> signals, as we will
-update these and optimize over this later.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -426,17 +379,16 @@ update these and optimize over this later.</p>
 </div>
 </section>
 <section id="define-a-pulse-sequence-parameterization-to-optimize-over">
-<h2>3. Define a pulse sequence parameterization to optimize over<a class="headerlink" href="#define-a-pulse-sequence-parameterization-to-optimize-over" title="Permalink to this heading">#</a></h2>
+<h2>3. Define a pulse sequence parameterization to optimize over<a class="headerlink" href="#define-a-pulse-sequence-parameterization-to-optimize-over" title="Link to this heading">#</a></h2>
 <p>We will optimize over signals that are:</p>
 <ul class="simple">
 <li><p>On resonance with piecewise constant envelopes,</p></li>
 <li><p>Envelopes bounded between <span class="math notranslate nohighlight">\([-1, 1]\)</span>,</p></li>
-<li><p>Envelopes are smooth, in the sense that the change between adjacent
-samples is small, and</p></li>
+<li><p>Envelopes are smooth, in the sense that the change between adjacent samples is small, and</p></li>
 <li><p>Envelope starts and ends at <span class="math notranslate nohighlight">\(0\)</span>.</p></li>
 </ul>
-<p>In setting up our parameterization, we need t keep in mind that we will
-use the BFGS optimization routine, and hence:</p>
+<p>In setting up our parameterization, we need t keep in mind that we will use the BFGS optimization
+routine, and hence:</p>
 <ul class="simple">
 <li><p>Optimization parameters must be <em>unconstrained</em>.</p></li>
 <li><p>Parameterization must be JAX-differentiable.</p></li>
@@ -444,23 +396,22 @@ use the BFGS optimization routine, and hence:</p>
 <p>We implement a parameterization as follows:</p>
 <ul class="simple">
 <li><p>Input: Array <code class="docutils literal notranslate"><span class="pre">x</span></code> of real values.</p></li>
-<li><p>“Normalize” <code class="docutils literal notranslate"><span class="pre">x</span></code> by applying a JAX-differentiable function from
-<span class="math notranslate nohighlight">\(\mathbb{R} \rightarrow [-1, 1]\)</span>.</p></li>
+<li><p>“Normalize” <code class="docutils literal notranslate"><span class="pre">x</span></code> by applying a JAX-differentiable function from <span class="math notranslate nohighlight">\(\mathbb{R} \rightarrow
+[-1, 1]\)</span>.</p></li>
 <li><p>Pad the normalized <code class="docutils literal notranslate"><span class="pre">x</span></code> with a <span class="math notranslate nohighlight">\(0.\)</span> to start.</p></li>
 <li><p>“Smoothen” the above via convolution.</p></li>
-<li><p>Construct the signal using the above as the samples for a
-piecewise-constant envelope, with carrier frequency on resonance.</p></li>
+<li><p>Construct the signal using the above as the samples for a piecewise-constant envelope, with
+carrier frequency on resonance.</p></li>
 </ul>
-<p>We remark that there are many other parameterizations that may achieve
-the same ends, and may have more efficient strategies for achieving a
-value of <span class="math notranslate nohighlight">\(0\)</span> at the beginning and end of the pulse. This is only
-meant to demonstrate the need for such an approach, and one simple
-example of one.</p>
+<p>We remark that there are many other parameterizations that may achieve the same ends, and may have
+more efficient strategies for achieving a value of <span class="math notranslate nohighlight">\(0\)</span> at the beginning and end of the pulse.
+This is only meant to demonstrate the need for such an approach, and one simple example of one.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit_dynamics</span> <span class="kn">import</span> <span class="n">DiscreteSignal</span>
-<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
 <span class="kn">from</span> <span class="nn">qiskit_dynamics.signals</span> <span class="kn">import</span> <span class="n">Convolution</span>
+
+<span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
 
 <span class="c1"># define convolution filter</span>
 <span class="k">def</span> <span class="nf">gaus</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
@@ -472,13 +423,12 @@ example of one.</p>
 
 <span class="c1"># define function mapping parameters to signals</span>
 <span class="k">def</span> <span class="nf">signal_mapping</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
-    <span class="n">samples</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 
     <span class="c1"># map samples into [-1, 1]</span>
-    <span class="n">bounded_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">bounded_samples</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
 
     <span class="c1"># pad with 0 at beginning</span>
-    <span class="n">padded_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Array</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span> <span class="n">bounded_samples</span><span class="p">)</span>
+    <span class="n">padded_samples</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span> <span class="n">bounded_samples</span><span class="p">)</span>
 
     <span class="c1"># apply filter</span>
     <span class="n">output_signal</span> <span class="o">=</span> <span class="n">convolution</span><span class="p">(</span><span class="n">DiscreteSignal</span><span class="p">(</span><span class="n">dt</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="n">padded_samples</span><span class="p">))</span>
@@ -493,8 +443,7 @@ example of one.</p>
 <div class="cell_output docutils container">
 </div>
 </div>
-<p>Observe, for example, the signal generated when all parameters are
-<span class="math notranslate nohighlight">\(10^8\)</span>:</p>
+<p>Observe, for example, the signal generated when all parameters are <span class="math notranslate nohighlight">\(10^8\)</span>:</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">signal</span> <span class="o">=</span> <span class="n">signal_mapping</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">80</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e8</span><span class="p">)</span>
@@ -508,21 +457,19 @@ example of one.</p>
 </div>
 </section>
 <section id="define-gate-fidelity">
-<h2>4. Define gate fidelity<a class="headerlink" href="#define-gate-fidelity" title="Permalink to this heading">#</a></h2>
-<p>We will optimize an <span class="math notranslate nohighlight">\(X\)</span> gate, and define the fidelity of the unitary <span class="math notranslate nohighlight">\(U\)</span>
-implemented by the pulse via the standard fidelity measure:</p>
+<h2>4. Define gate fidelity<a class="headerlink" href="#define-gate-fidelity" title="Link to this heading">#</a></h2>
+<p>We will optimize an <span class="math notranslate nohighlight">\(X\)</span> gate, and define the fidelity of the unitary <span class="math notranslate nohighlight">\(U\)</span> implemented by
+the pulse via the standard fidelity measure:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[f(U) = \frac{|\text{Tr}(XU)|^2}{4}\]</div>
 </div>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">X_op</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">Operator</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">))</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">X_op</span> <span class="o">=</span> <span class="n">Operator</span><span class="o">.</span><span class="n">from_label</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
 
 <span class="k">def</span> <span class="nf">fidelity</span><span class="p">(</span><span class="n">U</span><span class="p">):</span>
-    <span class="n">U</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">U</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">X_op</span> <span class="o">*</span> <span class="n">U</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mf">4.</span>
+    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">X_op</span> <span class="o">*</span> <span class="n">U</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mf">4.</span>
 </pre></div>
 </div>
 </div>
@@ -531,13 +478,12 @@ implemented by the pulse via the standard fidelity measure:</p>
 </div>
 </section>
 <section id="define-the-objective-function">
-<h2>5. Define the objective function<a class="headerlink" href="#define-the-objective-function" title="Permalink to this heading">#</a></h2>
+<h2>5. Define the objective function<a class="headerlink" href="#define-the-objective-function" title="Link to this heading">#</a></h2>
 <p>The function we want to optimize consists of:</p>
 <ul class="simple">
 <li><p>Taking a list of input samples and applying the signal mapping.</p></li>
-<li><p>Simulating the Schrodinger equation over the length of the pulse
-sequence.</p></li>
-<li><p>Computing and return the infidelity (we minimize <span class="math notranslate nohighlight">\(1-f(U)\)</span>).</p></li>
+<li><p>Simulating the Schrodinger equation over the length of the pulse sequence.</p></li>
+<li><p>Computing and return the infidelity (we minimize <span class="math notranslate nohighlight">\(1 - f(U)\)</span>).</p></li>
 </ul>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
@@ -559,7 +505,7 @@ sequence.</p></li>
 
     <span class="c1"># compute and return infidelity</span>
     <span class="n">fid</span> <span class="o">=</span> <span class="n">fidelity</span><span class="p">(</span><span class="n">U</span><span class="p">)</span>
-    <span class="k">return</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">fid</span><span class="o">.</span><span class="n">data</span>
+    <span class="k">return</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">fid</span>
 </pre></div>
 </div>
 </div>
@@ -568,18 +514,15 @@ sequence.</p></li>
 </div>
 </section>
 <section id="perform-jax-transformations-and-optimize">
-<h2>6. Perform JAX transformations and optimize<a class="headerlink" href="#perform-jax-transformations-and-optimize" title="Permalink to this heading">#</a></h2>
+<h2>6. Perform JAX transformations and optimize<a class="headerlink" href="#perform-jax-transformations-and-optimize" title="Link to this heading">#</a></h2>
 <p>Finally, we gradient optimize the objective:</p>
 <ul class="simple">
-<li><p>Use <code class="docutils literal notranslate"><span class="pre">jax.value_and_grad</span></code> to transform the objective into a function
-that computes both the objective and the gradient.</p></li>
-<li><p>Use <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> to just-in-time compile the function into optimized
-<a class="reference external" href="https://www.tensorflow.org/xla">XLA</a> code. For the initial cost of
-performing the compilation, this speeds up each call of the function,
-speeding up the optimization.</p></li>
-<li><p>Call <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> with the above, with
-<code class="docutils literal notranslate"><span class="pre">method='BFGS'</span></code> and <code class="docutils literal notranslate"><span class="pre">jac=True</span></code> to indicate that the passed
-objective also computes the gradient.</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">jax.value_and_grad</span></code> to transform the objective into a function that computes both the
+objective and the gradient.</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">jax.jit</span></code> to just-in-time compile the function into optimized <a class="reference external" href="https://www.tensorflow.org/xla">XLA</a> code. For the initial cost of performing the compilation,
+this speeds up each call of the function, speeding up the optimization.</p></li>
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> with the above, with <code class="docutils literal notranslate"><span class="pre">method='BFGS'</span></code> and <code class="docutils literal notranslate"><span class="pre">jac=True</span></code> to
+indicate that the passed objective also computes the gradient.</p></li>
 </ul>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
@@ -599,16 +542,16 @@ objective also computes the gradient.</p></li>
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully.
-Number of function evaluations: 9
-Function value: -5.328744445698419e-08
+Number of function evaluations: 11
+Function value: -2.9311558735756194e-08
 </pre></div>
 </div>
 </div>
 </div>
-<p>The gate is optimized to an <span class="math notranslate nohighlight">\(X\)</span> gate, with deviation within the
-numerical accuracy of the solver.</p>
-<p>We can draw the optimized signal, which is retrieved by applying the
-<code class="docutils literal notranslate"><span class="pre">signal_mapping</span></code> to the optimized parameters.</p>
+<p>The gate is optimized to an <span class="math notranslate nohighlight">\(X\)</span> gate, with deviation within the numerical accuracy of the
+solver.</p>
+<p>We can draw the optimized signal, which is retrieved by applying the <code class="docutils literal notranslate"><span class="pre">signal_mapping</span></code> to the
+optimized parameters.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">opt_signal</span> <span class="o">=</span> <span class="n">signal_mapping</span><span class="p">(</span><span class="n">opt_results</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
@@ -627,9 +570,8 @@ numerical accuracy of the solver.</p>
 <img alt="../_images/optimizing_pulse_sequence_7_0.png" src="../_images/optimizing_pulse_sequence_7_0.png" />
 </div>
 </div>
-<p>Summing the signal samples yields approximately <span class="math notranslate nohighlight">\(\pm 50\)</span>, which is
-equivalent to what one would expect based on a rotating wave
-approximation analysis.</p>
+<p>Summing the signal samples yields approximately <span class="math notranslate nohighlight">\(\pm 50\)</span>, which is equivalent to what one
+would expect based on a rotating wave approximation analysis.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">opt_signal</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
@@ -637,19 +579,19 @@ approximation analysis.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Array(-50.00248549)
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>Array(49.99501776, dtype=float64)
 </pre></div>
 </div>
 </div>
 </div>
 </section>
 <section id="repeat-the-x-gate-optimization-alternatively-using-pulse-schedules-to-specify-the-control-sequence">
-<h2>7.  Repeat the <span class="math notranslate nohighlight">\(X\)</span>-gate optimization, alternatively using pulse schedules to specify the control sequence.<a class="headerlink" href="#repeat-the-x-gate-optimization-alternatively-using-pulse-schedules-to-specify-the-control-sequence" title="Permalink to this heading">#</a></h2>
+<h2>7.  Repeat the <span class="math notranslate nohighlight">\(X\)</span>-gate optimization, alternatively using pulse schedules to specify the control sequence<a class="headerlink" href="#repeat-the-x-gate-optimization-alternatively-using-pulse-schedules-to-specify-the-control-sequence" title="Link to this heading">#</a></h2>
 <p>Here, we perform the optimization again, however now we specify the parameterized control sequence
 to optimize as a pulse schedule.</p>
 <p>We construct a Gaussian square pulse as a <code class="xref py py-class docutils literal notranslate"><span class="pre">ScalableSymbolicPulse</span></code>
 instance, parameterized by <code class="docutils literal notranslate"><span class="pre">sigma</span></code> and <code class="docutils literal notranslate"><span class="pre">width</span></code>. Although qiskit pulse provides a
-<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.pulse.library.GaussianSquare.html#qiskit.pulse.library.GaussianSquare" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">GaussianSquare</span></code></a>, this class is not JAX compatible. See the user guide
+<a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.pulse.library.GaussianSquare" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">GaussianSquare</span></code></a>, this class is not JAX compatible. See the user guide
 entry on <a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html#how-to-use-pulse-schedules-for-jax-jit"><span class="std std-ref">JAX-compatible pulse schedules</span></a>.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
@@ -691,6 +633,9 @@ entry on <a class="reference internal" href="../userguide/how_to_use_pulse_sched
             <span class="p">(</span><span class="n">_gaussian_ledge</span><span class="p">,</span> <span class="n">_t</span> <span class="o">&lt;=</span> <span class="n">_sq_t0</span><span class="p">),</span> <span class="p">(</span><span class="n">_gaussian_redge</span><span class="p">,</span> <span class="n">_t</span> <span class="o">&gt;=</span> <span class="n">_sq_t1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="p">)</span>
+
+    <span class="c1"># we need to set disable_validation True to enable jax-jitting.</span>
+    <span class="n">pulse</span><span class="o">.</span><span class="n">ScalableSymbolicPulse</span><span class="o">.</span><span class="n">disable_validation</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">return</span> <span class="n">pulse</span><span class="o">.</span><span class="n">ScalableSymbolicPulse</span><span class="p">(</span>
             <span class="n">pulse_type</span><span class="o">=</span><span class="s2">&quot;GaussianSquare&quot;</span><span class="p">,</span>
@@ -735,7 +680,7 @@ to a signal, and simulate the equation over the length of the pulse sequence.</p
         <span class="n">atol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span>
         <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-8</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">fidelity</span><span class="p">(</span><span class="n">Array</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">data</span>
+    <span class="k">return</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">fidelity</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -776,9 +721,9 @@ to a signal, and simulate the equation over the length of the pulse sequence.</p
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully.
-Optimized Sigma is 516.3486048112435 and Width is 212.18185077071234
+Optimized Sigma is 516.3449186228395 and Width is 212.18189863023863
 Number of function evaluations: 14
-Function value: 1.7488488091021992e-07
+Function value: 1.7537254681787573e-07
 </pre></div>
 </div>
 </div>
@@ -800,20 +745,7 @@ Function value: 1.7488488091021992e-07
         </article>
       </div>
       <footer>
-        
-  <script>
-    function userFeedbackClicked(ctaType) {
-      document.getElementById('qiskit-analytics-thank-you').style.visibility = 'visible';
-      window.trackCta(`Helpful - ${ctaType}`);
-    }
-  </script>
-    <div class="qiskit-analytics-container">
-      <div>Was this page helpful?</div>
-      <a onclick="userFeedbackClicked('yes')">Yes</a>
-      <a onclick="userFeedbackClicked('no')">No</a>
-      <div id="qiskit-analytics-thank-you">Thank you!</div>
-    </div>
-<div class="related-pages">
+        <div class="related-pages">
           <a class="next-page" href="dynamics_backend.html">
               <div class="page-info">
                 <div class="context">
@@ -844,7 +776,7 @@ Function value: 1.7488488091021992e-07
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/02/02</div>
+              Last updated on 2024/03/18</div>
           </div>
           <div class="right-details">
             
@@ -866,13 +798,13 @@ Function value: 1.7488488091021992e-07
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Gradient optimization of a pulse sequence</a><ul>
-<li><a class="reference internal" href="#configure-to-use-jax">1. Configure to use JAX</a></li>
+<li><a class="reference internal" href="#configure-jax">1. Configure JAX</a></li>
 <li><a class="reference internal" href="#setup-the-solver">2. Setup the solver</a></li>
 <li><a class="reference internal" href="#define-a-pulse-sequence-parameterization-to-optimize-over">3. Define a pulse sequence parameterization to optimize over</a></li>
 <li><a class="reference internal" href="#define-gate-fidelity">4. Define gate fidelity</a></li>
 <li><a class="reference internal" href="#define-the-objective-function">5. Define the objective function</a></li>
 <li><a class="reference internal" href="#perform-jax-transformations-and-optimize">6. Perform JAX transformations and optimize</a></li>
-<li><a class="reference internal" href="#repeat-the-x-gate-optimization-alternatively-using-pulse-schedules-to-specify-the-control-sequence">7.  Repeat the <span class="math notranslate nohighlight">\(X\)</span>-gate optimization, alternatively using pulse schedules to specify the control sequence.</a></li>
+<li><a class="reference internal" href="#repeat-the-x-gate-optimization-alternatively-using-pulse-schedules-to-specify-the-control-sequence">7.  Repeat the <span class="math notranslate nohighlight">\(X\)</span>-gate optimization, alternatively using pulse schedules to specify the control sequence</a></li>
 </ul>
 </li>
 </ul>
@@ -886,9 +818,9 @@ Function value: 1.7488488091021992e-07
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=16716fad"></script>
+    <script src="../_static/documentation_options.js?v=1dd76d02"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>

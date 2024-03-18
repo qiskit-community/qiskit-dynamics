@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Gradient optimization of a pulse sequence" href="optimizing_pulse_sequence.html" /><link rel="prev" title="Solving the Lindblad dynamics of a qubit chain" href="Lindblad_dynamics_simulation.html" />
 
-    <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>Simulating Qiskit Pulse Schedules with Qiskit Dynamics - Qiskit Dynamics 0.4.5 documentation</title>
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>Simulating Qiskit Pulse Schedules with Qiskit Dynamics - Qiskit Dynamics 0.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -39,64 +39,7 @@
   }
 </style><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<script src="../_static/js/web-components/top-nav-bar.js"></script>
-<script>
-  (function () {
-    window._analytics = {
-      segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
-      coremetrics: false,
-      optimizely: false,
-      googleAddServices: false,
-      fullStory: false,
-      autoPageEventSpa: false,
-      autoFormEvents: false,
-      autoPageView: false
-    }
-
-    window.digitalData = {
-      page: {
-        pageInfo: {
-          productTitle: 'IBM Q Experience',
-          analytics: {
-            category: 'Qiskit.org'
-          }
-        }
-      }
-    }
-  }());
-</script>
-<script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
-<script>
-  (function () {
-    'use strict'
-
-    if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-    const category = window.digitalData.page.pageInfo.analytics.category
-    const productTitle = window.digitalData.page.pageInfo.productTitle
-    const routeName = 'documentation'
-
-    window.bluemixAnalytics.pageEvent(category, routeName, {
-      navigationType: 'pushState',
-      productTitle: productTitle,
-      title: document.title
-    })
-
-    window.trackCta = (action) => {
-      if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-      const category = window.digitalData.page.pageInfo.analytics.category
-      const productTitle = window.digitalData.page.pageInfo.productTitle
-
-      window.bluemixAnalytics.trackEvent('CTA Clicked', {
-        productTitle,
-        category,
-        CTA: action
-      })
-    }
-
-  }());
-</script></head>
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
   <body>
     
     <script>document.body.dataset.theme = "light";</script>
@@ -200,7 +143,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.5 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.5.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +170,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.5 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.5.0 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -244,10 +187,10 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../userguide/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_jax.html">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and evaluation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../userguide/perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by <code class="docutils literal notranslate"><span class="pre">qiskit-pulse</span></code> with JAX transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -294,6 +237,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../apidocs/arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/array.html">Array Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Array Module (qiskit_dynamics.array)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html">Array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.wrap.html">qiskit_dynamics.array.wrap</a></li>
@@ -313,7 +257,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
 </ul>
 
-</div></div>
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
       </div>
       
     </div>
@@ -344,10 +306,9 @@
         </div>
         <article role="main">
           <section id="simulating-qiskit-pulse-schedules-with-qiskit-dynamics">
-<h1>Simulating Qiskit Pulse Schedules with Qiskit Dynamics<a class="headerlink" href="#simulating-qiskit-pulse-schedules-with-qiskit-dynamics" title="Permalink to this heading">#</a></h1>
-<p>This tutorial shows how to use Qiskit Dynamics to simulate a Pulse schedule
-with a simple model of a qubit. The
-qubit is modeled by the drift hamiltonian</p>
+<h1>Simulating Qiskit Pulse Schedules with Qiskit Dynamics<a class="headerlink" href="#simulating-qiskit-pulse-schedules-with-qiskit-dynamics" title="Link to this heading">#</a></h1>
+<p>This tutorial shows how to use Qiskit Dynamics to simulate a Pulse schedule with a simple model of a
+qubit. The qubit is modeled by the drift hamiltonian</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[H_\text{drift} = \frac{\omega}{2} Z\]</div>
@@ -357,21 +318,20 @@ qubit is modeled by the drift hamiltonian</p>
 <div class="math notranslate nohighlight">
 \[H_\text{drive}(t) = \frac{r\,\Omega(t)}{2} X\]</div>
 </div>
-<p>Here, <span class="math notranslate nohighlight">\(\Omega(t)\)</span> is the drive signal which we will create using
-Qiskit pulse. The factor <span class="math notranslate nohighlight">\(r\)</span> is the strength with which the drive
-signal drives the qubit. We begin by creating a pulse schedule with a
-<code class="docutils literal notranslate"><span class="pre">sx</span></code> gate followed by a phase shift on the drive so that the following
-pulse creates a <code class="docutils literal notranslate"><span class="pre">sy</span></code> rotation. Therefore, if the qubit begins in the
-ground state we expect that this second pulse will not have any effect
-on the qubit. This situation is simulated with the following steps:</p>
+<p>Here, <span class="math notranslate nohighlight">\(\Omega(t)\)</span> is the drive signal which we will create using Qiskit pulse. The factor
+<span class="math notranslate nohighlight">\(r\)</span> is the strength with which the drive signal drives the qubit. We begin by creating a pulse
+schedule with a <code class="docutils literal notranslate"><span class="pre">sx</span></code> gate followed by a phase shift on the drive so that the following pulse
+creates a <code class="docutils literal notranslate"><span class="pre">sy</span></code> rotation. Therefore, if the qubit begins in the ground state we expect that this
+second pulse will not have any effect on the qubit. This situation is simulated with the following
+steps:</p>
 <ol class="arabic simple">
-<li><p>Create the pulse schedule</p></li>
-<li><p>Converting pulse schedules to a <a class="reference internal" href="../stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a></p></li>
-<li><p>Create the system model, configured to simulate pulse schedules</p></li>
-<li><p>Simulate the pulse schedule using the model</p></li>
+<li><p>Create the pulse schedule.</p></li>
+<li><p>Converting pulse schedules to a <a class="reference internal" href="../stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a>.</p></li>
+<li><p>Create the system model, configured to simulate pulse schedules.</p></li>
+<li><p>Simulate the pulse schedule using the model.</p></li>
 </ol>
 <section id="create-the-pulse-schedule">
-<h2>1. Create the pulse schedule<a class="headerlink" href="#create-the-pulse-schedule" title="Permalink to this heading">#</a></h2>
+<h2>1. Create the pulse schedule<a class="headerlink" href="#create-the-pulse-schedule" title="Link to this heading">#</a></h2>
 <p>First, we use the pulse module in Qiskit to create a pulse schedule.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
@@ -409,15 +369,13 @@ on the qubit. This situation is simulated with the following steps:</p>
 </div>
 </section>
 <section id="convert-the-pulse-schedule-to-a-signal">
-<h2>2. Convert the pulse schedule to a <a class="reference internal" href="../stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a><a class="headerlink" href="#convert-the-pulse-schedule-to-a-signal" title="Permalink to this heading">#</a></h2>
-<p>Qiskit Dynamics has functionality for converting pulse schedule to instances
-of <a class="reference internal" href="../stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a>. This is done using the pulse instruction to signal
-converter <a class="reference internal" href="../stubs/qiskit_dynamics.pulse.InstructionToSignals.html#qiskit_dynamics.pulse.InstructionToSignals" title="qiskit_dynamics.pulse.InstructionToSignals"><code class="xref py py-class docutils literal notranslate"><span class="pre">InstructionToSignals</span></code></a>. This converter needs to know the
-sample rate of the arbitrary waveform generators creating the signals,
-i.e. <code class="docutils literal notranslate"><span class="pre">dt</span></code>, as well as the carrier frequency of the signals,
-i.e. <code class="docutils literal notranslate"><span class="pre">w</span></code>. The plot below shows the envelopes and the signals resulting
-from this conversion. The dashed line shows the time at which the
-virtual <code class="docutils literal notranslate"><span class="pre">Z</span></code> gate is applied.</p>
+<h2>2. Convert the pulse schedule to a <a class="reference internal" href="../stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a><a class="headerlink" href="#convert-the-pulse-schedule-to-a-signal" title="Link to this heading">#</a></h2>
+<p>Qiskit Dynamics has functionality for converting pulse schedule to instances of <a class="reference internal" href="../stubs/qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a>.
+This is done using the pulse instruction to signal converter <a class="reference internal" href="../stubs/qiskit_dynamics.pulse.InstructionToSignals.html#qiskit_dynamics.pulse.InstructionToSignals" title="qiskit_dynamics.pulse.InstructionToSignals"><code class="xref py py-class docutils literal notranslate"><span class="pre">InstructionToSignals</span></code></a>. This
+converter needs to know the sample rate of the arbitrary waveform generators creating the signals,
+i.e. <code class="docutils literal notranslate"><span class="pre">dt</span></code>, as well as the carrier frequency of the signals, i.e. <code class="docutils literal notranslate"><span class="pre">w</span></code>. The plot below shows the
+envelopes and the signals resulting from this conversion. The dashed line shows the time at which
+the virtual <code class="docutils literal notranslate"><span class="pre">Z</span></code> gate is applied.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
@@ -444,12 +402,11 @@ virtual <code class="docutils literal notranslate"><span class="pre">Z</span></c
 </div>
 </section>
 <section id="create-the-system-model">
-<span id="pulse-solver"></span><h2>3. Create the system model<a class="headerlink" href="#create-the-system-model" title="Permalink to this heading">#</a></h2>
-<p>We now setup a <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instance with the desired Hamiltonian information,
-and configure it to simulate pulse schedules. This requires specifying
-which channels act on which operators, channel carrier frequencies, and sample width <code class="docutils literal notranslate"><span class="pre">dt</span></code>.
-Additionally, we setup this solver in the rotating frame and perform the
-rotating wave approximation.</p>
+<span id="pulse-solver"></span><h2>3. Create the system model<a class="headerlink" href="#create-the-system-model" title="Link to this heading">#</a></h2>
+<p>We now setup a <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instance with the desired Hamiltonian information, and configure it
+to simulate pulse schedules. This requires specifying which channels act on which operators, channel
+carrier frequencies, and sample width <code class="docutils literal notranslate"><span class="pre">dt</span></code>. Additionally, we setup this solver in the rotating
+frame and perform the rotating wave approximation.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators</span> <span class="kn">import</span> <span class="n">Operator</span>
@@ -480,12 +437,12 @@ rotating wave approximation.</p>
 </div>
 </section>
 <section id="simulate-the-pulse-schedule-using-the-model">
-<h2>4. Simulate the pulse schedule using the model<a class="headerlink" href="#simulate-the-pulse-schedule-using-the-model" title="Permalink to this heading">#</a></h2>
-<p>In the last step we perform the simulation and plot the results. Note that, as we have
-configured <code class="docutils literal notranslate"><span class="pre">hamiltonian_solver</span></code> to simulate pulse schedules, we pass the schedule <code class="docutils literal notranslate"><span class="pre">xp</span></code>
-directly to the <code class="docutils literal notranslate"><span class="pre">signals</span></code> argument of the <code class="docutils literal notranslate"><span class="pre">solve</span></code> method. Equivalently, <code class="docutils literal notranslate"><span class="pre">signals</span></code>
-generated by <code class="docutils literal notranslate"><span class="pre">converter.get_signals</span></code> above can also be passed to the <code class="docutils literal notranslate"><span class="pre">signals</span></code> argument
-and in this case should produce identical behavior.</p>
+<h2>4. Simulate the pulse schedule using the model<a class="headerlink" href="#simulate-the-pulse-schedule-using-the-model" title="Link to this heading">#</a></h2>
+<p>In the last step we perform the simulation and plot the results. Note that, as we have configured
+<code class="docutils literal notranslate"><span class="pre">hamiltonian_solver</span></code> to simulate pulse schedules, we pass the schedule <code class="docutils literal notranslate"><span class="pre">xp</span></code> directly to the
+<code class="docutils literal notranslate"><span class="pre">signals</span></code> argument of the <code class="docutils literal notranslate"><span class="pre">solve</span></code> method. Equivalently, <code class="docutils literal notranslate"><span class="pre">signals</span></code> generated by
+<code class="docutils literal notranslate"><span class="pre">converter.get_signals</span></code> above can also be passed to the <code class="docutils literal notranslate"><span class="pre">signals</span></code> argument and in this case
+should produce identical behavior.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit.quantum_info.states</span> <span class="kn">import</span> <span class="n">Statevector</span>
@@ -498,8 +455,8 @@ and in this case should produce identical behavior.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 34.7 s, sys: 66.7 ms, total: 34.8 s
-Wall time: 34.8 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 15.3 s, sys: 17.4 ms, total: 15.3 s
+Wall time: 15.3 s
 </pre></div>
 </div>
 </div>
@@ -525,13 +482,11 @@ Wall time: 34.8 s
 <div class="cell_output docutils container">
 </div>
 </div>
-<p>The plot below shows the population of the qubit as it evolves during
-the pulses. The vertical dashed line shows the time of the virtual Z
-rotation which was induced by the <code class="docutils literal notranslate"><span class="pre">shift_phase</span></code> instruction in the
-pulse schedule. As expected, the first pulse moves the qubit to an
-eigenstate of the <code class="docutils literal notranslate"><span class="pre">Y</span></code> operator. Therefore, the second pulse, which
-drives around the <code class="docutils literal notranslate"><span class="pre">Y</span></code>-axis due to the phase shift, has hardley any
-influence on the populations of the qubit.</p>
+<p>The plot below shows the population of the qubit as it evolves during the pulses. The vertical
+dashed line shows the time of the virtual Z rotation which was induced by the <code class="docutils literal notranslate"><span class="pre">shift_phase</span></code>
+instruction in the pulse schedule. As expected, the first pulse moves the qubit to an eigenstate of
+the <code class="docutils literal notranslate"><span class="pre">Y</span></code> operator. Therefore, the second pulse, which drives around the <code class="docutils literal notranslate"><span class="pre">Y</span></code>-axis due to the phase
+shift, has hardley any influence on the populations of the qubit.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_populations</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span>
@@ -548,20 +503,7 @@ influence on the populations of the qubit.</p>
         </article>
       </div>
       <footer>
-        
-  <script>
-    function userFeedbackClicked(ctaType) {
-      document.getElementById('qiskit-analytics-thank-you').style.visibility = 'visible';
-      window.trackCta(`Helpful - ${ctaType}`);
-    }
-  </script>
-    <div class="qiskit-analytics-container">
-      <div>Was this page helpful?</div>
-      <a onclick="userFeedbackClicked('yes')">Yes</a>
-      <a onclick="userFeedbackClicked('no')">No</a>
-      <div id="qiskit-analytics-thank-you">Thank you!</div>
-    </div>
-<div class="related-pages">
+        <div class="related-pages">
           <a class="next-page" href="optimizing_pulse_sequence.html">
               <div class="page-info">
                 <div class="context">
@@ -592,7 +534,7 @@ influence on the populations of the qubit.</p>
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/02/02</div>
+              Last updated on 2024/03/18</div>
           </div>
           <div class="right-details">
             
@@ -631,9 +573,9 @@ influence on the populations of the qubit.</p>
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=16716fad"></script>
+    <script src="../_static/documentation_options.js?v=1dd76d02"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>

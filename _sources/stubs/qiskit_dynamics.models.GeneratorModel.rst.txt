@@ -12,7 +12,6 @@
    .. rubric:: Methods
 
 
-   .. automethod:: GeneratorModel.copy
    .. automethod:: GeneratorModel.evaluate
    .. automethod:: GeneratorModel.evaluate_rhs
 
@@ -20,8 +19,8 @@
 
    .. rubric:: Attributes
 
+   .. autoattribute:: array_library
    .. autoattribute:: dim
-   .. autoattribute:: evaluation_mode
    .. autoattribute:: in_frame_basis
    .. autoattribute:: operators
    .. autoattribute:: rotating_frame

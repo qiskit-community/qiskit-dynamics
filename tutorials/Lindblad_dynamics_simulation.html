@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Simulating Qiskit Pulse Schedules with Qiskit Dynamics" href="qiskit_pulse.html" /><link rel="prev" title="Simulating Rabi oscillations with noise and decoherence" href="Rabi_oscillations.html" />
 
-    <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>Solving the Lindblad dynamics of a qubit chain - Qiskit Dynamics 0.4.5 documentation</title>
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>Solving the Lindblad dynamics of a qubit chain - Qiskit Dynamics 0.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -39,64 +39,7 @@
   }
 </style><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<script src="../_static/js/web-components/top-nav-bar.js"></script>
-<script>
-  (function () {
-    window._analytics = {
-      segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
-      coremetrics: false,
-      optimizely: false,
-      googleAddServices: false,
-      fullStory: false,
-      autoPageEventSpa: false,
-      autoFormEvents: false,
-      autoPageView: false
-    }
-
-    window.digitalData = {
-      page: {
-        pageInfo: {
-          productTitle: 'IBM Q Experience',
-          analytics: {
-            category: 'Qiskit.org'
-          }
-        }
-      }
-    }
-  }());
-</script>
-<script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
-<script>
-  (function () {
-    'use strict'
-
-    if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-    const category = window.digitalData.page.pageInfo.analytics.category
-    const productTitle = window.digitalData.page.pageInfo.productTitle
-    const routeName = 'documentation'
-
-    window.bluemixAnalytics.pageEvent(category, routeName, {
-      navigationType: 'pushState',
-      productTitle: productTitle,
-      title: document.title
-    })
-
-    window.trackCta = (action) => {
-      if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-      const category = window.digitalData.page.pageInfo.analytics.category
-      const productTitle = window.digitalData.page.pageInfo.productTitle
-
-      window.bluemixAnalytics.trackEvent('CTA Clicked', {
-        productTitle,
-        category,
-        CTA: action
-      })
-    }
-
-  }());
-</script></head>
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
   <body>
     
     <script>document.body.dataset.theme = "light";</script>
@@ -200,7 +143,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.5 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.5.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +170,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.5 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.5.0 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -244,10 +187,10 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../userguide/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_jax.html">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and evaluation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../userguide/perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by <code class="docutils literal notranslate"><span class="pre">qiskit-pulse</span></code> with JAX transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -294,6 +237,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../apidocs/arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/array.html">Array Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Array Module (qiskit_dynamics.array)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html">Array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.wrap.html">qiskit_dynamics.array.wrap</a></li>
@@ -313,7 +257,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
 </ul>
 
-</div></div>
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
       </div>
       
     </div>
@@ -344,85 +306,69 @@
         </div>
         <article role="main">
           <section id="solving-the-lindblad-dynamics-of-a-qubit-chain">
-<h1>Solving the Lindblad dynamics of a qubit chain<a class="headerlink" href="#solving-the-lindblad-dynamics-of-a-qubit-chain" title="Permalink to this heading">#</a></h1>
-<p>In this tutorial we walk through an example of solving the time
-evolution of the density matrix of coupled qubits using
-<code class="docutils literal notranslate"><span class="pre">qiskit_dynamics</span></code>. The model that we solve consists of a
-time-independent Hamiltonian for qubits interacting with their nearest
-neighbors along a ring. In addition, energy relaxation terms acting on
-each qubit are modeled by using a non-Markovian master equation in
-Lindblad form. We will discuss the system’s steady state as a function
-of the model parameters.</p>
-<p>In the sections below we define a model, solve the dynamics and plot
-some observables using the following steps:</p>
+<h1>Solving the Lindblad dynamics of a qubit chain<a class="headerlink" href="#solving-the-lindblad-dynamics-of-a-qubit-chain" title="Link to this heading">#</a></h1>
+<p>In this tutorial we walk through an example of solving the time evolution of the density matrix of
+coupled qubits using <code class="docutils literal notranslate"><span class="pre">qiskit_dynamics</span></code>. The model that we solve consists of a time-independent
+Hamiltonian for qubits interacting with their nearest neighbors along a ring. In addition, energy
+relaxation terms acting on each qubit are modeled by using a non-Markovian master equation in
+Lindblad form. We will discuss the system’s steady state as a function of the model parameters.</p>
+<p>In the sections below we define a model, solve the dynamics and plot some observables using the
+following steps:</p>
 <ol class="arabic simple">
 <li><p>Define the number of qubits and precompute some matrix operators.</p></li>
 <li><p>Define all relevant parameters and setup a <code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code> instance with the model of the system,
 consisting of the Hamiltonian and the jump operators of the Lindblad dissipator.</p></li>
-<li><p>Define the initial state and other parameters for the initial value problem,
-and evolve the system state.</p></li>
+<li><p>Define the initial state and other parameters for the initial value problem, and evolve the
+system state.</p></li>
 <li><p>Define observables and calculate their values as a function of time.</p></li>
 <li><p>Plot some observables and discuss the results.</p></li>
 </ol>
-<p>The model that we solve describes the time evolution of <span class="math notranslate nohighlight">\(N\)</span> qubits
-with coherent dynamics dictated by a given Hamiltonian, and the
-environment modeled as a memory-less (Markovian) bath. Together, the
-density matrix evolves according to the Lindblad master equation,</p>
+<p>The model that we solve describes the time evolution of <span class="math notranslate nohighlight">\(N\)</span> qubits with coherent dynamics
+dictated by a given Hamiltonian, and the environment modeled as a memory-less (Markovian) bath.
+Together, the density matrix evolves according to the Lindblad master equation,</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[\partial_t\rho = -\frac{i}{\hbar} \left[H,\rho\right] + \mathcal{D}[\rho].\]</div>
 </div>
-<p>The Hamiltonian is composed of a sum of single-qubit terms and two-qubit
-interactions,</p>
+<p>The Hamiltonian is composed of a sum of single-qubit terms and two-qubit interactions,</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[H = H_0 + H_I.\]</div>
 </div>
-<p>We take the qubits to have identical parameters, with a diagonal term of
-frequency <span class="math notranslate nohighlight">\(\nu_z\)</span> and a transverse term of amplitude
-<span class="math notranslate nohighlight">\(\nu_x\)</span>. The single-qubit part of the Hamiltonian is</p>
+<p>We take the qubits to have identical parameters, with a diagonal term of frequency <span class="math notranslate nohighlight">\(\nu_z\)</span> and
+a transverse term of amplitude <span class="math notranslate nohighlight">\(\nu_x\)</span>. The single-qubit part of the Hamiltonian is</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[H_0 = \frac{1}{2}\sum_i^N \left[2 \pi \nu_z {Z}_i + 2 \pi \nu_x {X}_i\right],\]</div>
 </div>
-<p>where <span class="math notranslate nohighlight">\(\{X_i,Y_i,Z_i\}\)</span> are the Pauli matrices for qubit <span class="math notranslate nohighlight">\(i\)</span>
-(also written as <span class="math notranslate nohighlight">\(\sigma_i^a\)</span> with <span class="math notranslate nohighlight">\(a\in\{x,y,z\}\)</span>).</p>
-<p>We set the interactions between nearest-neighbor qubits to be of
-“flip-flop” type, also called “XY” coupling. We consider periodic
-boundary conditions, such that the last qubit is connected to the first
-qubit as well, with</p>
+<p>where <span class="math notranslate nohighlight">\(\{X_i,Y_i,Z_i\}\)</span> are the Pauli matrices for qubit <span class="math notranslate nohighlight">\(i\)</span> (also written as
+<span class="math notranslate nohighlight">\(\sigma_i^a\)</span> with <span class="math notranslate nohighlight">\(a\in\{x,y,z\}\)</span>).</p>
+<p>We set the interactions between nearest-neighbor qubits to be of “flip-flop” type, also called “XY”
+coupling. We consider periodic boundary conditions, such that the last qubit is connected to the
+first qubit as well, with</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[H_I =  \frac{1}{2} \sum_{\langle i,j\rangle}2 \pi J \left[{X_i X_j} + {Y_i Y_j}\right]\]</div>
 </div>
-<p>In <code class="docutils literal notranslate"><span class="pre">qiskit</span></code>, each qubit’s ground state is by convention the state
-<span class="math notranslate nohighlight">\(|0\rangle\)</span> which is the eigenstate of <span class="math notranslate nohighlight">\(Z\)</span> with eigenvalue 1
-(the state that is known also as “up”). Therefore the action of energy
-relaxation terms describing damping into the environment tend to bring
-qubits to this state, as generated by the Lindblad dissipator</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">qiskit</span></code>, each qubit’s ground state is by convention the state <span class="math notranslate nohighlight">\(|0\rangle\)</span> which is the
+eigenstate of <span class="math notranslate nohighlight">\(Z\)</span> with eigenvalue 1 (the state that is known also as “up”). Therefore the
+action of energy relaxation terms describing damping into the environment tend to bring qubits to
+this state, as generated by the Lindblad dissipator</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[\mathcal{D}[\rho] = \sum_i \Gamma\left(\sigma_i^+ \rho\sigma_i^- - \frac{1}{2} \{\sigma_i^- \sigma_i^+,\rho\}\right),\]</div>
 </div>
 <p>with <span class="math notranslate nohighlight">\(\sigma_i^{\pm}= \frac{1}{2}\left(X_i\pm i Y_i\right)\)</span>.</p>
 <section id="prepare-the-single-qubit-operators">
-<h2>1. Prepare the single-qubit operators<a class="headerlink" href="#prepare-the-single-qubit-operators" title="Permalink to this heading">#</a></h2>
-<p>In <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code>, dynamical simulations are defined using the
-operators that act on the states appearing in the differential
-equations. We start by creating the single-qubit operators that act on
-each qubit in the simulation, and are represented as matrices in the
-Hilbert space of <span class="math notranslate nohighlight">\(N\)</span> qubits. Using <code class="docutils literal notranslate"><span class="pre">qiskit</span></code> library routines, it
-is easy to create <span class="math notranslate nohighlight">\(N\)</span>-qubit operators that are products of basic
-single-qubit operators, by using labels (descriptive strings), and the
-callable syntax of <code class="docutils literal notranslate"><span class="pre">Pauli</span></code> classes to indicate a qubit number, as
-below.</p>
-<p>Below, we first set the number of qubits <span class="math notranslate nohighlight">\(N\)</span> to be simulated, and
-then prepare and store the single-qubit Pauli operators that will be
-used in the rest of this tutorial.</p>
-<div class="jupyter_cell docutils container">
-<div class="cell_output docutils container">
-</div>
-</div>
+<h2>1. Prepare the single-qubit operators<a class="headerlink" href="#prepare-the-single-qubit-operators" title="Link to this heading">#</a></h2>
+<p>In <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code>, dynamical simulations are defined using the operators that act on the states
+appearing in the differential equations. We start by creating the single-qubit operators that act on
+each qubit in the simulation, and are represented as matrices in the Hilbert space of <span class="math notranslate nohighlight">\(N\)</span>
+qubits. Using <code class="docutils literal notranslate"><span class="pre">qiskit</span></code> library routines, it is easy to create <span class="math notranslate nohighlight">\(N\)</span>-qubit operators that are
+products of basic single-qubit operators, by using labels (descriptive strings), and the callable
+syntax of <code class="docutils literal notranslate"><span class="pre">Pauli</span></code> classes to indicate a qubit number, as below.</p>
+<p>Below, we first set the number of qubits <span class="math notranslate nohighlight">\(N\)</span> to be simulated, and then prepare and store the
+single-qubit Pauli operators that will be used in the rest of this tutorial.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -453,18 +399,15 @@ used in the rest of this tutorial.</p>
 </div>
 </section>
 <section id="setup-the-solver">
-<h2>2. Setup the solver<a class="headerlink" href="#setup-the-solver" title="Permalink to this heading">#</a></h2>
-<p>In this section we setup a <code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code> class that stores and manipulates
-the model to be solved. In the following, we will set <span class="math notranslate nohighlight">\(\hbar=1\)</span>
-and set the driving amplitude to be <span class="math notranslate nohighlight">\(\nu_x \equiv 1\)</span>. This sets the
-time units, with the other frequency
-parameters scaled accordingly. Below, we first set a few values for
-these free parameters, and then create the Hamiltonian matrix and the
-list of dissipator operators. We build the full Hamiltonian matrix by
-summing all single-qubit and two-qubit terms. Since there are no
-time-dependent terms, and we do not plan to take partial derivatives of
-parameters, we do not use the <code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code> class in this tutorial. See the other tutorials for various
-generalizations of this approach supported with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code>.</p>
+<h2>2. Setup the solver<a class="headerlink" href="#setup-the-solver" title="Link to this heading">#</a></h2>
+<p>In this section we setup a <code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code> class that stores and manipulates the model to be solved.
+In the following, we will set <span class="math notranslate nohighlight">\(\hbar=1\)</span> and set the driving amplitude to be <span class="math notranslate nohighlight">\(\nu_x
+\equiv 1\)</span>. This sets the time units, with the other frequency parameters scaled accordingly. Below,
+we first set a few values for these free parameters, and then create the Hamiltonian matrix and the
+list of dissipator operators. We build the full Hamiltonian matrix by summing all single-qubit and
+two-qubit terms. Since there are no time-dependent terms, and we do not plan to take partial
+derivatives of parameters, we do not use the <code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code> class in this tutorial. See the other
+tutorials for various generalizations of this approach supported with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code>.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit_dynamics</span> <span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">Signal</span>
@@ -505,10 +448,9 @@ generalizations of this approach supported with <code class="docutils literal no
 </div>
 </section>
 <section id="define-the-simulation-parameters-and-solve-the-dynamics">
-<h2>3. Define the simulation parameters and solve the dynamics<a class="headerlink" href="#define-the-simulation-parameters-and-solve-the-dynamics" title="Permalink to this heading">#</a></h2>
-<p>We now define the initial state for the simulation, the time span to
-simulate for, and the intermediate times for which the solution is
-requested.</p>
+<h2>3. Define the simulation parameters and solve the dynamics<a class="headerlink" href="#define-the-simulation-parameters-and-solve-the-dynamics" title="Link to this heading">#</a></h2>
+<p>We now define the initial state for the simulation, the time span to simulate for, and the
+intermediate times for which the solution is requested.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">DensityMatrix</span>
@@ -531,26 +473,24 @@ requested.</p>
 </div>
 </section>
 <section id="define-the-observables-and-calculate-their-values">
-<h2>4. Define the observables and calculate their values<a class="headerlink" href="#define-the-observables-and-calculate-their-values" title="Permalink to this heading">#</a></h2>
-<p>Below we calculate single-qubit Pauli expectation values for each qubit
-as a function of time (which define also the Bloch vector),</p>
+<h2>4. Define the observables and calculate their values<a class="headerlink" href="#define-the-observables-and-calculate-their-values" title="Link to this heading">#</a></h2>
+<p>Below we calculate single-qubit Pauli expectation values for each qubit as a function of time (which
+define also the Bloch vector),</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[\langle\sigma_i^a(t)\rangle,\]</div>
 </div>
-<p>and also the mean components of the collective Bloch vector over all
-qubits, at each evaluation time,</p>
+<p>and also the mean components of the collective Bloch vector over all qubits, at each evaluation
+time,</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[\frac{1}{N}\sum_i\langle\sigma_i^a(t)\rangle.\]</div>
 </div>
-<p>Since both the model and the initial state as defined above are
-translation invariant (all qubits have identical parameters, and there
-is no boundary), we expect the solution to remain translation invariant
-as well. Hence the mean Bloch vector should be equal to any qubit’s
-Bloch vector, and observing that this equality holds is a simple and
-useful verification of the numerical solution that will be added in the
-next section.</p>
+<p>Since both the model and the initial state as defined above are translation invariant (all qubits
+have identical parameters, and there is no boundary), we expect the solution to remain translation
+invariant as well. Hence the mean Bloch vector should be equal to any qubit’s Bloch vector, and
+observing that this equality holds is a simple and useful verification of the numerical solution
+that will be added in the next section.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n_times</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
@@ -581,27 +521,21 @@ next section.</p>
 </div>
 </section>
 <section id="plot-some-observables-and-discuss-the-results">
-<h2>5. Plot some observables and discuss the results<a class="headerlink" href="#plot-some-observables-and-discuss-the-results" title="Permalink to this heading">#</a></h2>
-<p>Finally, let’s plot some of the results of our dynamical simulation,
-using the single-qubit observables calculated as a function of time. We
-plot both the time evolution of the collective Bloch vector, and the
-Bloch vector at the final time, depicted in 3D within the Bloch sphere.
-We also print a warning if the Bloch vector at the final time is not
-translation invariant according to a simplified random check of two
-values (taken up to a small numerical precision).</p>
-<p>Looking at the figures below, we see that for the above parameters the
-steady state is nearly pure, with a large ground state component and a
-small tilt along the negative <span class="math notranslate nohighlight">\(x\)</span> axis. The direction and
-magnitude of the collective Bloch vector is determined by a nontrivial
-competition between the single-site terms, the qubit interactions, and
-the damping. To test this statement, if you go back and vary the
-interaction strength <span class="math notranslate nohighlight">\(J\)</span>, you can see that the steady state may
-change significantly. For example for <span class="math notranslate nohighlight">\(J=1\)</span> the collective Bloch
-vector will significantly tilt along <span class="math notranslate nohighlight">\(+x\)</span>, while for <span class="math notranslate nohighlight">\(J=3\)</span> it
-will significantly shorten (the steady state becomes a mixed state),
-becoming tilted along <span class="math notranslate nohighlight">\(-y\)</span>. This complex dependence of the
-Bloch vector on the parameters can be systematically analyzed - we encourage you to try
-it!</p>
+<h2>5. Plot some observables and discuss the results<a class="headerlink" href="#plot-some-observables-and-discuss-the-results" title="Link to this heading">#</a></h2>
+<p>Finally, let’s plot some of the results of our dynamical simulation, using the single-qubit
+observables calculated as a function of time. We plot both the time evolution of the collective
+Bloch vector, and the Bloch vector at the final time, depicted in 3D within the Bloch sphere. We
+also print a warning if the Bloch vector at the final time is not translation invariant according to
+a simplified random check of two values (taken up to a small numerical precision).</p>
+<p>Looking at the figures below, we see that for the above parameters the steady state is nearly pure,
+with a large ground state component and a small tilt along the negative <span class="math notranslate nohighlight">\(x\)</span> axis. The
+direction and magnitude of the collective Bloch vector is determined by a nontrivial competition
+between the single-site terms, the qubit interactions, and the damping. To test this statement, if
+you go back and vary the interaction strength <span class="math notranslate nohighlight">\(J\)</span>, you can see that the steady state may
+change significantly. For example for <span class="math notranslate nohighlight">\(J=1\)</span> the collective Bloch vector will significantly
+tilt along <span class="math notranslate nohighlight">\(+x\)</span>, while for <span class="math notranslate nohighlight">\(J=3\)</span> it will significantly shorten (the steady state becomes
+a mixed state), becoming tilted along <span class="math notranslate nohighlight">\(-y\)</span>. This complex dependence of the Bloch vector on the
+parameters can be systematically analyzed - we encourage you to try it!</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit.visualization</span> <span class="kn">import</span> <span class="n">plot_bloch_vector</span>
@@ -630,8 +564,8 @@ it!</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/Lindblad_dynamics_simulation_5_0.png" src="../_images/Lindblad_dynamics_simulation_5_0.png" />
-<img alt="../_images/Lindblad_dynamics_simulation_5_1.png" src="../_images/Lindblad_dynamics_simulation_5_1.png" />
+<img alt="../_images/Lindblad_dynamics_simulation_4_0.png" src="../_images/Lindblad_dynamics_simulation_4_0.png" />
+<img alt="../_images/Lindblad_dynamics_simulation_4_1.png" src="../_images/Lindblad_dynamics_simulation_4_1.png" />
 </div>
 </div>
 </section>
@@ -640,20 +574,7 @@ it!</p>
         </article>
       </div>
       <footer>
-        
-  <script>
-    function userFeedbackClicked(ctaType) {
-      document.getElementById('qiskit-analytics-thank-you').style.visibility = 'visible';
-      window.trackCta(`Helpful - ${ctaType}`);
-    }
-  </script>
-    <div class="qiskit-analytics-container">
-      <div>Was this page helpful?</div>
-      <a onclick="userFeedbackClicked('yes')">Yes</a>
-      <a onclick="userFeedbackClicked('no')">No</a>
-      <div id="qiskit-analytics-thank-you">Thank you!</div>
-    </div>
-<div class="related-pages">
+        <div class="related-pages">
           <a class="next-page" href="qiskit_pulse.html">
               <div class="page-info">
                 <div class="context">
@@ -684,7 +605,7 @@ it!</p>
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/02/02</div>
+              Last updated on 2024/03/18</div>
           </div>
           <div class="right-details">
             
@@ -724,9 +645,9 @@ it!</p>
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=16716fad"></script>
+    <script src="../_static/documentation_options.js?v=1dd76d02"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>

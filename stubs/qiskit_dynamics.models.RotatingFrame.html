@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="qiskit_dynamics.models.rotating_wave_approximation" href="qiskit_dynamics.models.rotating_wave_approximation.html" /><link rel="prev" title="GeneratorModel" href="qiskit_dynamics.models.GeneratorModel.html" />
 
-    <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>RotatingFrame - Qiskit Dynamics 0.4.5 documentation</title>
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>RotatingFrame - Qiskit Dynamics 0.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -39,64 +39,7 @@
   }
 </style><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<script src="../_static/js/web-components/top-nav-bar.js"></script>
-<script>
-  (function () {
-    window._analytics = {
-      segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
-      coremetrics: false,
-      optimizely: false,
-      googleAddServices: false,
-      fullStory: false,
-      autoPageEventSpa: false,
-      autoFormEvents: false,
-      autoPageView: false
-    }
-
-    window.digitalData = {
-      page: {
-        pageInfo: {
-          productTitle: 'IBM Q Experience',
-          analytics: {
-            category: 'Qiskit.org'
-          }
-        }
-      }
-    }
-  }());
-</script>
-<script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
-<script>
-  (function () {
-    'use strict'
-
-    if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-    const category = window.digitalData.page.pageInfo.analytics.category
-    const productTitle = window.digitalData.page.pageInfo.productTitle
-    const routeName = 'documentation'
-
-    window.bluemixAnalytics.pageEvent(category, routeName, {
-      navigationType: 'pushState',
-      productTitle: productTitle,
-      title: document.title
-    })
-
-    window.trackCta = (action) => {
-      if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-      const category = window.digitalData.page.pageInfo.analytics.category
-      const productTitle = window.digitalData.page.pageInfo.productTitle
-
-      window.bluemixAnalytics.trackEvent('CTA Clicked', {
-        productTitle,
-        category,
-        CTA: action
-      })
-    }
-
-  }());
-</script></head>
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
   <body>
     
     <script>document.body.dataset.theme = "light";</script>
@@ -200,7 +143,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.5 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.5.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +170,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.5 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.5.0 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -244,10 +187,10 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../userguide/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_jax.html">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and evaluation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../userguide/perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by <code class="docutils literal notranslate"><span class="pre">qiskit-pulse</span></code> with JAX transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../apidocs/index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
@@ -294,6 +237,7 @@
 <li class="toctree-l3"><a class="reference internal" href="qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../apidocs/arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/array.html">Array Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Array Module (qiskit_dynamics.array)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="qiskit_dynamics.array.Array.html">Array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="qiskit_dynamics.array.wrap.html">qiskit_dynamics.array.wrap</a></li>
@@ -313,7 +257,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
 </ul>
 
-</div></div>
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
       </div>
       
     </div>
@@ -344,10 +306,10 @@
         </div>
         <article role="main">
           <section id="rotatingframe">
-<h1>RotatingFrame<a class="headerlink" href="#rotatingframe" title="Permalink to this heading">#</a></h1>
+<h1>RotatingFrame<a class="headerlink" href="#rotatingframe" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">RotatingFrame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame_operator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">RotatingFrame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame_operator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class for representing a rotation frame transformation.</p>
 <p>This class provides functionality for transforming various objects into or out-of a rotating
@@ -374,7 +336,7 @@ of a diagonal <span class="math notranslate nohighlight">\(H\)</span> or <span c
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>frame_operator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>]</span>) – The frame operator, which must be either Hermitian or anti-Hermitian.</p></li>
+<li><p><strong>frame_operator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.quantum_info.Operator" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – The frame operator, which must be either Hermitian or anti-Hermitian.</p></li>
 <li><p><strong>atol</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Absolute tolerance when verifying that the <code class="docutils literal notranslate"><span class="pre">frame_operator</span></code> is Hermitian or
 anti-Hermitian.</p></li>
 <li><p><strong>rtol</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Relative tolerance when verifying that the <code class="docutils literal notranslate"><span class="pre">frame_operator</span></code> is Hermitian or
@@ -385,7 +347,7 @@ anti-Hermitian.</p></li>
 <p class="rubric">Methods</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.generator_into_frame">
-<span class="sig-name descname"><span class="pre">generator_into_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vectorized_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.generator_into_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.generator_into_frame" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">generator_into_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vectorized_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.generator_into_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.generator_into_frame" title="Link to this definition">#</a></dt>
 <dd><p>Take an generator into the rotating frame, i.e. return
 <code class="docutils literal notranslate"><span class="pre">exp(-tF)</span> <span class="pre">&#64;</span> <span class="pre">operator</span> <span class="pre">&#64;</span> <span class="pre">exp(tF)</span> <span class="pre">-</span> <span class="pre">F</span></code>.</p>
 <p>The default implementation is to use <code class="xref py py-meth docutils literal notranslate"><span class="pre">_conjugate_and_add()</span></code>.</p>
@@ -393,26 +355,26 @@ anti-Hermitian.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>t</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Time.</p></li>
-<li><p><strong>operator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>]</span>) – Generator (array of appropriate size).</p></li>
+<li><p><strong>operator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.quantum_info.Operator" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – Generator (array of appropriate size).</p></li>
 <li><p><strong>operator_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether or not the generator is already in the basis in which
 the frame is diagonal.</p></li>
 <li><p><strong>return_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether or not to return the result in the frame basis.</p></li>
 <li><p><strong>vectorized_operators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether <code class="docutils literal notranslate"><span class="pre">operator</span></code> is passed as a vectorized, <code class="docutils literal notranslate"><span class="pre">(dim**2,)</span></code>
-Array, rather than a <code class="docutils literal notranslate"><span class="pre">(dim,dim)</span></code> Array.</p></li>
+array, rather than a <code class="docutils literal notranslate"><span class="pre">(dim,dim)</span></code> array.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The generator in the rotating frame.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.generator_out_of_frame">
-<span class="sig-name descname"><span class="pre">generator_out_of_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.generator_out_of_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.generator_out_of_frame" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">generator_out_of_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.generator_out_of_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.generator_out_of_frame" title="Link to this definition">#</a></dt>
 <dd><p>Take an operator out of the frame using the generator transformaton rule, i.e. return
 <code class="docutils literal notranslate"><span class="pre">exp(tF)</span> <span class="pre">&#64;</span> <span class="pre">operator</span> <span class="pre">&#64;</span> <span class="pre">exp(-tF)</span> <span class="pre">+</span> <span class="pre">F</span></code>.</p>
 <p>The default implementation is to use <code class="docutils literal notranslate"><span class="pre">self._conjugate_and_add</span></code>.</p>
@@ -420,7 +382,7 @@ Array, rather than a <code class="docutils literal notranslate"><span class="pre
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>t</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The time</p></li>
-<li><p><strong>operator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>]</span>) – Generator (array of appropriate size).</p></li>
+<li><p><strong>operator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.quantum_info.Operator" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – Generator (array of appropriate size).</p></li>
 <li><p><strong>operator_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether or not the operator is already in the basis in which
 the frame is diagonal.</p></li>
 <li><p><strong>return_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether or not to return the result in the frame basis.</p></li>
@@ -430,14 +392,14 @@ the frame is diagonal.</p></li>
 <dd class="field-even"><p>The generator out of the rotating frame.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.operator_into_frame">
-<span class="sig-name descname"><span class="pre">operator_into_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vectorized_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.operator_into_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.operator_into_frame" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">operator_into_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vectorized_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.operator_into_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.operator_into_frame" title="Link to this definition">#</a></dt>
 <dd><p>Bring an operator into the frame, i.e. return
 <code class="docutils literal notranslate"><span class="pre">exp(-tF)</span> <span class="pre">&#64;</span> <span class="pre">operator</span> <span class="pre">&#64;</span> <span class="pre">exp(tF)</span></code>.</p>
 <p>The default implementation is to use <code class="docutils literal notranslate"><span class="pre">self._conjugate_and_add</span></code>.</p>
@@ -445,32 +407,32 @@ the frame is diagonal.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>t</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The time.</p></li>
-<li><p><strong>operator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>]</span>) – An array of appropriate size.</p></li>
+<li><p><strong>operator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.quantum_info.Operator" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – An array of appropriate size.</p></li>
 <li><p><strong>operator_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether or not the operator is already in the basis in which
 the frame is diagonal.</p></li>
 <li><p><strong>return_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether or not to return the result in the frame basis.</p></li>
 <li><p><strong>vectorized_operators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether <code class="docutils literal notranslate"><span class="pre">operator</span></code> is passed as a vectorized,
-<code class="docutils literal notranslate"><span class="pre">(dim**2,)</span></code> Array, rather than a <code class="docutils literal notranslate"><span class="pre">(dim,dim)</span></code> Array.</p></li>
+<code class="docutils literal notranslate"><span class="pre">(dim**2,)</span></code> array, rather than a <code class="docutils literal notranslate"><span class="pre">(dim,dim)</span></code> array.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The operator in the rotating frame.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.operator_into_frame_basis">
-<span class="sig-name descname"><span class="pre">operator_into_frame_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.operator_into_frame_basis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.operator_into_frame_basis" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">operator_into_frame_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.operator_into_frame_basis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.operator_into_frame_basis" title="Link to this definition">#</a></dt>
 <dd><p>Take an operator into the frame basis, i.e. return
 <code class="docutils literal notranslate"><span class="pre">self.frame_basis_adjoint</span> <span class="pre">&#64;</span> <span class="pre">A</span> <span class="pre">&#64;</span> <span class="pre">self.frame_basis</span></code></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>op</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>], <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – The operator or array of operators.</p></li>
+<li><p><strong>op</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.quantum_info.Operator" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.quantum_info.Operator" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>], <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – The operator or array of operators.</p></li>
 <li><p><strong>convert_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether or not to initially convert <code class="docutils literal notranslate"><span class="pre">op</span></code> into an expected type. Should
 only be set to <code class="docutils literal notranslate"><span class="pre">False</span></code> in situations in which it is gauranteed that
 <code class="docutils literal notranslate"><span class="pre">op</span></code> is a handled input type.</p></li>
@@ -480,14 +442,14 @@ only be set to <code class="docutils literal notranslate"><span class="pre">Fals
 <dd class="field-even"><p>The operator in the frame basis.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.operator_out_of_frame">
-<span class="sig-name descname"><span class="pre">operator_out_of_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vectorized_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.operator_out_of_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.operator_out_of_frame" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">operator_out_of_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vectorized_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.operator_out_of_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.operator_out_of_frame" title="Link to this definition">#</a></dt>
 <dd><p>Bring an operator into the rotating frame, i.e. return
 <code class="docutils literal notranslate"><span class="pre">exp(tF)</span> <span class="pre">&#64;</span> <span class="pre">operator</span> <span class="pre">&#64;</span> <span class="pre">exp(-tF)</span></code>.</p>
 <p>The default implmentation is to use <cite>self.operator_into_frame</cite>.</p>
@@ -495,32 +457,32 @@ only be set to <code class="docutils literal notranslate"><span class="pre">Fals
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>t</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Time.</p></li>
-<li><p><strong>operator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>]</span>) – An array of appropriate size.</p></li>
+<li><p><strong>operator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.quantum_info.Operator" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – An array of appropriate size.</p></li>
 <li><p><strong>operator_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether or not the operator is already in the basis in which
 the frame is diagonal.</p></li>
 <li><p><strong>return_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether or not to return the result in the frame basis.</p></li>
 <li><p><strong>vectorized_operators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether <code class="docutils literal notranslate"><span class="pre">operator</span></code> is passed as a vectorized, <code class="docutils literal notranslate"><span class="pre">(dim**2,)</span></code>
-Array, rather than a <code class="docutils literal notranslate"><span class="pre">(dim,dim)</span></code> Array.</p></li>
+array, rather than a <code class="docutils literal notranslate"><span class="pre">(dim,dim)</span></code> array.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The operator out of the rotating frame.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.operator_out_of_frame_basis">
-<span class="sig-name descname"><span class="pre">operator_out_of_frame_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.operator_out_of_frame_basis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.operator_out_of_frame_basis" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">operator_out_of_frame_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.operator_out_of_frame_basis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.operator_out_of_frame_basis" title="Link to this definition">#</a></dt>
 <dd><p>Take an operator out of the frame basis, i.e. return
-<code class="docutils literal notranslate"><span class="pre">self.frame_basis</span> <span class="pre">&#64;</span> <span class="pre">to_array(op)</span> <span class="pre">&#64;</span> <span class="pre">self.frame_basis_adjoint</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">self.frame_basis</span> <span class="pre">&#64;</span> <span class="pre">op</span> <span class="pre">&#64;</span> <span class="pre">self.frame_basis_adjoint</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>op</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>], <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – The operator or array of operators.</p></li>
+<li><p><strong>op</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.quantum_info.Operator" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.quantum_info.Operator" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>], <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – The operator or array of operators.</p></li>
 <li><p><strong>convert_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether or not to initially convert <code class="docutils literal notranslate"><span class="pre">op</span></code> into an expected type. Should
 only be set to <code class="docutils literal notranslate"><span class="pre">False</span></code> in situations in which it is gauranteed that
 that <code class="docutils literal notranslate"><span class="pre">op</span></code> is a handled input type.</p></li>
@@ -530,20 +492,20 @@ that <code class="docutils literal notranslate"><span class="pre">op</span></cod
 <dd class="field-even"><p>The operator in the frame basis.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.state_into_frame">
-<span class="sig-name descname"><span class="pre">state_into_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.state_into_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.state_into_frame" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">state_into_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.state_into_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.state_into_frame" title="Link to this definition">#</a></dt>
 <dd><p>Take a state into the rotating frame, i.e. return <code class="docutils literal notranslate"><span class="pre">exp(-tF)</span> <span class="pre">&#64;</span> <span class="pre">y</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>t</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The time.</p></li>
-<li><p><strong>y</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The state.</p></li>
+<li><p><strong>y</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – The state.</p></li>
 <li><p><strong>y_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether or not the array y is already in the basis in which the frame
 is diagonal.</p></li>
 <li><p><strong>return_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether or not to return the result in the frame basis.</p></li>
@@ -553,38 +515,38 @@ is diagonal.</p></li>
 <dd class="field-even"><p>The state in the rotating frame.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.state_into_frame_basis">
-<span class="sig-name descname"><span class="pre">state_into_frame_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.state_into_frame_basis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.state_into_frame_basis" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">state_into_frame_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.state_into_frame_basis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.state_into_frame_basis" title="Link to this definition">#</a></dt>
 <dd><p>Take a state into the frame basis, i.e. return <code class="docutils literal notranslate"><span class="pre">self.frame_basis_adjoint</span> <span class="pre">&#64;</span> <span class="pre">y</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>y</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The state.</p>
+<dd class="field-odd"><p><strong>y</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – The state.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The state in the frame basis.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.state_out_of_frame">
-<span class="sig-name descname"><span class="pre">state_out_of_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.state_out_of_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.state_out_of_frame" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">state_out_of_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.state_out_of_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.state_out_of_frame" title="Link to this definition">#</a></dt>
 <dd><p>Take a state out of the rotating frame, i.e. return <code class="docutils literal notranslate"><span class="pre">exp(tF)</span> <span class="pre">&#64;</span> <span class="pre">y</span></code>.</p>
 <p>Calls <code class="docutils literal notranslate"><span class="pre">self.state_into_frame</span></code> with time reversed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>t</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The time.</p></li>
-<li><p><strong>y</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The state..</p></li>
+<li><p><strong>y</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – The state..</p></li>
 <li><p><strong>y_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether or not the array y is already in the basis in which the frame
 is diagonal.</p></li>
 <li><p><strong>return_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether or not to return the result in the frame basis.</p></li>
@@ -594,31 +556,31 @@ is diagonal.</p></li>
 <dd class="field-even"><p>The state out of the rotating frame.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.state_out_of_frame_basis">
-<span class="sig-name descname"><span class="pre">state_out_of_frame_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.state_out_of_frame_basis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.state_out_of_frame_basis" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">state_out_of_frame_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.state_out_of_frame_basis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.state_out_of_frame_basis" title="Link to this definition">#</a></dt>
 <dd><p>Take a state out of the frame basis, i.e. <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">self.frame_basis</span> <span class="pre">&#64;</span> <span class="pre">y</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>y</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The state.</p>
+<dd class="field-odd"><p><strong>y</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – The state.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The state in the frame basis.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.vectorized_map_into_frame">
-<span class="sig-name descname"><span class="pre">vectorized_map_into_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.vectorized_map_into_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.vectorized_map_into_frame" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">vectorized_map_into_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/rotating_frame.html#RotatingFrame.vectorized_map_into_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.vectorized_map_into_frame" title="Link to this definition">#</a></dt>
 <dd><p>Given an operator <code class="docutils literal notranslate"><span class="pre">op</span></code> of dimension <code class="docutils literal notranslate"><span class="pre">dim**2</span></code> assumed to represent vectorized linear
 map in column stacking convention, returns:</p>
 <div class="math-wrapper docutils container">
@@ -632,16 +594,16 @@ caches array <span class="math notranslate nohighlight">\(\bar{C}\otimes C\)</sp
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>time</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The time <span class="math notranslate nohighlight">\(t\)</span>.</p></li>
-<li><p><strong>op</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The <code class="docutils literal notranslate"><span class="pre">(dim**2,dim**2)</span></code> Array.</p></li>
+<li><p><strong>op</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – The <code class="docutils literal notranslate"><span class="pre">(dim**2,dim**2)</span></code> array.</p></li>
 <li><p><strong>operator_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether the operator is in the frame basis.</p></li>
 <li><p><strong>return_in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span>) – Whether the operator should be returned in the frame basis.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">op</span></code> in the frame.</p>
 </dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">op</span></code> in the frame.</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 </dl>
 </dd></dl>
@@ -649,43 +611,43 @@ caches array <span class="math notranslate nohighlight">\(\bar{C}\otimes C\)</sp
 <p class="rubric">Attributes</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.dim">
-<span class="sig-name descname"><span class="pre">dim</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.dim" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">dim</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.dim" title="Link to this definition">#</a></dt>
 <dd><p>The dimension of the frame.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.frame_basis">
-<span class="sig-name descname"><span class="pre">frame_basis</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.frame_basis" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">frame_basis</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.frame_basis" title="Link to this definition">#</a></dt>
 <dd><p>The array containing diagonalizing unitary.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.frame_basis_adjoint">
-<span class="sig-name descname"><span class="pre">frame_basis_adjoint</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.frame_basis_adjoint" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">frame_basis_adjoint</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.frame_basis_adjoint" title="Link to this definition">#</a></dt>
 <dd><p>The adjoint of the diagonalizing unitary.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.frame_diag">
-<span class="sig-name descname"><span class="pre">frame_diag</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.frame_diag" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">frame_diag</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.frame_diag" title="Link to this definition">#</a></dt>
 <dd><p>The diagonal of the frame operator.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.frame_operator">
-<span class="sig-name descname"><span class="pre">frame_operator</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.frame_operator" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">frame_operator</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.frame_operator" title="Link to this definition">#</a></dt>
 <dd><p>The original frame operator.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.vectorized_frame_basis">
-<span class="sig-name descname"><span class="pre">vectorized_frame_basis</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.vectorized_frame_basis" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">vectorized_frame_basis</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.vectorized_frame_basis" title="Link to this definition">#</a></dt>
 <dd><p>Lazily evaluated operator for mapping vectorized operators into the frame basis.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.RotatingFrame.vectorized_frame_basis_adjoint">
-<span class="sig-name descname"><span class="pre">vectorized_frame_basis_adjoint</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.vectorized_frame_basis_adjoint" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">vectorized_frame_basis_adjoint</span></span><a class="headerlink" href="#qiskit_dynamics.models.RotatingFrame.vectorized_frame_basis_adjoint" title="Link to this definition">#</a></dt>
 <dd><p>Lazily evaluated operator for mapping vectorized operators out of the frame basis.</p>
 </dd></dl>
 
@@ -696,20 +658,7 @@ caches array <span class="math notranslate nohighlight">\(\bar{C}\otimes C\)</sp
         </article>
       </div>
       <footer>
-        
-  <script>
-    function userFeedbackClicked(ctaType) {
-      document.getElementById('qiskit-analytics-thank-you').style.visibility = 'visible';
-      window.trackCta(`Helpful - ${ctaType}`);
-    }
-  </script>
-    <div class="qiskit-analytics-container">
-      <div>Was this page helpful?</div>
-      <a onclick="userFeedbackClicked('yes')">Yes</a>
-      <a onclick="userFeedbackClicked('no')">No</a>
-      <div id="qiskit-analytics-thank-you">Thank you!</div>
-    </div>
-<div class="related-pages">
+        <div class="related-pages">
           <a class="next-page" href="qiskit_dynamics.models.rotating_wave_approximation.html">
               <div class="page-info">
                 <div class="context">
@@ -740,7 +689,7 @@ caches array <span class="math notranslate nohighlight">\(\bar{C}\otimes C\)</sp
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/02/02</div>
+              Last updated on 2024/03/18</div>
           </div>
           <div class="right-details">
             
@@ -796,9 +745,9 @@ caches array <span class="math notranslate nohighlight">\(\bar{C}\otimes C\)</sp
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=16716fad"></script>
+    <script src="../_static/documentation_options.js?v=1dd76d02"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>

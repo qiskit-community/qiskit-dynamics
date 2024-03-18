@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Qiskit Dynamics User Guide" href="../userguide/index.html" /><link rel="prev" title="Gradient optimization of a pulse sequence" href="optimizing_pulse_sequence.html" />
 
-    <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>Simulating backends at the pulse-level with DynamicsBackend - Qiskit Dynamics 0.4.5 documentation</title>
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>Simulating backends at the pulse-level with DynamicsBackend - Qiskit Dynamics 0.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -39,64 +39,7 @@
   }
 </style><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<script src="../_static/js/web-components/top-nav-bar.js"></script>
-<script>
-  (function () {
-    window._analytics = {
-      segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
-      coremetrics: false,
-      optimizely: false,
-      googleAddServices: false,
-      fullStory: false,
-      autoPageEventSpa: false,
-      autoFormEvents: false,
-      autoPageView: false
-    }
-
-    window.digitalData = {
-      page: {
-        pageInfo: {
-          productTitle: 'IBM Q Experience',
-          analytics: {
-            category: 'Qiskit.org'
-          }
-        }
-      }
-    }
-  }());
-</script>
-<script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
-<script>
-  (function () {
-    'use strict'
-
-    if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-    const category = window.digitalData.page.pageInfo.analytics.category
-    const productTitle = window.digitalData.page.pageInfo.productTitle
-    const routeName = 'documentation'
-
-    window.bluemixAnalytics.pageEvent(category, routeName, {
-      navigationType: 'pushState',
-      productTitle: productTitle,
-      title: document.title
-    })
-
-    window.trackCta = (action) => {
-      if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-      const category = window.digitalData.page.pageInfo.analytics.category
-      const productTitle = window.digitalData.page.pageInfo.productTitle
-
-      window.bluemixAnalytics.trackEvent('CTA Clicked', {
-        productTitle,
-        category,
-        CTA: action
-      })
-    }
-
-  }());
-</script></head>
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
   <body>
     
     <script>document.body.dataset.theme = "light";</script>
@@ -200,7 +143,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.5 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.5.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +170,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.5 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.5.0 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -244,10 +187,10 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../userguide/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_jax.html">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and evaluation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../userguide/perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by <code class="docutils literal notranslate"><span class="pre">qiskit-pulse</span></code> with JAX transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -294,6 +237,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../apidocs/arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/array.html">Array Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Array Module (qiskit_dynamics.array)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html">Array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.wrap.html">qiskit_dynamics.array.wrap</a></li>
@@ -313,7 +257,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
 </ul>
 
-</div></div>
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
       </div>
       
     </div>
@@ -344,36 +306,35 @@
         </div>
         <article role="main">
           <section id="simulating-backends-at-the-pulse-level-with-dynamicsbackend">
-<span id="dynamics-backend"></span><h1>Simulating backends at the pulse-level with <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a><a class="headerlink" href="#simulating-backends-at-the-pulse-level-with-dynamicsbackend" title="Permalink to this heading">#</a></h1>
+<span id="dynamics-backend"></span><h1>Simulating backends at the pulse-level with <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a><a class="headerlink" href="#simulating-backends-at-the-pulse-level-with-dynamicsbackend" title="Link to this heading">#</a></h1>
 <p>In this tutorial we walk through how to use the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> class as a Qiskit
 Dynamics-backed, pulse-level simulator of a real backend. In particular, we demonstrate how to
 configure a <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> to simulate pulse schedules, circuits whose gates have pulse
 definitions, and calibration and characterization experiments from Qiskit Experiments.</p>
 <p>The sections of this tutorial are as follows:</p>
 <ol class="arabic simple">
-<li><p>Configure Dynamics to use JAX.</p></li>
+<li><p>Configure JAX.</p></li>
 <li><p>Instantiating a minimally-configured <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> with a 2 qubit model.</p></li>
 <li><p>Simulating pulse schedules on the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a>.</p></li>
 <li><p>Simulating circuits at the pulse level using the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a>.</p></li>
 <li><p>Simulating single-qubit calibration processes via Qiskit Experiments.</p></li>
-<li><p>Simulating 2 qubit interaction characterization via the <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.library.characterization.CrossResonanceHamiltonian.html#qiskit_experiments.library.characterization.CrossResonanceHamiltonian" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossResonanceHamiltonian</span></code></a> experiment.</p></li>
+<li><p>Simulating 2 qubit interaction characterization via the <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.library.characterization.CrossResonanceHamiltonian.html#qiskit_experiments.library.characterization.CrossResonanceHamiltonian" title="(in Qiskit Experiments v0.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossResonanceHamiltonian</span></code></a> experiment.</p></li>
 </ol>
-<section id="configure-dynamics-to-use-jax">
-<h2>1. Configure Dynamics to use JAX<a class="headerlink" href="#configure-dynamics-to-use-jax" title="Permalink to this heading">#</a></h2>
+<section id="configure-jax">
+<h2>1. Configure JAX<a class="headerlink" href="#configure-jax" title="Link to this heading">#</a></h2>
 <p>Note that the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> internally performs just-in-time compilation automatically
-when configured to use JAX. See the <a class="reference internal" href="../userguide/how_to_use_jax.html#how-to-use-jax"><span class="std std-ref">User Guide entry on using JAX with Dynamics</span></a> for more information.</p>
+when using a JAX solver method. Here we configure JAX to run on CPU in 64 bit mode. See the
+<a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html#how-to-use-different-array-libraries"><span class="std std-ref">User Guide entry on using different array libraries with Qiskit Dynamics</span></a> for more information.</p>
 <div class="jupyter_cell docutils container">
 <div class="cell_output docutils container">
 </div>
 </div>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Configure to use JAX internally</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Configure JAX</span>
 <span class="kn">import</span> <span class="nn">jax</span>
 <span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;jax_enable_x64&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 <span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;jax_platform_name&quot;</span><span class="p">,</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">qiskit_dynamics.array</span> <span class="kn">import</span> <span class="n">Array</span>
-<span class="n">Array</span><span class="o">.</span><span class="n">set_default_backend</span><span class="p">(</span><span class="s2">&quot;jax&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -382,12 +343,11 @@ when configured to use JAX. See the <a class="reference internal" href="../userg
 </div>
 </section>
 <section id="instantiating-a-minimally-configured-dynamicsbackend-with-a-2-qubit-model">
-<h2>2. Instantiating a minimally-configured <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> with a 2 qubit model<a class="headerlink" href="#instantiating-a-minimally-configured-dynamicsbackend-with-a-2-qubit-model" title="Permalink to this heading">#</a></h2>
+<h2>2. Instantiating a minimally-configured <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> with a 2 qubit model<a class="headerlink" href="#instantiating-a-minimally-configured-dynamicsbackend-with-a-2-qubit-model" title="Link to this heading">#</a></h2>
 <p>To create the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a>, first specify a <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> instance using the model
 details. Note that the choice of model depends on the type of device you wish to simulate. Here, we
 will use a <span class="math notranslate nohighlight">\(2\)</span> qubit fixed-frequency transmon model with fixed coupling, with the following
-Hamiltonian (see the <a class="reference external" href="https://qiskit.org/textbook/ch-quantum-hardware/cQED-JC-SW.html">Qiskit Textbook page on Circuit Quantum Electrodynamics</a> for details on how transmon
-Hamiltonians are derived):</p>
+Hamiltonian:</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
 \[\begin{split}H(t) = 2 \pi \nu_0 &amp;N_0 + \pi \alpha_0 N_0 (N_0 - I) + 2 \pi \nu_1 N_1
@@ -473,6 +433,7 @@ performance.</p>
     <span class="n">hamiltonian_channels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;d0&quot;</span><span class="p">,</span> <span class="s2">&quot;d1&quot;</span><span class="p">,</span> <span class="s2">&quot;u0&quot;</span><span class="p">,</span> <span class="s2">&quot;u1&quot;</span><span class="p">],</span>
     <span class="n">channel_carrier_freqs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;d0&quot;</span><span class="p">:</span> <span class="n">v0</span><span class="p">,</span> <span class="s2">&quot;d1&quot;</span><span class="p">:</span> <span class="n">v1</span><span class="p">,</span> <span class="s2">&quot;u0&quot;</span><span class="p">:</span> <span class="n">v1</span><span class="p">,</span> <span class="s2">&quot;u1&quot;</span><span class="p">:</span> <span class="n">v0</span><span class="p">},</span>
     <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
+    <span class="n">array_library</span><span class="o">=</span><span class="s2">&quot;jax&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -512,19 +473,19 @@ the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.Dynamic
 was taken from qubits <span class="math notranslate nohighlight">\(0\)</span> and <span class="math notranslate nohighlight">\(1\)</span> of <code class="docutils literal notranslate"><span class="pre">almaden</span></code>.</p>
 </section>
 <section id="simulating-pulse-schedules-on-the-dynamicsbackend">
-<h2>3. Simulating pulse schedules on the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a><a class="headerlink" href="#simulating-pulse-schedules-on-the-dynamicsbackend" title="Permalink to this heading">#</a></h2>
+<h2>3. Simulating pulse schedules on the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a><a class="headerlink" href="#simulating-pulse-schedules-on-the-dynamicsbackend" title="Link to this heading">#</a></h2>
 <p>With the above backend, we can already simulate a list of pulse schedules. The code below generates
 a list of schedules specifying experiments on qubit <span class="math notranslate nohighlight">\(0\)</span>. The schedule is chosen to demonstrate
 that the usual instructions work on the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>In the following constructed schedule, measurement is performed with an
-<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.pulse.instructions.Acquire.html#qiskit.pulse.instructions.Acquire" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Acquire</span></code></a> instruction of duration <code class="docutils literal notranslate"><span class="pre">1</span></code>. Measurements in
+<a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.pulse.instructions.Acquire" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Acquire</span></code></a> instruction of duration <code class="docutils literal notranslate"><span class="pre">1</span></code>. Measurements in
 <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> are computed projectively at the start time of the acquire
 instructions, and the effects of measurement stimulus through
-<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.pulse.channels.MeasureChannel.html#qiskit.pulse.channels.MeasureChannel" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MeasureChannel</span></code></a>s are not simulated unless explicitly put into
-the model by the user. As such, the lack of <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.pulse.channels.MeasureChannel.html#qiskit.pulse.channels.MeasureChannel" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MeasureChannel</span></code></a>
-stimulus, and the duration of the <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.pulse.instructions.Acquire.html#qiskit.pulse.instructions.Acquire" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Acquire</span></code></a> instruction has no
+<a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.pulse.channels.MeasureChannel" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MeasureChannel</span></code></a>s are not simulated unless explicitly put into
+the model by the user. As such, the lack of <a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.pulse.channels.MeasureChannel" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MeasureChannel</span></code></a>
+stimulus, and the duration of the <a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.pulse.instructions.Acquire" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Acquire</span></code></a> instruction has no
 impact on the returned results.</p>
 </div>
 <div class="jupyter_cell jupyter_container docutils container">
@@ -559,8 +520,8 @@ impact on the returned results.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 2.8 s, sys: 11.7 ms, total: 2.81 s
-Wall time: 4.35 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.17 s, sys: 171 ms, total: 1.34 s
+Wall time: 1.42 s
 </pre></div>
 </div>
 </div>
@@ -585,20 +546,20 @@ backend.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 42, &#39;1&#39;: 58}
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 36, &#39;1&#39;: 64}
 </pre></div>
 </div>
 </div>
 </div>
 </section>
 <section id="simulating-circuits-at-the-pulse-level-using-the-dynamicsbackend">
-<h2>4. Simulating circuits at the pulse level using the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a><a class="headerlink" href="#simulating-circuits-at-the-pulse-level-using-the-dynamicsbackend" title="Permalink to this heading">#</a></h2>
+<h2>4. Simulating circuits at the pulse level using the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a><a class="headerlink" href="#simulating-circuits-at-the-pulse-level-using-the-dynamicsbackend" title="Link to this heading">#</a></h2>
 <p>For the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> to simulate a circuit, each circuit element must have a
 corresponding pulse schedule. These schedules can either be specified in the gates themselves, by
-attaching calibrations, or by adding instructions to the <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.transpiler.Target.html#qiskit.transpiler.Target" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a>
+attaching calibrations, or by adding instructions to the <a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.transpiler.Target" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a>
 contained in the <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a>.</p>
 <section id="simulating-circuits-with-attached-calibrations">
-<h3>4.1 Simulating circuits with attached calibrations<a class="headerlink" href="#simulating-circuits-with-attached-calibrations" title="Permalink to this heading">#</a></h3>
+<h3>4.1 Simulating circuits with attached calibrations<a class="headerlink" href="#simulating-circuits-with-attached-calibrations" title="Link to this heading">#</a></h3>
 <p>Build a simple circuit. Here we build one consisting of a single Hadamard gate on qubit <span class="math notranslate nohighlight">\(0\)</span>,
 followed by measurement.</p>
 <div class="jupyter_cell jupyter_container docutils container">
@@ -645,21 +606,21 @@ the schedule to implement the Hadamard gate with high fidelity.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.41 s, sys: 16.6 ms, total: 1.42 s
-Wall time: 1.41 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 663 ms, sys: 128 ms, total: 791 ms
+Wall time: 671 ms
 </pre></div>
 </div>
-<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 798, &#39;1&#39;: 226}
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 771, &#39;1&#39;: 253}
 </pre></div>
 </div>
 </div>
 </div>
 </section>
 <section id="simulating-circuits-via-gate-definitions-in-the-backend-target">
-<h3>4.2 Simulating circuits via gate definitions in the backend <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.transpiler.Target.html#qiskit.transpiler.Target" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a><a class="headerlink" href="#simulating-circuits-via-gate-definitions-in-the-backend-target" title="Permalink to this heading">#</a></h3>
+<h3>4.2 Simulating circuits via gate definitions in the backend <a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.transpiler.Target" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a><a class="headerlink" href="#simulating-circuits-via-gate-definitions-in-the-backend-target" title="Link to this heading">#</a></h3>
 <p>Alternatively to the above work flow, add the above schedule as the pulse-level definition of the
 Hadamard gate on qubit <span class="math notranslate nohighlight">\(0\)</span> to <cite>backend.target</cite>, which impacts how jobs are transpiled for the
-backend. See the <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.transpiler.Target.html#qiskit.transpiler.Target" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a> class documentation for further information.</p>
+backend. See the <a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.transpiler.Target" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a> class documentation for further information.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">HGate</span>
@@ -685,8 +646,8 @@ gate to the circuit object.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 1.49 s, sys: 7.52 ms, total: 1.5 s
-Wall time: 1.56 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 710 ms, sys: 29.7 ms, total: 740 ms
+Wall time: 734 ms
 </pre></div>
 </div>
 </div>
@@ -698,7 +659,7 @@ Wall time: 1.56 s
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 779, &#39;1&#39;: 245}
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;0&#39;: 777, &#39;1&#39;: 247}
 </pre></div>
 </div>
 </div>
@@ -706,15 +667,15 @@ Wall time: 1.56 s
 </section>
 </section>
 <section id="simulating-single-qubit-calibration-processes-via-qiskit-experiments">
-<h2>5. Simulating single-qubit calibration processes via Qiskit Experiments<a class="headerlink" href="#simulating-single-qubit-calibration-processes-via-qiskit-experiments" title="Permalink to this heading">#</a></h2>
+<h2>5. Simulating single-qubit calibration processes via Qiskit Experiments<a class="headerlink" href="#simulating-single-qubit-calibration-processes-via-qiskit-experiments" title="Link to this heading">#</a></h2>
 <p>Next, we perform rough calibrations for <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">SX</span></code> gates on both qubits modeled in the
 <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a>, following the single-qubit calibration tutorial for Qiskit Experiments.</p>
 <section id="configure-the-target-to-include-single-qubit-instructions">
-<h3>5.1 Configure the <a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.transpiler.Target.html#qiskit.transpiler.Target" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a> to include single qubit instructions<a class="headerlink" href="#configure-the-target-to-include-single-qubit-instructions" title="Permalink to this heading">#</a></h3>
+<h3>5.1 Configure the <a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.transpiler.Target" title="(in Qiskit v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a> to include single qubit instructions<a class="headerlink" href="#configure-the-target-to-include-single-qubit-instructions" title="Link to this heading">#</a></h3>
 <p>To enable running of the single qubit experiments, we add the following to the <code class="docutils literal notranslate"><span class="pre">target</span></code>:</p>
 <ul class="simple">
 <li><p>Qubit frequency properties (needed by experiments like
-<a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.library.calibration.RoughFrequencyCal.html#qiskit_experiments.library.calibration.RoughFrequencyCal" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoughFrequencyCal</span></code></a>). Note that
+<a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.library.calibration.RoughFrequencyCal.html#qiskit_experiments.library.calibration.RoughFrequencyCal" title="(in Qiskit Experiments v0.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoughFrequencyCal</span></code></a>). Note that
 setting the qubit frequencies in the <code class="docutils literal notranslate"><span class="pre">target</span></code> does not impact the behaviour of the
 <a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend" title="qiskit_dynamics.backend.DynamicsBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a> itself. It is purely a data field that does not impact functionality.
 Previously set frequency properties, such as <code class="docutils literal notranslate"><span class="pre">channel_carrier_freqs</span></code> in the <a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html#qiskit_dynamics.solvers.Solver" title="qiskit_dynamics.solvers.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a>,
@@ -766,10 +727,10 @@ will pass.</p></li>
 </div>
 </section>
 <section id="prepare-calibrations-object">
-<h3>5.2 Prepare <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.calibration_management.Calibrations.html#qiskit_experiments.calibration_management.Calibrations" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calibrations</span></code></a> object<a class="headerlink" href="#prepare-calibrations-object" title="Permalink to this heading">#</a></h3>
-<p>Next, prepare the <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.calibration_management.Calibrations.html#qiskit_experiments.calibration_management.Calibrations" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calibrations</span></code></a>
+<h3>5.2 Prepare <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.calibration_management.Calibrations.html#qiskit_experiments.calibration_management.Calibrations" title="(in Qiskit Experiments v0.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calibrations</span></code></a> object<a class="headerlink" href="#prepare-calibrations-object" title="Link to this heading">#</a></h3>
+<p>Next, prepare the <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.calibration_management.Calibrations.html#qiskit_experiments.calibration_management.Calibrations" title="(in Qiskit Experiments v0.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calibrations</span></code></a>
 object. Here we use the
-<a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.calibration_management.FixedFrequencyTransmon.html#qiskit_experiments.calibration_management.FixedFrequencyTransmon" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedFrequencyTransmon</span></code></a>
+<a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.calibration_management.FixedFrequencyTransmon.html#qiskit_experiments.calibration_management.FixedFrequencyTransmon" title="(in Qiskit Experiments v0.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedFrequencyTransmon</span></code></a>
 template library to initialize our calibrations.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
@@ -815,90 +776,112 @@ template library to initialize our calibrations.</p>
   <tbody>
     <tr>
       <th>0</th>
-      <td>σ</td>
+      <td>β</td>
       <td>()</td>
       <td>sx</td>
-      <td>40.00</td>
+      <td>0.00</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-02-02 22:05:26.666895+0000</td>
+      <td>2024-03-18 22:16:15.550017+0000</td>
       <td>None</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>β</td>
-      <td>()</td>
-      <td>x</td>
-      <td>0.00</td>
-      <td>default</td>
-      <td>True</td>
-      <td>2024-02-02 22:05:26.666836+0000</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>amp</td>
-      <td>()</td>
-      <td>sx</td>
-      <td>0.25</td>
-      <td>default</td>
-      <td>True</td>
-      <td>2024-02-02 22:05:26.666930+0000</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>amp</td>
-      <td>()</td>
-      <td>x</td>
-      <td>0.50</td>
-      <td>default</td>
-      <td>True</td>
-      <td>2024-02-02 22:05:26.666858+0000</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>4</th>
       <td>σ</td>
       <td>()</td>
       <td>x</td>
       <td>40.00</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-02-02 22:05:26.666788+0000</td>
+      <td>2024-03-18 22:16:15.549991+0000</td>
       <td>None</td>
     </tr>
     <tr>
-      <th>5</th>
-      <td>β</td>
+      <th>2</th>
+      <td>σ</td>
+      <td>()</td>
+      <td>sx</td>
+      <td>40.00</td>
+      <td>default</td>
+      <td>True</td>
+      <td>2024-03-18 22:16:15.550039+0000</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>duration</td>
+      <td>()</td>
+      <td>sx</td>
+      <td>160.00</td>
+      <td>default</td>
+      <td>True</td>
+      <td>2024-03-18 22:16:15.550009+0000</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>angle</td>
       <td>()</td>
       <td>sx</td>
       <td>0.00</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-02-02 22:05:26.666912+0000</td>
+      <td>2024-03-18 22:16:15.550050+0000</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>angle</td>
+      <td>()</td>
+      <td>x</td>
+      <td>0.00</td>
+      <td>default</td>
+      <td>True</td>
+      <td>2024-03-18 22:16:15.549998+0000</td>
       <td>None</td>
     </tr>
     <tr>
       <th>6</th>
       <td>duration</td>
       <td>()</td>
-      <td>sx</td>
-      <td>160.00</td>
-      <td>default</td>
-      <td>True</td>
-      <td>2024-02-02 22:05:26.666946+0000</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>duration</td>
-      <td>()</td>
       <td>x</td>
       <td>160.00</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-02-02 22:05:26.666877+0000</td>
+      <td>2024-03-18 22:16:15.549973+0000</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>amp</td>
+      <td>()</td>
+      <td>x</td>
+      <td>0.50</td>
+      <td>default</td>
+      <td>True</td>
+      <td>2024-03-18 22:16:15.549983+0000</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>β</td>
+      <td>()</td>
+      <td>x</td>
+      <td>0.00</td>
+      <td>default</td>
+      <td>True</td>
+      <td>2024-03-18 22:16:15.549951+0000</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>amp</td>
+      <td>()</td>
+      <td>sx</td>
+      <td>0.25</td>
+      <td>default</td>
+      <td>True</td>
+      <td>2024-03-18 22:16:15.550027+0000</td>
       <td>None</td>
     </tr>
   </tbody>
@@ -907,7 +890,7 @@ template library to initialize our calibrations.</p>
 </div>
 </section>
 <section id="rough-amplitude-calibration">
-<h3>5.3 Rough amplitude calibration<a class="headerlink" href="#rough-amplitude-calibration" title="Permalink to this heading">#</a></h3>
+<h3>5.3 Rough amplitude calibration<a class="headerlink" href="#rough-amplitude-calibration" title="Link to this heading">#</a></h3>
 <p>Next, run a rough amplitude calibration for <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">SX</span></code> gates for both qubits. First, build the
 experiments.</p>
 <div class="jupyter_cell jupyter_container docutils container">
@@ -915,10 +898,10 @@ experiments.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit_experiments.library.calibration</span> <span class="kn">import</span> <span class="n">RoughXSXAmplitudeCal</span>
 
 <span class="c1"># rabi experiments for qubit 0</span>
-<span class="n">rabi0</span> <span class="o">=</span> <span class="n">RoughXSXAmplitudeCal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">cals</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">amplitudes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">27</span><span class="p">))</span>
+<span class="n">rabi0</span> <span class="o">=</span> <span class="n">RoughXSXAmplitudeCal</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">cals</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">amplitudes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">27</span><span class="p">))</span>
 
 <span class="c1"># rabi experiments for qubit 1</span>
-<span class="n">rabi1</span> <span class="o">=</span> <span class="n">RoughXSXAmplitudeCal</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">cals</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">amplitudes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">27</span><span class="p">))</span>
+<span class="n">rabi1</span> <span class="o">=</span> <span class="n">RoughXSXAmplitudeCal</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">cals</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">amplitudes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">27</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -935,8 +918,8 @@ experiments.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 7.83 s, sys: 774 ms, total: 8.61 s
-Wall time: 7.74 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 5.25 s, sys: 720 ms, total: 5.97 s
+Wall time: 5.28 s
 </pre></div>
 </div>
 </div>
@@ -1004,32 +987,32 @@ Wall time: 7.74 s
       <td>amp</td>
       <td>(0,)</td>
       <td>x</td>
-      <td>0.118811+0.000000j</td>
+      <td>0.119095</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-02-02 22:05:29.225822+0000</td>
-      <td>da08297a-d38c-4e18-80c5-df6c9cfdfbd7</td>
+      <td>2024-03-18 22:16:16.530040+0000</td>
+      <td>1b9b0a85-e909-451d-88fb-9c5d17e6e9b2</td>
     </tr>
     <tr>
       <th>1</th>
       <td>amp</td>
       <td>(0,)</td>
       <td>sx</td>
-      <td>0.059406+0.000000j</td>
+      <td>0.059548</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-02-02 22:05:29.225822+0000</td>
-      <td>da08297a-d38c-4e18-80c5-df6c9cfdfbd7</td>
+      <td>2024-03-18 22:16:16.530040+0000</td>
+      <td>1b9b0a85-e909-451d-88fb-9c5d17e6e9b2</td>
     </tr>
     <tr>
       <th>2</th>
       <td>amp</td>
       <td>()</td>
       <td>x</td>
-      <td>0.500000+0.000000j</td>
+      <td>0.500000</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-02-02 22:05:26.666858+0000</td>
+      <td>2024-03-18 22:16:15.549983+0000</td>
       <td>None</td>
     </tr>
     <tr>
@@ -1037,10 +1020,10 @@ Wall time: 7.74 s
       <td>amp</td>
       <td>()</td>
       <td>sx</td>
-      <td>0.250000+0.000000j</td>
+      <td>0.250000</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-02-02 22:05:26.666930+0000</td>
+      <td>2024-03-18 22:16:15.550027+0000</td>
       <td>None</td>
     </tr>
   </tbody>
@@ -1049,15 +1032,15 @@ Wall time: 7.74 s
 </div>
 </section>
 <section id="rough-drag-parameter-calibration">
-<h3>5.4 Rough Drag parameter calibration<a class="headerlink" href="#rough-drag-parameter-calibration" title="Permalink to this heading">#</a></h3>
+<h3>5.4 Rough Drag parameter calibration<a class="headerlink" href="#rough-drag-parameter-calibration" title="Link to this heading">#</a></h3>
 <p>Run rough Drag parameter calibration for the <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">SX</span></code> gates. This follows the same procedure
 as above.</p>
 <div class="jupyter_cell jupyter_container docutils container">
 <div class="cell_input code_cell docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit_experiments.library.calibration</span> <span class="kn">import</span> <span class="n">RoughDragCal</span>
 
-<span class="n">cal_drag0</span> <span class="o">=</span> <span class="n">RoughDragCal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">cals</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">betas</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
-<span class="n">cal_drag1</span> <span class="o">=</span> <span class="n">RoughDragCal</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">cals</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">betas</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+<span class="n">cal_drag0</span> <span class="o">=</span> <span class="n">RoughDragCal</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">cals</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">betas</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+<span class="n">cal_drag1</span> <span class="o">=</span> <span class="n">RoughDragCal</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">cals</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">betas</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
 
 <span class="n">cal_drag0</span><span class="o">.</span><span class="n">set_experiment_options</span><span class="p">(</span><span class="n">reps</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">])</span>
 <span class="n">cal_drag1</span><span class="o">.</span><span class="n">set_experiment_options</span><span class="p">(</span><span class="n">reps</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">])</span>
@@ -1079,8 +1062,8 @@ as above.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 32.6 s, sys: 20.1 s, total: 52.7 s
-Wall time: 28.2 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 23.2 s, sys: 15.3 s, total: 38.5 s
+Wall time: 19.8 s
 </pre></div>
 </div>
 </div>
@@ -1147,32 +1130,32 @@ Wall time: 28.2 s
       <td>amp</td>
       <td>(0,)</td>
       <td>x</td>
-      <td>0.118811+0.000000j</td>
+      <td>0.119095</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-02-02 22:05:29.225822+0000</td>
-      <td>da08297a-d38c-4e18-80c5-df6c9cfdfbd7</td>
+      <td>2024-03-18 22:16:16.530040+0000</td>
+      <td>1b9b0a85-e909-451d-88fb-9c5d17e6e9b2</td>
     </tr>
     <tr>
       <th>1</th>
       <td>amp</td>
       <td>(0,)</td>
       <td>sx</td>
-      <td>0.059406+0.000000j</td>
+      <td>0.059548</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-02-02 22:05:29.225822+0000</td>
-      <td>da08297a-d38c-4e18-80c5-df6c9cfdfbd7</td>
+      <td>2024-03-18 22:16:16.530040+0000</td>
+      <td>1b9b0a85-e909-451d-88fb-9c5d17e6e9b2</td>
     </tr>
     <tr>
       <th>2</th>
       <td>amp</td>
       <td>()</td>
       <td>x</td>
-      <td>0.500000+0.000000j</td>
+      <td>0.500000</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-02-02 22:05:26.666858+0000</td>
+      <td>2024-03-18 22:16:15.549983+0000</td>
       <td>None</td>
     </tr>
     <tr>
@@ -1180,10 +1163,10 @@ Wall time: 28.2 s
       <td>amp</td>
       <td>()</td>
       <td>sx</td>
-      <td>0.250000+0.000000j</td>
+      <td>0.250000</td>
       <td>default</td>
       <td>True</td>
-      <td>2024-02-02 22:05:26.666930+0000</td>
+      <td>2024-03-18 22:16:15.550027+0000</td>
       <td>None</td>
     </tr>
   </tbody>
@@ -1193,8 +1176,8 @@ Wall time: 28.2 s
 </section>
 </section>
 <section id="simulating-2-qubit-interaction-characterization-via-the-crhamitonian-experiment">
-<h2>6. Simulating 2 qubit interaction characterization via the <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.library.characterization.CrossResonanceHamiltonian.html#qiskit_experiments.library.characterization.CrossResonanceHamiltonian" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossResonanceHamiltonian</span></code></a> experiment<a class="headerlink" href="#simulating-2-qubit-interaction-characterization-via-the-crhamitonian-experiment" title="Permalink to this heading">#</a></h2>
-<p>Finally, simulate the <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.library.characterization.CrossResonanceHamiltonian.html#qiskit_experiments.library.characterization.CrossResonanceHamiltonian" title="(in Qiskit Experiments 0.5 v0.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossResonanceHamiltonian</span></code></a> characterization experiment.</p>
+<h2>6. Simulating 2 qubit interaction characterization via the <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.library.characterization.CrossResonanceHamiltonian.html#qiskit_experiments.library.characterization.CrossResonanceHamiltonian" title="(in Qiskit Experiments v0.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossResonanceHamiltonian</span></code></a> experiment<a class="headerlink" href="#simulating-2-qubit-interaction-characterization-via-the-crhamitonian-experiment" title="Link to this heading">#</a></h2>
+<p>Finally, simulate the <a class="reference external" href="https://qiskit-extensions.github.io/qiskit-experiments/stubs/qiskit_experiments.library.characterization.CrossResonanceHamiltonian.html#qiskit_experiments.library.characterization.CrossResonanceHamiltonian" title="(in Qiskit Experiments v0.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossResonanceHamiltonian</span></code></a> characterization experiment.</p>
 <p>First, we further configure the backend to run this experiment. This requires defining the control
 channel map, which is a dictionary mapping control-target qubit index pairs (given as a tuple) to
 the control channel index used to drive the corresponding cross-resonance interaction. This is
@@ -1216,8 +1199,8 @@ values for the single qubit gates calibrated above.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qiskit_experiments.library</span> <span class="kn">import</span> <span class="n">CrossResonanceHamiltonian</span>
 
 <span class="n">cr_ham_experiment</span> <span class="o">=</span> <span class="n">CrossResonanceHamiltonian</span><span class="p">(</span>
-    <span class="n">qubits</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-    <span class="n">flat_top_widths</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="mi">17</span><span class="p">),</span>
+    <span class="n">physical_qubits</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">durations</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">1e-7</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mi">17</span><span class="p">),</span>
     <span class="n">backend</span><span class="o">=</span><span class="n">backend</span>
 <span class="p">)</span>
 
@@ -1246,8 +1229,8 @@ values for the single qubit gates calibrated above.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 28.2 s, sys: 6.81 s, total: 35 s
-Wall time: 27.7 s
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 16.2 s, sys: 5.22 s, total: 21.4 s
+Wall time: 16.2 s
 </pre></div>
 </div>
 </div>
@@ -1268,20 +1251,7 @@ Wall time: 27.7 s
         </article>
       </div>
       <footer>
-        
-  <script>
-    function userFeedbackClicked(ctaType) {
-      document.getElementById('qiskit-analytics-thank-you').style.visibility = 'visible';
-      window.trackCta(`Helpful - ${ctaType}`);
-    }
-  </script>
-    <div class="qiskit-analytics-container">
-      <div>Was this page helpful?</div>
-      <a onclick="userFeedbackClicked('yes')">Yes</a>
-      <a onclick="userFeedbackClicked('no')">No</a>
-      <div id="qiskit-analytics-thank-you">Thank you!</div>
-    </div>
-<div class="related-pages">
+        <div class="related-pages">
           <a class="next-page" href="../userguide/index.html">
               <div class="page-info">
                 <div class="context">
@@ -1312,7 +1282,7 @@ Wall time: 27.7 s
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/02/02</div>
+              Last updated on 2024/03/18</div>
           </div>
           <div class="right-details">
             
@@ -1334,7 +1304,7 @@ Wall time: 27.7 s
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Simulating backends at the pulse-level with <code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a><ul>
-<li><a class="reference internal" href="#configure-dynamics-to-use-jax">1. Configure Dynamics to use JAX</a></li>
+<li><a class="reference internal" href="#configure-jax">1. Configure JAX</a></li>
 <li><a class="reference internal" href="#instantiating-a-minimally-configured-dynamicsbackend-with-a-2-qubit-model">2. Instantiating a minimally-configured <code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code> with a 2 qubit model</a></li>
 <li><a class="reference internal" href="#simulating-pulse-schedules-on-the-dynamicsbackend">3. Simulating pulse schedules on the <code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a></li>
 <li><a class="reference internal" href="#simulating-circuits-at-the-pulse-level-using-the-dynamicsbackend">4. Simulating circuits at the pulse level using the <code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a><ul>
@@ -1363,9 +1333,9 @@ Wall time: 27.7 s
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=16716fad"></script>
+    <script src="../_static/documentation_options.js?v=1dd76d02"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>

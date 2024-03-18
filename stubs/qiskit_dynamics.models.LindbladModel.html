@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="GeneratorModel" href="qiskit_dynamics.models.GeneratorModel.html" /><link rel="prev" title="HamiltonianModel" href="qiskit_dynamics.models.HamiltonianModel.html" />
 
-    <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>LindbladModel - Qiskit Dynamics 0.4.5 documentation</title>
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>LindbladModel - Qiskit Dynamics 0.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -39,64 +39,7 @@
   }
 </style><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<script src="../_static/js/web-components/top-nav-bar.js"></script>
-<script>
-  (function () {
-    window._analytics = {
-      segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
-      coremetrics: false,
-      optimizely: false,
-      googleAddServices: false,
-      fullStory: false,
-      autoPageEventSpa: false,
-      autoFormEvents: false,
-      autoPageView: false
-    }
-
-    window.digitalData = {
-      page: {
-        pageInfo: {
-          productTitle: 'IBM Q Experience',
-          analytics: {
-            category: 'Qiskit.org'
-          }
-        }
-      }
-    }
-  }());
-</script>
-<script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
-<script>
-  (function () {
-    'use strict'
-
-    if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-    const category = window.digitalData.page.pageInfo.analytics.category
-    const productTitle = window.digitalData.page.pageInfo.productTitle
-    const routeName = 'documentation'
-
-    window.bluemixAnalytics.pageEvent(category, routeName, {
-      navigationType: 'pushState',
-      productTitle: productTitle,
-      title: document.title
-    })
-
-    window.trackCta = (action) => {
-      if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-      const category = window.digitalData.page.pageInfo.analytics.category
-      const productTitle = window.digitalData.page.pageInfo.productTitle
-
-      window.bluemixAnalytics.trackEvent('CTA Clicked', {
-        productTitle,
-        category,
-        CTA: action
-      })
-    }
-
-  }());
-</script></head>
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
   <body>
     
     <script>document.body.dataset.theme = "light";</script>
@@ -200,7 +143,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.5 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.5.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +170,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.5 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.5.0 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -244,10 +187,10 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../userguide/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_jax.html">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and evaluation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../userguide/perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by <code class="docutils literal notranslate"><span class="pre">qiskit-pulse</span></code> with JAX transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../apidocs/index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
@@ -294,6 +237,7 @@
 <li class="toctree-l3"><a class="reference internal" href="qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../apidocs/arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/array.html">Array Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Array Module (qiskit_dynamics.array)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="qiskit_dynamics.array.Array.html">Array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="qiskit_dynamics.array.wrap.html">qiskit_dynamics.array.wrap</a></li>
@@ -313,7 +257,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
 </ul>
 
-</div></div>
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
       </div>
       
     </div>
@@ -344,10 +306,10 @@
         </div>
         <article role="main">
           <section id="lindbladmodel">
-<h1>LindbladModel<a class="headerlink" href="#lindbladmodel" title="Permalink to this heading">#</a></h1>
+<h1>LindbladModel<a class="headerlink" href="#lindbladmodel" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LindbladModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static_hamiltonian</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hamiltonian_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hamiltonian_signals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_dissipators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipator_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipator_signals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotating_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluation_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dense'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/lindblad_model.html#LindbladModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LindbladModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">static_hamiltonian</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hamiltonian_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hamiltonian_signals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_dissipators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipator_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipator_signals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotating_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_frame_basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array_library</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vectorized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/lindblad_model.html#LindbladModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGeneratorModel</span></code></p>
 <p>A model of a quantum system in terms of the Lindblad master equation.</p>
 <p>The Lindblad master equation models the evolution of a density matrix according to:</p>
@@ -402,19 +364,25 @@ to the <span class="math notranslate nohighlight">\(L_j\)</span>, and the <code 
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>static_hamiltonian</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Constant term in Hamiltonian.</p></li>
-<li><p><strong>hamiltonian_operators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List of operators in Hamiltonian with time-dependent
+<li><p><strong>static_hamiltonian</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Constant term in Hamiltonian.</p></li>
+<li><p><strong>hamiltonian_operators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List of operators in Hamiltonian with time-dependent
 coefficients.</p></li>
 <li><p><strong>hamiltonian_signals</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="qiskit_dynamics.signals.SignalList.html#qiskit_dynamics.signals.SignalList" title="qiskit_dynamics.signals.signals.SignalList"><code class="xref py py-class docutils literal notranslate"><span class="pre">SignalList</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Time-dependent coefficients for hamiltonian_operators.</p></li>
-<li><p><strong>static_dissipators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List of dissipators with coefficient 1.</p></li>
-<li><p><strong>dissipator_operators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List of dissipator operators with time-dependent coefficients.</p></li>
+<li><p><strong>static_dissipators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List of dissipators with coefficient 1.</p></li>
+<li><p><strong>dissipator_operators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List of dissipator operators with time-dependent coefficients.</p></li>
 <li><p><strong>dissipator_signals</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="qiskit_dynamics.signals.SignalList.html#qiskit_dynamics.signals.SignalList" title="qiskit_dynamics.signals.signals.SignalList"><code class="xref py py-class docutils literal notranslate"><span class="pre">SignalList</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Time-dependent coefficients for dissipator_operators.</p></li>
-<li><p><strong>rotating_frame</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://qiskit.org/documentation/stubs/qiskit.quantum_info.Operator.html#qiskit.quantum_info.Operator" title="(in Qiskit v0.45)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Operator</span></code></a>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <a class="reference internal" href="qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame" title="qiskit_dynamics.models.rotating_frame.RotatingFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">RotatingFrame</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Rotating frame in which calcualtions are to be done. If provided, it is
+<li><p><strong>rotating_frame</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <a class="reference internal" href="qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame" title="qiskit_dynamics.models.rotating_frame.RotatingFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">RotatingFrame</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Rotating frame in which calcualtions are to be done. If provided, it is
 assumed that all operators were already in the frame basis.</p></li>
 <li><p><strong>in_frame_basis</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to represent the model in the basis in which the rotating
 frame operator is diagonalized.</p></li>
-<li><p><strong>evaluation_mode</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Evaluation mode to use. Call <code class="docutils literal notranslate"><span class="pre">help(LindbladModel.evaluation_mode)</span></code>
-for more details.</p></li>
+<li><p><strong>array_library</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Array library with which to represent the operators in the model, and to
+evaluate the model. See the list of supported array libraries in the
+<a class="reference internal" href="../apidocs/arraylias.html#module-qiskit_dynamics.arraylias" title="qiskit_dynamics.arraylias"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arraylias</span></code></a> submodule API documentation. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the arrays will be
+handled by general dispatching rules.</p></li>
+<li><p><strong>vectorized</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether or not to setup the Lindblad equation in vectorized mode.
+If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the operators in the model are stored as <span class="math notranslate nohighlight">\((dim^2,dim^2)\)</span> matrices
+that act on vectorized density matrices by left-multiplication. Setting this to
+<code class="docutils literal notranslate"><span class="pre">True</span></code> is necessary for <code class="docutils literal notranslate"><span class="pre">SuperOp</span></code> simulation.</p></li>
 <li><p><strong>validate</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If True check input hamiltonian_operators and static_hamiltonian are
 Hermitian.</p></li>
 </ul>
@@ -425,14 +393,8 @@ Hermitian.</p></li>
 </dl>
 <p class="rubric">Methods</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.copy" title="Permalink to this definition">#</a></dt>
-<dd><p>Return a copy of self.</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.evaluate">
-<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/lindblad_model.html#LindbladModel.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.evaluate" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/lindblad_model.html#LindbladModel.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.evaluate" title="Link to this definition">#</a></dt>
 <dd><p>Evaluate the model in array format as a matrix, independent of state.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -442,7 +404,7 @@ Hermitian.</p></li>
 <dd class="field-even"><p>The evaluated model as an anti-Hermitian matrix.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
@@ -455,7 +417,7 @@ Hermitian.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.evaluate_hamiltonian">
-<span class="sig-name descname"><span class="pre">evaluate_hamiltonian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/lindblad_model.html#LindbladModel.evaluate_hamiltonian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.evaluate_hamiltonian" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">evaluate_hamiltonian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/lindblad_model.html#LindbladModel.evaluate_hamiltonian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.evaluate_hamiltonian" title="Link to this definition">#</a></dt>
 <dd><p>Evaluates Hamiltonian matrix at a given time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -465,28 +427,28 @@ Hermitian.</p></li>
 <dd class="field-even"><p>Hamiltonian matrix.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.evaluate_rhs">
-<span class="sig-name descname"><span class="pre">evaluate_rhs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/lindblad_model.html#LindbladModel.evaluate_rhs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.evaluate_rhs" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">evaluate_rhs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/lindblad_model.html#LindbladModel.evaluate_rhs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.evaluate_rhs" title="Link to this definition">#</a></dt>
 <dd><p>Evaluates the Lindblad model at a given time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>time</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span>) – The time at which the model should be evaluated.</p></li>
-<li><p><strong>y</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – Density matrix as an (n,n) Array if not using a vectorized evaluation_mode, or an
-(n^2) Array if using vectorized evaluation.</p></li>
+<li><p><strong>time</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The time at which the model should be evaluated.</p></li>
+<li><p><strong>y</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – Density matrix as an (n,n) Array if not vectorized, or an (n^2) Array if using
+vectorized evaluation.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Either the evaluated generator or the state.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.Array">Array</a></p>
+<dd class="field-odd"><p>ArrayLike</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>QiskitError</strong> – If signals not sufficiently specified.</p>
@@ -496,17 +458,17 @@ Hermitian.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.from_hamiltonian">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_hamiltonian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hamiltonian</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_dissipators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipator_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipator_signals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluation_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/lindblad_model.html#LindbladModel.from_hamiltonian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.from_hamiltonian" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_hamiltonian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hamiltonian</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_dissipators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipator_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipator_signals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array_library</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vectorized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/models/lindblad_model.html#LindbladModel.from_hamiltonian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.from_hamiltonian" title="Link to this definition">#</a></dt>
 <dd><p>Construct from a <a class="reference internal" href="qiskit_dynamics.models.HamiltonianModel.html#qiskit_dynamics.models.HamiltonianModel" title="qiskit_dynamics.models.HamiltonianModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">HamiltonianModel</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>hamiltonian</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.models.HamiltonianModel.html#qiskit_dynamics.models.HamiltonianModel" title="qiskit_dynamics.models.hamiltonian_model.HamiltonianModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">HamiltonianModel</span></code></a></span>) – The <a class="reference internal" href="qiskit_dynamics.models.HamiltonianModel.html#qiskit_dynamics.models.HamiltonianModel" title="qiskit_dynamics.models.HamiltonianModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">HamiltonianModel</span></code></a>.</p></li>
-<li><p><strong>static_dissipators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List of dissipators with coefficient 1.</p></li>
-<li><p><strong>dissipator_operators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List of dissipators with time-dependent coefficients.</p></li>
-<li><p><strong>dissipator_signals</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="qiskit_dynamics.signals.SignalList.html#qiskit_dynamics.signals.SignalList" title="qiskit_dynamics.signals.signals.SignalList"><code class="xref py py-class docutils literal notranslate"><span class="pre">SignalList</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="qiskit_dynamics.signals.Signal.html#qiskit_dynamics.signals.Signal" title="qiskit_dynamics.signals.signals.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List time-dependent coefficients for dissipator_operators.</p></li>
-<li><p><strong>evaluation_mode</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Evaluation mode. Call <code class="docutils literal notranslate"><span class="pre">help(LindbladModel.evaluation_mode)</span></code> for more
-information.</p></li>
+<li><p><strong>static_dissipators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List of dissipators with coefficient 1.</p></li>
+<li><p><strong>dissipator_operators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List of dissipators with time-dependent coefficients.</p></li>
+<li><p><strong>dissipator_signals</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – List time-dependent coefficients for dissipator_operators.</p></li>
+<li><p><strong>array_library</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Array library to use.</p></li>
+<li><p><strong>vectorized</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether or not to vectorize the Lindblad equation.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -520,70 +482,48 @@ information.</p></li>
 
 <p class="rubric">Attributes</p>
 <dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.array_library">
+<span class="sig-name descname"><span class="pre">array_library</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.array_library" title="Link to this definition">#</a></dt>
+<dd><p>Array library with which to represent the operators in the model, and to evaluate the
+model.</p>
+<p>See the list of supported array libraries in the <a class="reference internal" href="../apidocs/arraylias.html#module-qiskit_dynamics.arraylias" title="qiskit_dynamics.arraylias"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arraylias</span></code></a> submodule API
+documentation.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.dim">
-<span class="sig-name descname"><span class="pre">dim</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.dim" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">dim</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.dim" title="Link to this definition">#</a></dt>
 <dd><p>The matrix dimension.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.dissipator_operators">
-<span class="sig-name descname"><span class="pre">dissipator_operators</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.dissipator_operators" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">dissipator_operators</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.dissipator_operators" title="Link to this definition">#</a></dt>
 <dd><p>The dissipator operators.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.evaluation_mode">
-<span class="sig-name descname"><span class="pre">evaluation_mode</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.evaluation_mode" title="Permalink to this definition">#</a></dt>
-<dd><p>Numerical evaluation mode of the model.</p>
-<p>Available options:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">'dense'</span></code>: Stores Hamiltonian and dissipator terms as dense Array types.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">'dense_vectorized'</span></code>: Stores the Hamiltonian and dissipator terms as
-<span class="math notranslate nohighlight">\((dim^2,dim^2)\)</span> matrices that acts on a vectorized density matrix by
-left-multiplication. Allows for direct evaluate generator.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">'sparse'</span></code>: Like dense, but matrices stored in sparse format. If the default Array
-backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy <code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code>
-sparse type.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">`sparse_vectorized`</span></code>: Like dense_vectorized, but matrices stored in sparse format. If
-the default Array backend is JAX, uses JAX BCOO sparse arrays, otherwise uses scipy
-<code class="xref py py-class docutils literal notranslate"><span class="pre">csr_matrix</span></code> sparse type. Note that JAX sparse mode is only recommended for use
-on CPU.</p></li>
-</ul>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>NotImplementedError</strong> – If this property is set to something other than one of the above
-    modes.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.hamiltonian_operators">
-<span class="sig-name descname"><span class="pre">hamiltonian_operators</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.hamiltonian_operators" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">hamiltonian_operators</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.hamiltonian_operators" title="Link to this definition">#</a></dt>
 <dd><p>The Hamiltonian operators.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.in_frame_basis">
-<span class="sig-name descname"><span class="pre">in_frame_basis</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.in_frame_basis" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">in_frame_basis</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.in_frame_basis" title="Link to this definition">#</a></dt>
 <dd><p>Whether to represent the model in the basis in which the frame operator is
 diagonalized.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.rotating_frame">
-<span class="sig-name descname"><span class="pre">rotating_frame</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.rotating_frame" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">rotating_frame</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.rotating_frame" title="Link to this definition">#</a></dt>
 <dd><p>The rotating frame.</p>
-<p>This property can be set with a <a class="reference internal" href="qiskit_dynamics.models.RotatingFrame.html#qiskit_dynamics.models.RotatingFrame" title="qiskit_dynamics.models.RotatingFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">RotatingFrame</span></code></a> instance, or any valid constructor
-argument to this class.</p>
-<p>Setting this property updates the internal operator to use the new frame.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.signals">
-<span class="sig-name descname"><span class="pre">signals</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.signals" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">signals</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.signals" title="Link to this definition">#</a></dt>
 <dd><p>The model’s signals as tuple with the 0th entry storing the Hamiltonian signals and the
 1st entry storing the dissipator signals.</p>
 <dl class="field-list simple">
@@ -596,14 +536,20 @@ argument to this class.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.static_dissipators">
-<span class="sig-name descname"><span class="pre">static_dissipators</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.static_dissipators" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">static_dissipators</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.static_dissipators" title="Link to this definition">#</a></dt>
 <dd><p>The static dissipator operators.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.static_hamiltonian">
-<span class="sig-name descname"><span class="pre">static_hamiltonian</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.static_hamiltonian" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">static_hamiltonian</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.static_hamiltonian" title="Link to this definition">#</a></dt>
 <dd><p>The static Hamiltonian term.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qiskit_dynamics.models.LindbladModel.vectorized">
+<span class="sig-name descname"><span class="pre">vectorized</span></span><a class="headerlink" href="#qiskit_dynamics.models.LindbladModel.vectorized" title="Link to this definition">#</a></dt>
+<dd><p>Whether or not the Lindblad equation is vectorized.</p>
 </dd></dl>
 
 </dd></dl>
@@ -613,20 +559,7 @@ argument to this class.</p>
         </article>
       </div>
       <footer>
-        
-  <script>
-    function userFeedbackClicked(ctaType) {
-      document.getElementById('qiskit-analytics-thank-you').style.visibility = 'visible';
-      window.trackCta(`Helpful - ${ctaType}`);
-    }
-  </script>
-    <div class="qiskit-analytics-container">
-      <div>Was this page helpful?</div>
-      <a onclick="userFeedbackClicked('yes')">Yes</a>
-      <a onclick="userFeedbackClicked('no')">No</a>
-      <div id="qiskit-analytics-thank-you">Thank you!</div>
-    </div>
-<div class="related-pages">
+        <div class="related-pages">
           <a class="next-page" href="qiskit_dynamics.models.GeneratorModel.html">
               <div class="page-info">
                 <div class="context">
@@ -657,7 +590,7 @@ argument to this class.</p>
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/02/02</div>
+              Last updated on 2024/03/18</div>
           </div>
           <div class="right-details">
             
@@ -680,20 +613,20 @@ argument to this class.</p>
             <ul>
 <li><a class="reference internal" href="#">LindbladModel</a><ul>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel"><code class="docutils literal notranslate"><span class="pre">LindbladModel</span></code></a><ul>
-<li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.copy"><code class="docutils literal notranslate"><span class="pre">LindbladModel.copy()</span></code></a></li>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.evaluate"><code class="docutils literal notranslate"><span class="pre">LindbladModel.evaluate()</span></code></a></li>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.evaluate_hamiltonian"><code class="docutils literal notranslate"><span class="pre">LindbladModel.evaluate_hamiltonian()</span></code></a></li>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.evaluate_rhs"><code class="docutils literal notranslate"><span class="pre">LindbladModel.evaluate_rhs()</span></code></a></li>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.from_hamiltonian"><code class="docutils literal notranslate"><span class="pre">LindbladModel.from_hamiltonian()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.array_library"><code class="docutils literal notranslate"><span class="pre">LindbladModel.array_library</span></code></a></li>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.dim"><code class="docutils literal notranslate"><span class="pre">LindbladModel.dim</span></code></a></li>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.dissipator_operators"><code class="docutils literal notranslate"><span class="pre">LindbladModel.dissipator_operators</span></code></a></li>
-<li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.evaluation_mode"><code class="docutils literal notranslate"><span class="pre">LindbladModel.evaluation_mode</span></code></a></li>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.hamiltonian_operators"><code class="docutils literal notranslate"><span class="pre">LindbladModel.hamiltonian_operators</span></code></a></li>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.in_frame_basis"><code class="docutils literal notranslate"><span class="pre">LindbladModel.in_frame_basis</span></code></a></li>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.rotating_frame"><code class="docutils literal notranslate"><span class="pre">LindbladModel.rotating_frame</span></code></a></li>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.signals"><code class="docutils literal notranslate"><span class="pre">LindbladModel.signals</span></code></a></li>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.static_dissipators"><code class="docutils literal notranslate"><span class="pre">LindbladModel.static_dissipators</span></code></a></li>
 <li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.static_hamiltonian"><code class="docutils literal notranslate"><span class="pre">LindbladModel.static_hamiltonian</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_dynamics.models.LindbladModel.vectorized"><code class="docutils literal notranslate"><span class="pre">LindbladModel.vectorized</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -709,9 +642,9 @@ argument to this class.</p>
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=16716fad"></script>
+    <script src="../_static/documentation_options.js?v=1dd76d02"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>

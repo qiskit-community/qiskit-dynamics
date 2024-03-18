@@ -13,34 +13,34 @@ definitions, and calibration and characterization experiments from Qiskit Experi
 
 The sections of this tutorial are as follows: 
 
-1. Configure Dynamics to use JAX.
+1. Configure JAX.
 2. Instantiating a minimally-configured :class:`.DynamicsBackend` with a 2 qubit model.
 3. Simulating pulse schedules on the :class:`.DynamicsBackend`.
 4. Simulating circuits at the pulse level using the :class:`.DynamicsBackend`.
 5. Simulating single-qubit calibration processes via Qiskit Experiments.
 6. Simulating 2 qubit interaction characterization via the |CRHamitonian| experiment.
 
-1. Configure Dynamics to use JAX
---------------------------------
+1. Configure JAX
+----------------
 
 Note that the :class:`.DynamicsBackend` internally performs just-in-time compilation automatically
-when configured to use JAX. See the :ref:`User Guide entry on using JAX with Dynamics <how-to use
-jax>` for more information.
+when using a JAX solver method. Here we configure JAX to run on CPU in 64 bit mode. See the
+:ref:`User Guide entry on using different array libraries with Qiskit Dynamics <how-to use different
+array libraries>` for more information.
 
 .. jupyter-execute::
     :hide-code:
 
+    # a parallelism warning raised by JAX is being raised due to somethign outside of Dynamics
     import warnings
-    warnings.filterwarnings('ignore', message='', category=Warning, module='', lineno=0, append=False)
+    warnings.filterwarnings("ignore", message="os.fork")
 
 .. jupyter-execute::
 
-    # Configure to use JAX internally
+    # Configure JAX
     import jax
     jax.config.update("jax_enable_x64", True)
     jax.config.update("jax_platform_name", "cpu")
-    from qiskit_dynamics.array import Array
-    Array.set_default_backend("jax")
 
 2. Instantiating a minimally-configured :class:`.DynamicsBackend` with a 2 qubit model
 --------------------------------------------------------------------------------------
@@ -48,9 +48,7 @@ jax>` for more information.
 To create the :class:`.DynamicsBackend`, first specify a :class:`.Solver` instance using the model
 details. Note that the choice of model depends on the type of device you wish to simulate. Here, we
 will use a :math:`2` qubit fixed-frequency transmon model with fixed coupling, with the following
-Hamiltonian (see the `Qiskit Textbook page on Circuit Quantum Electrodynamics
-<https://qiskit.org/textbook/ch-quantum-hardware/cQED-JC-SW.html>`_ for details on how transmon
-Hamiltonians are derived):
+Hamiltonian:
 
 .. math:: 
     
@@ -134,6 +132,7 @@ performance.
         hamiltonian_channels=["d0", "d1", "u0", "u1"],
         channel_carrier_freqs={"d0": v0, "d1": v1, "u0": v1, "u1": v0},
         dt=dt,
+        array_library="jax",
     )
 
 Next, instantiate the :class:`.DynamicsBackend`. The ``solver`` is used for simulation,
@@ -386,10 +385,10 @@ experiments.
     from qiskit_experiments.library.calibration import RoughXSXAmplitudeCal
     
     # rabi experiments for qubit 0
-    rabi0 = RoughXSXAmplitudeCal(0, cals, backend=backend, amplitudes=np.linspace(-0.2, 0.2, 27))
+    rabi0 = RoughXSXAmplitudeCal([0], cals, backend=backend, amplitudes=np.linspace(-0.2, 0.2, 27))
     
     # rabi experiments for qubit 1
-    rabi1 = RoughXSXAmplitudeCal(1, cals, backend=backend, amplitudes=np.linspace(-0.2, 0.2, 27))
+    rabi1 = RoughXSXAmplitudeCal([1], cals, backend=backend, amplitudes=np.linspace(-0.2, 0.2, 27))
 
 Run the Rabi experiments.
 
@@ -425,8 +424,8 @@ as above.
 
     from qiskit_experiments.library.calibration import RoughDragCal
     
-    cal_drag0 = RoughDragCal(0, cals, backend=backend, betas=np.linspace(-20, 20, 15))
-    cal_drag1 = RoughDragCal(1, cals, backend=backend, betas=np.linspace(-20, 20, 15))
+    cal_drag0 = RoughDragCal([0], cals, backend=backend, betas=np.linspace(-20, 20, 15))
+    cal_drag1 = RoughDragCal([1], cals, backend=backend, betas=np.linspace(-20, 20, 15))
     
     cal_drag0.set_experiment_options(reps=[3, 5, 7])
     cal_drag1.set_experiment_options(reps=[3, 5, 7])
@@ -477,8 +476,8 @@ values for the single qubit gates calibrated above.
     from qiskit_experiments.library import CrossResonanceHamiltonian
 
     cr_ham_experiment = CrossResonanceHamiltonian(
-        qubits=(0, 1), 
-        flat_top_widths=np.linspace(0, 5000, 17), 
+        physical_qubits=(0, 1), 
+        durations=np.linspace(1e-7, 1e-6, 17), 
         backend=backend
     )
     

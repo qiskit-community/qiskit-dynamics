@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Backend (qiskit_dynamics.backend)" href="../apidocs/backend.html" /><link rel="prev" title="qiskit_dynamics.solvers.solve_ode" href="qiskit_dynamics.solvers.solve_ode.html" />
 
-    <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>qiskit_dynamics.solvers.solve_lmde - Qiskit Dynamics 0.4.5 documentation</title>
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>qiskit_dynamics.solvers.solve_lmde - Qiskit Dynamics 0.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -39,64 +39,7 @@
   }
 </style><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<script src="../_static/js/web-components/top-nav-bar.js"></script>
-<script>
-  (function () {
-    window._analytics = {
-      segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
-      coremetrics: false,
-      optimizely: false,
-      googleAddServices: false,
-      fullStory: false,
-      autoPageEventSpa: false,
-      autoFormEvents: false,
-      autoPageView: false
-    }
-
-    window.digitalData = {
-      page: {
-        pageInfo: {
-          productTitle: 'IBM Q Experience',
-          analytics: {
-            category: 'Qiskit.org'
-          }
-        }
-      }
-    }
-  }());
-</script>
-<script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
-<script>
-  (function () {
-    'use strict'
-
-    if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-    const category = window.digitalData.page.pageInfo.analytics.category
-    const productTitle = window.digitalData.page.pageInfo.productTitle
-    const routeName = 'documentation'
-
-    window.bluemixAnalytics.pageEvent(category, routeName, {
-      navigationType: 'pushState',
-      productTitle: productTitle,
-      title: document.title
-    })
-
-    window.trackCta = (action) => {
-      if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-      const category = window.digitalData.page.pageInfo.analytics.category
-      const productTitle = window.digitalData.page.pageInfo.productTitle
-
-      window.bluemixAnalytics.trackEvent('CTA Clicked', {
-        productTitle,
-        category,
-        CTA: action
-      })
-    }
-
-  }());
-</script></head>
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
   <body>
     
     <script>document.body.dataset.theme = "light";</script>
@@ -200,7 +143,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.5 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.5.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +170,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.5 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.5.0 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -244,10 +187,10 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../userguide/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_jax.html">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and evaluation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../userguide/perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by <code class="docutils literal notranslate"><span class="pre">qiskit-pulse</span></code> with JAX transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../apidocs/index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
@@ -294,6 +237,7 @@
 <li class="toctree-l3"><a class="reference internal" href="qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../apidocs/arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/array.html">Array Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Array Module (qiskit_dynamics.array)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="qiskit_dynamics.array.Array.html">Array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="qiskit_dynamics.array.wrap.html">qiskit_dynamics.array.wrap</a></li>
@@ -313,7 +257,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
 </ul>
 
-</div></div>
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
       </div>
       
     </div>
@@ -344,10 +306,10 @@
         </div>
         <article role="main">
           <section id="qiskit-dynamics-solvers-solve-lmde">
-<h1>qiskit_dynamics.solvers.solve_lmde<a class="headerlink" href="#qiskit-dynamics-solvers-solve-lmde" title="Permalink to this heading">#</a></h1>
+<h1>qiskit_dynamics.solvers.solve_lmde<a class="headerlink" href="#qiskit-dynamics-solvers-solve-lmde" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="qiskit_dynamics.solvers.solve_lmde">
-<span class="sig-name descname"><span class="pre">solve_lmde</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">generator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_span</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DOP853'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_eval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/solvers/solver_functions.html#solve_lmde"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.solvers.solve_lmde" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">solve_lmde</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">generator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_span</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DOP853'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_eval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_dynamics/solvers/solver_functions.html#solve_lmde"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_dynamics.solvers.solve_lmde" title="Link to this definition">#</a></dt>
 <dd><p>General interface for solving Linear Matrix Differential Equations (LMDEs)
 in standard form.</p>
 <p>LMDEs in standard form are differential equations of the form:</p>
@@ -364,7 +326,7 @@ callable.</p>
 <p>Not all model classes are by-default in standard form. E.g.
 <a class="reference internal" href="qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel" title="qiskit_dynamics.models.LindbladModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">LindbladModel</span></code></a> represents an LMDE which is not typically
 written in standard form. As such, using LMDE-specific methods with this generator requires
-setting a vectorized evaluation mode.</p>
+the equation to be vectorized.</p>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">method</span></code> argument exposes solvers specialized to both LMDEs, as well as general ODE
 solvers. If the method is not specific to LMDEs, the problem will be passed to
@@ -392,12 +354,12 @@ large dimension.</p></li>
 behaviour. Note that this method contains calls to <code class="docutils literal notranslate"><span class="pre">jax.numpy.eigh</span></code>, which may have limited
 validity when automatically differentiated.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">'jax_expm'</span></code>: JAX-implemented version of <code class="docutils literal notranslate"><span class="pre">'scipy_expm'</span></code>, with the same arguments and
-behaviour. Note that this method cannot be used for a model in sparse evaluation mode.</p></li>
+behaviour. Note that this method cannot be used for a model using a sparse array library.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">'jax_expm_parallel'</span></code>: Same as <code class="docutils literal notranslate"><span class="pre">'jax_expm'</span></code>, however all loops are implemented using
 parallel operations. I.e. all matrix-exponentials for taking a single step are computed in
 parallel using <code class="docutils literal notranslate"><span class="pre">jax.vmap</span></code>, and are subsequently multiplied together in parallel using
 <code class="docutils literal notranslate"><span class="pre">jax.lax.associative_scan</span></code>. This method is only recommended for use with GPU execution. Note
-that this method cannot be used for a model in sparse evaluation mode.</p></li>
+that this method cannot be used for a model using a sparse array library.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">'jax_RK4_parallel'</span></code>: 4th order Runge-Kutta fixed step solver. Under the assumption of the
 structure of an LMDE, utilizes the same parallelization approach as <code class="docutils literal notranslate"><span class="pre">'jax_expm_parallel'</span></code>,
 however the single step rule is the standard 4th order Runge-Kutta rule, rather than
@@ -409,10 +371,10 @@ matrix-exponentiation. Requires and utilizes the <code class="docutils literal n
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>generator</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGeneratorModel</span></code>]</span>) – Representation of generator function <span class="math notranslate nohighlight">\(G(t)\)</span>.</p></li>
-<li><p><strong>t_span</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – <code class="docutils literal notranslate"><span class="pre">Tuple</span></code> or <cite>list</cite> of initial and final time.</p></li>
-<li><p><strong>y0</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – State at initial time.</p></li>
+<li><p><strong>t_span</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – <code class="docutils literal notranslate"><span class="pre">Tuple</span></code> or <cite>list</cite> of initial and final time.</p></li>
+<li><p><strong>y0</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – State at initial time.</p></li>
 <li><p><strong>method</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">OdeSolver</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code>(<code class="docutils literal notranslate"><span class="pre">AbstractSolver</span></code>), <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Solving method to use.</p></li>
-<li><p><strong>t_eval</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Times at which to return the solution. Must lie within <code class="docutils literal notranslate"><span class="pre">t_span</span></code>. If unspecified,
+<li><p><strong>t_eval</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tracer</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code>, <a class="reference internal" href="qiskit_dynamics.array.Array.html#qiskit_dynamics.array.Array" title="qiskit_dynamics.array.array.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">spmatrix</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BCOO</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Times at which to return the solution. Must lie within <code class="docutils literal notranslate"><span class="pre">t_span</span></code>. If unspecified,
 the solution will be returned at the points in <code class="docutils literal notranslate"><span class="pre">t_span</span></code>.</p></li>
 <li><p><strong>**kwargs</strong> – Additional arguments to pass to the solver.</p></li>
 </ul>
@@ -432,8 +394,8 @@ the solution will be returned at the points in <code class="docutils literal not
 <dl class="simple">
 <dt>Additional Information:</dt><dd><p>While all <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGeneratorModel</span></code> subclasses represent LMDEs,
 they are not all in standard form by defualt. Using an LMDE-specific models like
-<a class="reference internal" href="qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel" title="qiskit_dynamics.models.LindbladModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">LindbladModel</span></code></a> requires first setting a vectorized
-evaluation mode.</p>
+<a class="reference internal" href="qiskit_dynamics.models.LindbladModel.html#qiskit_dynamics.models.LindbladModel" title="qiskit_dynamics.models.LindbladModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">LindbladModel</span></code></a> requires first setting the model to be
+vectorized.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -443,20 +405,7 @@ evaluation mode.</p>
         </article>
       </div>
       <footer>
-        
-  <script>
-    function userFeedbackClicked(ctaType) {
-      document.getElementById('qiskit-analytics-thank-you').style.visibility = 'visible';
-      window.trackCta(`Helpful - ${ctaType}`);
-    }
-  </script>
-    <div class="qiskit-analytics-container">
-      <div>Was this page helpful?</div>
-      <a onclick="userFeedbackClicked('yes')">Yes</a>
-      <a onclick="userFeedbackClicked('no')">No</a>
-      <div id="qiskit-analytics-thank-you">Thank you!</div>
-    </div>
-<div class="related-pages">
+        <div class="related-pages">
           <a class="next-page" href="../apidocs/backend.html">
               <div class="page-info">
                 <div class="context">
@@ -487,7 +436,7 @@ evaluation mode.</p>
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/02/02</div>
+              Last updated on 2024/03/18</div>
           </div>
           <div class="right-details">
             
@@ -523,9 +472,9 @@ evaluation mode.</p>
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=16716fad"></script>
+    <script src="../_static/documentation_options.js?v=1dd76d02"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>

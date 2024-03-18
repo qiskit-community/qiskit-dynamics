@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="qiskit_dynamics.perturbation.solve_lmde_perturbation" href="../stubs/qiskit_dynamics.perturbation.solve_lmde_perturbation.html" /><link rel="prev" title="InstructionToSignals" href="../stubs/qiskit_dynamics.pulse.InstructionToSignals.html" />
 
-    <!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
-        <title>Perturbation Theory (qiskit_dynamics.perturbation) - Qiskit Dynamics 0.4.5 documentation</title>
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>Perturbation Theory (qiskit_dynamics.perturbation) - Qiskit Dynamics 0.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=82a976d7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
@@ -39,64 +39,7 @@
   }
 </style><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<script src="../_static/js/web-components/top-nav-bar.js"></script>
-<script>
-  (function () {
-    window._analytics = {
-      segment_key: 'ffdYLviQze3kzomaINXNk6NwpY9LlXcw',
-      coremetrics: false,
-      optimizely: false,
-      googleAddServices: false,
-      fullStory: false,
-      autoPageEventSpa: false,
-      autoFormEvents: false,
-      autoPageView: false
-    }
-
-    window.digitalData = {
-      page: {
-        pageInfo: {
-          productTitle: 'IBM Q Experience',
-          analytics: {
-            category: 'Qiskit.org'
-          }
-        }
-      }
-    }
-  }());
-</script>
-<script src="https://cloud.ibm.com/analytics/build/bluemix-analytics.min.js"></script>
-<script>
-  (function () {
-    'use strict'
-
-    if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-    const category = window.digitalData.page.pageInfo.analytics.category
-    const productTitle = window.digitalData.page.pageInfo.productTitle
-    const routeName = 'documentation'
-
-    window.bluemixAnalytics.pageEvent(category, routeName, {
-      navigationType: 'pushState',
-      productTitle: productTitle,
-      title: document.title
-    })
-
-    window.trackCta = (action) => {
-      if (!window.bluemixAnalytics || !window.digitalData) { return }
-
-      const category = window.digitalData.page.pageInfo.analytics.category
-      const productTitle = window.digitalData.page.pageInfo.productTitle
-
-      window.bluemixAnalytics.trackEvent('CTA Clicked', {
-        productTitle,
-        category,
-        CTA: action
-      })
-    }
-
-  }());
-</script></head>
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
   <body>
     
     <script>document.body.dataset.theme = "light";</script>
@@ -200,7 +143,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.4.5 documentation</div></a>
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.5.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -227,7 +170,7 @@
     </div>
   </a>
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.4.5 documentation</span>
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.5.0 documentation</span>
 </div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -244,10 +187,10 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../userguide/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_jax.html">How-to use JAX with <code class="docutils literal notranslate"><span class="pre">qiskit-dynamics</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and evaluation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../userguide/perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by <code class="docutils literal notranslate"><span class="pre">qiskit-pulse</span></code> with JAX transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
@@ -294,6 +237,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="array.html">Array Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Array Module (qiskit_dynamics.array)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.Array.html">Array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.array.wrap.html">qiskit_dynamics.array.wrap</a></li>
@@ -313,7 +257,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
 </ul>
 
-</div></div>
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
       </div>
       
     </div>
@@ -343,36 +305,32 @@
           </label>
         </div>
         <article role="main">
-          <span class="target" id="module-qiskit_dynamics.perturbation"><span id="qiskit-dynamics-perturbation"></span></span><section id="perturbation-theory-qiskit-dynamics-perturbation">
-<h1>Perturbation Theory (<a class="reference internal" href="#module-qiskit_dynamics.perturbation" title="qiskit_dynamics.perturbation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.perturbation</span></code></a>)<a class="headerlink" href="#perturbation-theory-qiskit-dynamics-perturbation" title="Permalink to this heading">#</a></h1>
+          <section id="perturbation-theory-qiskit-dynamics-perturbation">
+<span id="module-qiskit_dynamics.perturbation"></span><span id="qiskit-dynamics-perturbation"></span><h1>Perturbation Theory (<a class="reference internal" href="#module-qiskit_dynamics.perturbation" title="qiskit_dynamics.perturbation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.perturbation</span></code></a>)<a class="headerlink" href="#perturbation-theory-qiskit-dynamics-perturbation" title="Link to this heading">#</a></h1>
 <p>This module contains tools for numerically computing and utilizing perturbation theory terms.
-Perturbation theory is an advanced topic; a brief review of the concepts and notation required
-to understand the contents in this module are given in the
-<a class="reference internal" href="../discussions/dyson_magnus.html#perturbation-review"><span class="std std-ref">Time-dependent perturbation theory and multi-variable
-series expansions review</span></a> discussion.</p>
+Perturbation theory is an advanced topic; a brief review of the concepts and notation required to
+understand the contents in this module are given in the <a class="reference internal" href="../discussions/dyson_magnus.html#perturbation-review"><span class="std std-ref">Time-dependent perturbation theory and
+multi-variable series expansions review</span></a> discussion.</p>
 <section id="time-dependent-perturbation-theory">
-<span id="td-perturbation-theory"></span><h2>Time-dependent perturbation theory<a class="headerlink" href="#time-dependent-perturbation-theory" title="Permalink to this heading">#</a></h2>
-<p>The function <a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.solve_lmde_perturbation.html#qiskit_dynamics.perturbation.solve_lmde_perturbation" title="qiskit_dynamics.perturbation.solve_lmde_perturbation"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_lmde_perturbation()</span></code></a> computes
-Dyson series <a class="footnote-reference brackets" href="#footcite-dyson-radiation-1949" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> and
-Magnus expansion <a class="footnote-reference brackets" href="#footcite-magnus-exponential-1954" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a><a class="footnote-reference brackets" href="#footcite-blanes-magnus-2009" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> terms
-in a multi-variable setting via algorithms in <a class="footnote-reference brackets" href="#footcite-puzzuoli-sensitivity-2022" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>.
-It can also be used to compute Dyson-like integrals using the algorithm in
-<a class="footnote-reference brackets" href="#footcite-haas-engineering-2019" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>. Results are returned in either a <a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.PowerSeriesData.html#qiskit_dynamics.perturbation.PowerSeriesData" title="qiskit_dynamics.perturbation.PowerSeriesData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PowerSeriesData</span></code></a>
-or <a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html#qiskit_dynamics.perturbation.DysonLikeData" title="qiskit_dynamics.perturbation.DysonLikeData"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonLikeData</span></code></a> class, which are data classes with functionality for indexing
-and accessing specific perturbation terms. See the function documentation for further details.</p>
+<span id="td-perturbation-theory"></span><h2>Time-dependent perturbation theory<a class="headerlink" href="#time-dependent-perturbation-theory" title="Link to this heading">#</a></h2>
+<p>The function <a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.solve_lmde_perturbation.html#qiskit_dynamics.perturbation.solve_lmde_perturbation" title="qiskit_dynamics.perturbation.solve_lmde_perturbation"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve_lmde_perturbation()</span></code></a> computes Dyson series <a class="footnote-reference brackets" href="#footcite-dyson-radiation-1949" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>
+and Magnus expansion <a class="footnote-reference brackets" href="#footcite-magnus-exponential-1954" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a><a class="footnote-reference brackets" href="#footcite-blanes-magnus-2009" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> terms in a
+multi-variable setting via algorithms in <a class="footnote-reference brackets" href="#footcite-puzzuoli-algorithms-2023" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>. It can also be used
+to compute Dyson-like integrals using the algorithm in <a class="footnote-reference brackets" href="#footcite-haas-engineering-2019" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>. Results
+are returned in either a <a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.PowerSeriesData.html#qiskit_dynamics.perturbation.PowerSeriesData" title="qiskit_dynamics.perturbation.PowerSeriesData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PowerSeriesData</span></code></a> or <a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html#qiskit_dynamics.perturbation.DysonLikeData" title="qiskit_dynamics.perturbation.DysonLikeData"><code class="xref py py-class docutils literal notranslate"><span class="pre">DysonLikeData</span></code></a> class, which are data
+classes with functionality for indexing and accessing specific perturbation terms. See the function
+documentation for further details.</p>
 </section>
 <section id="truncated-power-series-representation-and-multisets">
-<h2>Truncated power-series representation and multisets<a class="headerlink" href="#truncated-power-series-representation-and-multisets" title="Permalink to this heading">#</a></h2>
-<p>The class <a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html#qiskit_dynamics.perturbation.ArrayPolynomial" title="qiskit_dynamics.perturbation.ArrayPolynomial"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayPolynomial</span></code></a> represents an array-valued multivariable polynomial
-(i.e. a truncated power series), and provides functionality for
-both evaluating and transforming array-valued polynomials.</p>
-<p>This module makes use of the <a class="reference external" href="https://pypi.org/project/multiset/">multiset package</a> for
-indexing multi-variable power series. See the
-<a class="reference internal" href="../discussions/dyson_magnus.html#multiset-power-series"><span class="std std-ref">multiset and power series notation section</span></a>
-of the perturbation review for an explanation of this convention.</p>
+<h2>Truncated power-series representation and multisets<a class="headerlink" href="#truncated-power-series-representation-and-multisets" title="Link to this heading">#</a></h2>
+<p>The class <a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html#qiskit_dynamics.perturbation.ArrayPolynomial" title="qiskit_dynamics.perturbation.ArrayPolynomial"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayPolynomial</span></code></a> represents an array-valued multivariable polynomial (i.e. a
+truncated power series), and provides functionality for both evaluating and transforming
+array-valued polynomials.</p>
+<p>This module makes use of the <a class="reference external" href="https://pypi.org/project/multiset/">multiset package</a> for indexing
+multi-variable power series. See the <a class="reference internal" href="../discussions/dyson_magnus.html#multiset-power-series"><span class="std std-ref">multiset and power series notation section</span></a> of the perturbation review for an explanation of this convention.</p>
 </section>
 <section id="perturbation-module-functions">
-<h2>Perturbation module functions<a class="headerlink" href="#perturbation-module-functions" title="Permalink to this heading">#</a></h2>
+<h2>Perturbation module functions<a class="headerlink" href="#perturbation-module-functions" title="Link to this heading">#</a></h2>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -384,7 +342,7 @@ of the perturbation review for an explanation of this convention.</p>
 </div>
 </section>
 <section id="perturbation-module-classes">
-<h2>Perturbation module classes<a class="headerlink" href="#perturbation-module-classes" title="Permalink to this heading">#</a></h2>
+<h2>Perturbation module classes<a class="headerlink" href="#perturbation-module-classes" title="Link to this heading">#</a></h2>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -415,9 +373,9 @@ of the perturbation review for an explanation of this convention.</p>
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
 <p>S. Blanes, F. Casas, J. A. Oteo, and J. Ros. The Magnus expansion and some of its applications. <em>Physics Reports</em>, 470(5–6):151–238, 2009. <a class="reference external" href="https://doi.org/10.1016/j.physrep.2008.11.001">doi:10.1016/j.physrep.2008.11.001</a>.</p>
 </aside>
-<aside class="footnote brackets" id="footcite-puzzuoli-sensitivity-2022" role="doc-footnote">
+<aside class="footnote brackets" id="footcite-puzzuoli-algorithms-2023" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">4</a><span class="fn-bracket">]</span></span>
-<p>D. Puzzuoli, S. F. Lin, M. Malekakhlagh, E. Pritchett, B. Rosand, and C. J. Wood. Algorithms for perturbative analysis and simulation of quantum dynamics. <em>arXiv:2210.11595</em>, 2022. <a class="reference external" href="https://doi.org/10.48550/arXiv.2210.11595">doi:10.48550/arXiv.2210.11595</a>.</p>
+<p>D. Puzzuoli, S. F. Lin, M. Malekakhlagh, E. Pritchett, B. Rosand, and C. J. Wood. Algorithms for perturbative analysis and simulation of quantum dynamics. <em>Journal of Computational Physics</em>, 2023. <a class="reference external" href="https://doi.org/10.1016/j.jcp.2023.112262">doi:10.1016/j.jcp.2023.112262</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-haas-engineering-2019" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">5</a><span class="fn-bracket">]</span></span>
@@ -431,20 +389,7 @@ of the perturbation review for an explanation of this convention.</p>
         </article>
       </div>
       <footer>
-        
-  <script>
-    function userFeedbackClicked(ctaType) {
-      document.getElementById('qiskit-analytics-thank-you').style.visibility = 'visible';
-      window.trackCta(`Helpful - ${ctaType}`);
-    }
-  </script>
-    <div class="qiskit-analytics-container">
-      <div>Was this page helpful?</div>
-      <a onclick="userFeedbackClicked('yes')">Yes</a>
-      <a onclick="userFeedbackClicked('no')">No</a>
-      <div id="qiskit-analytics-thank-you">Thank you!</div>
-    </div>
-<div class="related-pages">
+        <div class="related-pages">
           <a class="next-page" href="../stubs/qiskit_dynamics.perturbation.solve_lmde_perturbation.html">
               <div class="page-info">
                 <div class="context">
@@ -475,7 +420,7 @@ of the perturbation review for an explanation of this convention.</p>
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/02/02</div>
+              Last updated on 2024/03/18</div>
           </div>
           <div class="right-details">
             
@@ -514,9 +459,9 @@ of the perturbation review for an explanation of this convention.</p>
   </div>
 </div><script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=16716fad"></script>
+    <script src="../_static/documentation_options.js?v=1dd76d02"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>

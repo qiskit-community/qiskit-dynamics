@@ -22,6 +22,7 @@
    .. automethod:: DynamicsBackend.qubit_properties
    .. automethod:: DynamicsBackend.run
    .. automethod:: DynamicsBackend.set_options
+   .. automethod:: DynamicsBackend.solve
 
 
 

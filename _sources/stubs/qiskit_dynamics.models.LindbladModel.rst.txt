@@ -12,7 +12,6 @@
    .. rubric:: Methods
 
 
-   .. automethod:: LindbladModel.copy
    .. automethod:: LindbladModel.evaluate
    .. automethod:: LindbladModel.evaluate_hamiltonian
    .. automethod:: LindbladModel.evaluate_rhs
@@ -22,12 +21,13 @@
 
    .. rubric:: Attributes
 
+   .. autoattribute:: array_library
    .. autoattribute:: dim
    .. autoattribute:: dissipator_operators
-   .. autoattribute:: evaluation_mode
    .. autoattribute:: hamiltonian_operators
    .. autoattribute:: in_frame_basis
    .. autoattribute:: rotating_frame
    .. autoattribute:: signals
    .. autoattribute:: static_dissipators
    .. autoattribute:: static_hamiltonian
+   .. autoattribute:: vectorized
