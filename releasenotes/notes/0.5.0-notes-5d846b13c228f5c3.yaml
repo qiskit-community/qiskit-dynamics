@@ -37,7 +37,7 @@ upgrade:
     Users should try to use the latest version of JAX.
   - |
     The interface for :class:`.GeneratorModel`, :class:`.HamiltonianModel`, and
-    :class:`.LindbladModel` has been modified. The ``copy`` method has been removed, and all setter
+    :class:`.LindbladModel` have been modified. The ``copy`` method has been removed, and all setter
     methods other than ``in_frame_basis`` and ``signals`` have been removed. The ``evaluation_mode``
     construction argument has been replaced by ``array_library``, which controls which array library
     is used internally to store and evaluate operations, and the additional ``vectorized`` boolean
@@ -46,19 +46,19 @@ upgrade:
     to the constructors of these classes, due to peculiarities of the internal setup for sparse
     libraries.
   - |
-    Similar to the :class:`.Solver` initialization method, the :meth:`.DynamicsBackend.from_backend`
-    constructor method argument ``evaluation_mode`` has been removed and replaced by the arguments
-    ``array_library`` and ``vectorized``.
-  - |
     In conjunction with the change to the ``evaluation_mode`` argument in the model classes, the
     :class:`.Solver` class has been updated to take the ``array_library`` constructor argument, as
     well as the ``vectorized`` constructor argument (for use when Lindblad terms are present).
   - |
+    Similar to the :class:`.Solver` initialization method, the :meth:`.DynamicsBackend.from_backend`
+    constructor method argument ``evaluation_mode`` has been removed and replaced by the arguments
+    ``array_library`` and ``vectorized``.
+  - |
     The logic in :meth:`.Solver.solve` for automatic ``jit`` compiling when using JAX and simulating
-    a list of schedules has been updated to no longer be based on when
-    ``Array.default_backend() == "jax"``. The attempted automatic ``jit`` compiling in this case
-    is now based only when whether either ``method="jax_odeint"``, or ``method`` is a Diffrax
-    integration method. A warning will be raised if the ``array_library`` is not known to be
-    compatible with the compilation routine. (For now, ``"scipy_sparse"`` is the only
-    ``array_library`` not compatible with this routine, however a warning will still be raised if
-    no explicit ``array_library`` is provided, as in this case the JAX-compatibility is unknown.)
+    a list of schedules has been updated to no longer be based on when ``Array.default_backend() ==
+    "jax"``. The attempted automatic ``jit`` now occurs based purely on whether
+    ``method="jax_odeint"``, or ``method`` is a Diffrax integration method. A warning will be raised
+    if the ``array_library`` is not known to be compatible with the compilation routine. (For now,
+    ``"scipy_sparse"`` is the only ``array_library`` not compatible with this routine, however a
+    warning will still be raised if no explicit ``array_library`` is provided, as in this case the
+    JAX-compatibility is unknown.)
