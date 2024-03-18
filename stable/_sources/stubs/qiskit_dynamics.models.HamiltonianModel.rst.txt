@@ -1,0 +1,28 @@
+﻿HamiltonianModel
+================
+
+.. currentmodule:: qiskit_dynamics.models
+
+.. autoclass:: HamiltonianModel
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: HamiltonianModel.evaluate
+   .. automethod:: HamiltonianModel.evaluate_rhs
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: array_library
+   .. autoattribute:: dim
+   .. autoattribute:: in_frame_basis
+   .. autoattribute:: operators
+   .. autoattribute:: rotating_frame
+   .. autoattribute:: signals
+   .. autoattribute:: static_operator
