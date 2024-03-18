@@ -1,6 +1,0 @@
----
-fixes:
-  - |
-    Fixes a bug in the perturbation module with internal sorting of ``Multiset`` instances, which
-    caused incorrect computation of perturbation theory terms when ``>10`` perturbations are
-    present.

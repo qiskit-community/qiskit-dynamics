@@ -1,5 +1,0 @@
----
-fixes:
-  - |
-    ``DynamicsBackend.options.normalize_states`` now also controls whether or not the probability
-    distribution over outcomes is normalized before sampling outcomes. 

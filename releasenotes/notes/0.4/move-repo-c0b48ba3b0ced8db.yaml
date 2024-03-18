@@ -1,9 +1,0 @@
----
-other:
-  - |
-    The repository has been moved from 
-    [github.com/Qiskit/qiskit-dynamics](https://github.com/Qiskit/qiskit-dynamics) to 
-    [github.com/Qiskit-Extensions/qiskit-dynamics](https://github.com/Qiskit-Extensions/qiskit-dynamics), 
-    and the [documentation](https://qiskit-extensions.github.io/qiskit-dynamics/) has been moved from
-    qiskit.org/documentation/dynamics
-    qiskit.org/ecosystem/dynamics

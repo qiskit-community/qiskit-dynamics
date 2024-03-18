@@ -1,0 +1,64 @@
+---
+prelude: >
+    
+    | Qiskit Dynamics ``0.5.0`` introduces a major change to the internal array dispatching
+      mechanism. Users can now work directly with their supported array library of choice, without
+      the need to personally manage the dispatching behaviour using the :class:`.Array` class as in
+      previous versions. Internally, Qiskit Dynamics now uses `Arraylias 
+      <https://qiskit-extensions.github.io/arraylias/>`_ for dispatching. See the :ref:`user guide
+      entry on using different array libraries with Qiskit Dynamics <how-to use different array
+      libraries>` for more details on the updated approach.
+
+    | To accompany this change, arguments that explicitly control the array library used to store
+      matrices (e.g. ``evaluation_mode``) in models and related classes have also been changed. See
+      the upgrade notes for a list of such changes, as well as the updated :ref:`user guide on
+      configuring simulations for performance <configuring simulations>` for how to use the new
+      versions of these arguments.
+
+    | Due to the scale of these changes, this release will generally break any pre-existing
+      Dynamics code utilizing :class:`.Array` or any of the aformentioned model and solver
+      arguments. The :class:`.Array` class and ``array`` and ``dispatch`` submodules have been
+      deprecated, and will be removed in ``0.6.0``. The documentation for the previous release
+      ``0.4.5`` is still available `here
+      <https://qiskit-extensions.github.io/qiskit-dynamics/stable/0.4/>`_.
+features:
+  - |
+    Adds the :meth:`.DynamicsBackend.solve` method for running simulations of circuits and schedules
+    for arbitrary input types, and returning the ODE simulation results.
+deprecations:
+  - |
+    The ``array`` and ``dispatch`` submodules of Qiskit Dynamics have been deprecated as of version
+    0.5.0, and will be removed in version ``0.6.0``.
+upgrade:
+  - |
+    Support for Python 3.12 has been added, and Python 3.8 has been dropped.
+  - |
+    The upper bound on JAX and Diffrax in the last version of Qiskit Dynamics has been removed.
+    Users should try to use the latest version of JAX.
+  - |
+    The interface for :class:`.GeneratorModel`, :class:`.HamiltonianModel`, and
+    :class:`.LindbladModel` have been modified. The ``copy`` method has been removed, and all setter
+    methods other than ``in_frame_basis`` and ``signals`` have been removed. The ``evaluation_mode``
+    construction argument has been replaced by ``array_library``, which controls which array library
+    is used internally to store and evaluate operations, and the additional ``vectorized`` boolean
+    argument has been added to :class:`.LindbladModel` to control whether the equation is evaluated
+    in vectorized mode. Note that, regardless of array library used, dense arrays must be supplied
+    to the constructors of these classes, due to peculiarities of the internal setup for sparse
+    libraries.
+  - |
+    In conjunction with the change to the ``evaluation_mode`` argument in the model classes, the
+    :class:`.Solver` class has been updated to take the ``array_library`` constructor argument, as
+    well as the ``vectorized`` constructor argument (for use when Lindblad terms are present).
+  - |
+    Similar to the :class:`.Solver` initialization method, the :meth:`.DynamicsBackend.from_backend`
+    constructor method argument ``evaluation_mode`` has been removed and replaced by the arguments
+    ``array_library`` and ``vectorized``.
+  - |
+    The logic in :meth:`.Solver.solve` for automatic ``jit`` compiling when using JAX and simulating
+    a list of schedules has been updated to no longer be based on when ``Array.default_backend() ==
+    "jax"``. The attempted automatic ``jit`` now occurs based purely on whether
+    ``method="jax_odeint"``, or ``method`` is a Diffrax integration method. A warning will be raised
+    if the ``array_library`` is not known to be compatible with the compilation routine. (For now,
+    ``"scipy_sparse"`` is the only ``array_library`` not compatible with this routine, however a
+    warning will still be raised if no explicit ``array_library`` is provided, as in this case the
+    JAX-compatibility is unknown.)

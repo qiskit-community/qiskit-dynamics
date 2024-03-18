@@ -1,5 +1,0 @@
----
-features:
-  - |
-    Adds the :meth:`.DynamicsBackend.solve` method for running simulations of circuits and schedules
-    for arbitrary input types, and returning the ODE simulation results.
