@@ -386,10 +386,10 @@ experiments.
     from qiskit_experiments.library.calibration import RoughXSXAmplitudeCal
     
     # rabi experiments for qubit 0
-    rabi0 = RoughXSXAmplitudeCal(0, cals, backend=backend, amplitudes=np.linspace(-0.2, 0.2, 27))
+    rabi0 = RoughXSXAmplitudeCal([0], cals, backend=backend, amplitudes=np.linspace(-0.2, 0.2, 27))
     
     # rabi experiments for qubit 1
-    rabi1 = RoughXSXAmplitudeCal(1, cals, backend=backend, amplitudes=np.linspace(-0.2, 0.2, 27))
+    rabi1 = RoughXSXAmplitudeCal([1], cals, backend=backend, amplitudes=np.linspace(-0.2, 0.2, 27))
 
 Run the Rabi experiments.
 
@@ -425,8 +425,8 @@ as above.
 
     from qiskit_experiments.library.calibration import RoughDragCal
     
-    cal_drag0 = RoughDragCal(0, cals, backend=backend, betas=np.linspace(-20, 20, 15))
-    cal_drag1 = RoughDragCal(1, cals, backend=backend, betas=np.linspace(-20, 20, 15))
+    cal_drag0 = RoughDragCal([0], cals, backend=backend, betas=np.linspace(-20, 20, 15))
+    cal_drag1 = RoughDragCal([1], cals, backend=backend, betas=np.linspace(-20, 20, 15))
     
     cal_drag0.set_experiment_options(reps=[3, 5, 7])
     cal_drag1.set_experiment_options(reps=[3, 5, 7])
@@ -477,8 +477,8 @@ values for the single qubit gates calibrated above.
     from qiskit_experiments.library import CrossResonanceHamiltonian
 
     cr_ham_experiment = CrossResonanceHamiltonian(
-        qubits=(0, 1), 
-        flat_top_widths=np.linspace(0, 5000, 17), 
+        physical_qubits=(0, 1), 
+        durations=np.linspace(1e-7, 1e-6, 17), 
         backend=backend
     )
     

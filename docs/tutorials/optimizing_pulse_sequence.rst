@@ -312,6 +312,9 @@ entry on :ref:`JAX-compatible pulse schedules <how-to use pulse schedules for ja
             )
         )
 
+        # we need to set disable_validation True to enable jax-jitting.
+        pulse.ScalableSymbolicPulse.disable_validation = True
+
         return pulse.ScalableSymbolicPulse(
                 pulse_type="GaussianSquare",
                 duration=230,
