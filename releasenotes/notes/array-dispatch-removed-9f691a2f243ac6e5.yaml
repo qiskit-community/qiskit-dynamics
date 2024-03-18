@@ -1,0 +1,4 @@
+---
+deprecations:
+  - |
+    The ``array`` and ``dispatch`` submodules have been removed.
