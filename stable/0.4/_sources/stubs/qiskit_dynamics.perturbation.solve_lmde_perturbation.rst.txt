@@ -1,0 +1,6 @@
+﻿qiskit\_dynamics.perturbation.solve\_lmde\_perturbation
+=======================================================
+
+.. currentmodule:: qiskit_dynamics.perturbation
+
+.. autofunction:: solve_lmde_perturbation

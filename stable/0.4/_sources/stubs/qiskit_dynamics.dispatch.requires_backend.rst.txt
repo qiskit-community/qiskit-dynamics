@@ -1,0 +1,6 @@
+﻿qiskit\_dynamics.dispatch.requires\_backend
+===========================================
+
+.. currentmodule:: qiskit_dynamics.dispatch
+
+.. autofunction:: requires_backend

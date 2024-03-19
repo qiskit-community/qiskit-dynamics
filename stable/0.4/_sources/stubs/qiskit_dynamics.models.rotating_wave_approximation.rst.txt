@@ -1,0 +1,6 @@
+﻿qiskit\_dynamics.models.rotating\_wave\_approximation
+=====================================================
+
+.. currentmodule:: qiskit_dynamics.models
+
+.. autofunction:: rotating_wave_approximation

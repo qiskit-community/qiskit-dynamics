@@ -1,0 +1,21 @@
+﻿Solver
+======
+
+.. currentmodule:: qiskit_dynamics.solvers
+
+.. autoclass:: Solver
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: Solver.solve
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: model

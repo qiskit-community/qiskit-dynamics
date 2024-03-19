@@ -1,0 +1,33 @@
+﻿LindbladModel
+=============
+
+.. currentmodule:: qiskit_dynamics.models
+
+.. autoclass:: LindbladModel
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: LindbladModel.copy
+   .. automethod:: LindbladModel.evaluate
+   .. automethod:: LindbladModel.evaluate_hamiltonian
+   .. automethod:: LindbladModel.evaluate_rhs
+   .. automethod:: LindbladModel.from_hamiltonian
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: dim
+   .. autoattribute:: dissipator_operators
+   .. autoattribute:: evaluation_mode
+   .. autoattribute:: hamiltonian_operators
+   .. autoattribute:: in_frame_basis
+   .. autoattribute:: rotating_frame
+   .. autoattribute:: signals
+   .. autoattribute:: static_dissipators
+   .. autoattribute:: static_hamiltonian

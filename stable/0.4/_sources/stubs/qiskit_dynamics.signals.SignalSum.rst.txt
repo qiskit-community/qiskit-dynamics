@@ -1,0 +1,29 @@
+﻿SignalSum
+=========
+
+.. currentmodule:: qiskit_dynamics.signals
+
+.. autoclass:: SignalSum
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: SignalSum.complex_value
+   .. automethod:: SignalSum.conjugate
+   .. automethod:: SignalSum.draw
+   .. automethod:: SignalSum.envelope
+   .. automethod:: SignalSum.flatten
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: carrier_freq
+   .. autoattribute:: components
+   .. autoattribute:: is_constant
+   .. autoattribute:: name
+   .. autoattribute:: phase
