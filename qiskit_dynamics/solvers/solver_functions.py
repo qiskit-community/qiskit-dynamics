@@ -143,7 +143,7 @@ def solve_ode(
         \dot{y}(t) = f(t, y(t)),
 
     where :math:`f` is a callable function and the state :math:`y(t)` is an
-    arbitrarily-shaped complex :class:`Array`.
+    arbitrarily-shaped complex array.
 
     The ``method`` argument exposes a variety of underlying ODE solvers. Optional
     arguments for any of the solver routines can be passed via ``kwargs``.
@@ -235,7 +235,7 @@ def solve_lmde(
         \dot{y}(t) = G(t)y(t).
 
     where :math:`G(t)` is a square matrix valued-function called the *generator*, and :math:`y(t)`
-    is an :class:`Array` of appropriate shape.
+    is an array of appropriate shape.
 
     Thus function accepts :math:`G(t)` as a ``qiskit_dynamics`` model class, or as an arbitrary
     callable.
