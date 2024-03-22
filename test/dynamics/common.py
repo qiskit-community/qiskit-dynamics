@@ -54,8 +54,6 @@ except ImportError:
 
 from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
 
-from qiskit_dynamics.array import Array
-
 
 def _is_sparse_object_array(A):
     return isinstance(A, np.ndarray) and A.ndim > 0 and issparse(A[0])
@@ -209,58 +207,6 @@ class JAXSparseTestBase(QiskitDynamicsTestCase):
             JIT-compiled gradient of function.
         """
         return jit(grad(lambda *args: np.sum(func_to_test(*args)).real))
-
-
-class ArrayNumpyTestBase(QiskitDynamicsTestCase):
-    """Base class for tests working with qiskit_dynamics Arrays with numpy backend."""
-
-    @classmethod
-    def array_library(cls):
-        """Library method."""
-        return "array_numpy"
-
-    def asarray(self, a):
-        """Array generation method."""
-        return Array(a)
-
-    def assertArrayType(self, a):
-        """Assert the correct array type."""
-        return isinstance(a, Array) and a.backend == "numpy"
-
-
-class ArrayJaxTestBase(QiskitDynamicsTestCase):
-    """Base class for tests working with qiskit_dynamics Arrays with jax backend."""
-
-    @classmethod
-    def setUpClass(cls):
-        try:
-            # pylint: disable=import-outside-toplevel
-            import jax
-
-            jax.config.update("jax_enable_x64", True)
-            jax.config.update("jax_platform_name", "cpu")
-        except Exception as err:
-            raise unittest.SkipTest("Skipping jax tests.") from err
-
-        Array.set_default_backend("jax")
-
-    @classmethod
-    def tearDownClass(cls):
-        """Set numpy back to the default backend."""
-        Array.set_default_backend("numpy")
-
-    @classmethod
-    def array_library(cls):
-        """Library method."""
-        return "array_jax"
-
-    def asarray(self, a):
-        """Array generation method."""
-        return Array(a)
-
-    def assertArrayType(self, a):
-        """Assert the correct array type."""
-        return isinstance(a, Array) and a.backend == "jax"
 
 
 def test_array_backends(test_class: Type, array_libraries: Optional[List[str]] = None):

@@ -34,7 +34,7 @@ except ImportError:
 # pylint: disable=no-member
 
 
-@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+@test_array_backends
 class TestSignal:
     """Tests for Signal object."""
 
@@ -313,7 +313,7 @@ class TestSignal:
         )
 
 
-@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+@test_array_backends
 class TestConstant:
     """Tests for constant signal object."""
 
@@ -385,7 +385,7 @@ class TestConstant:
         self.assertAllClose(const_conj(1.1), 3.0)
 
 
-@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+@test_array_backends
 class TestDiscreteSignal:
     """Tests for DiscreteSignal object."""
 
@@ -771,13 +771,11 @@ class TestDiscreteSignalSum(TestSignalSum):
         self.assertTrue(empty_sum.samples.shape == (1, 0))
 
 
-test_array_backends(TestSignalSum, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
-test_array_backends(
-    TestDiscreteSignalSum, array_libraries=["numpy", "jax", "array_numpy", "array_jax"]
-)
+test_array_backends(TestSignalSum)
+test_array_backends(TestDiscreteSignalSum)
 
 
-@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+@test_array_backends
 class TestSignalList:
     """Test cases for SignalList class."""
 
@@ -840,7 +838,7 @@ class TestSignalList:
         self.assertAllClose(sig_list(3.0), self.asarray([4.0, 2.0, 3.0]))
 
 
-@partial(test_array_backends, array_libraries=["numpy", "jax", "array_numpy", "array_jax"])
+@test_array_backends
 class TestSignalCollection:
     """Test cases for SignalCollection functionality."""
 
