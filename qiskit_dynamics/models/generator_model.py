@@ -117,7 +117,7 @@ class GeneratorModel(BaseGeneratorModel):
 
         G(t) = \sum_i s_i(t) G_i + G_d
 
-    where the :math:`G_i` are matrices (represented by :class:`Operator` or array libraries),
+    where the :math:`G_i` are matrices (represented by an :class:`Operator` or array),
     the :math:`s_i(t)` are signals represented by a list of :class:`Signal` objects, and :math:`G_d`
     is the constant-in-time static term of the generator.
     """
