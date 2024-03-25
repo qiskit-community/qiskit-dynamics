@@ -342,6 +342,8 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         y0_and_expected_results.append(
             (None, Statevector(QuantumCircuit(1)).evolve(expected_unitary))
         )
+        # y0 is a np.array, we expect a np.array as a result
+        y0_and_expected_results.append((np.eye(static_ham.shape[0]), expected_unitary))
         input_variety = [x_sched0, x_circ0]
 
         # solve for all combinations of input types and initial states
