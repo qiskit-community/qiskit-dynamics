@@ -380,7 +380,7 @@ class DynamicsBackend(BackendV2):
         # use default y0 if not given as parameter
         if y0 is None:
             y0 = self.options.initial_state
-        if y0 == "ground_state":
+        if isinstance(y0, str) and y0 == "ground_state":
             y0 = Statevector(self._dressed_states[:, 0])
 
         solver_results = self.options.solver.solve(

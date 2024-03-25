@@ -1,0 +1,3 @@
+fixes:
+  - |
+    :meth:`.DynamicsBackend.solve` method has been fixed to allow `y0` values of type `np.ndarray`.
