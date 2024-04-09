@@ -345,7 +345,7 @@ class DynamicsBackend(BackendV2):
     def solve(
         self,
         solve_input: List[Union[QuantumCircuit, Schedule, ScheduleBlock]],
-        t_span: ArrayLike,
+        t_span: Optional[ArrayLike] = None,
         y0: Optional[Union[ArrayLike, QuantumState, BaseOperator]] = None,
         convert_results: Optional[bool] = True,
         validate: Optional[bool] = True,
@@ -382,7 +382,8 @@ class DynamicsBackend(BackendV2):
             y0 = self.options.initial_state
         if isinstance(y0, str) and y0 == "ground_state":
             y0 = Statevector(self._dressed_states[:, 0])
-
+        if t_span is None:
+            t_span = [[0, sched.duration * self.dt] for sched in schedules]
         solver_results = self.options.solver.solve(
             t_span=t_span,
             y0=y0,
