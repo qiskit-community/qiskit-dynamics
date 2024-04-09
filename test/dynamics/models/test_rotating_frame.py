@@ -521,16 +521,16 @@ class TestRotatingFrameTypeHandling(NumpyTestBase):
         t = 0.123
         y = qutip.Qobj([[1.0, 1]])
         out = rotating_frame.state_into_frame(t, y)
-        self.assertTrue(isinstance(out, csr_matrix))
+        self.assertTrue(isinstance(out, np.ndarray))
         out = rotating_frame.state_out_of_frame(t, y)
-        self.assertTrue(isinstance(out, csr_matrix))
+        self.assertTrue(isinstance(out, np.ndarray))
 
         t = 100.12498
-        y = csr_matrix(np.eye(2))
+        y = qutip.Qobj(np.eye(2))
         out = rotating_frame.state_into_frame(t, y)
-        self.assertTrue(isinstance(out, csr_matrix))
+        self.assertTrue(isinstance(out, np.ndarray))
         out = rotating_frame.state_out_of_frame(t, y)
-        self.assertTrue(isinstance(out, csr_matrix))
+        self.assertTrue(isinstance(out, np.ndarray))
 
     def test_state_transformations_no_frame_Operator_types(self):
         """Test frame transformations with no frame."""
