@@ -182,6 +182,7 @@ class Test_qutip_qobj_asarray(QutipTestBase):
 
         qobj = Qobj([[0, 1], [1, 0]])
 
-        out = unp.asarray(qobj)
-        self.assertTrue(isinstance(out, csr_matrix))
-        self.assertAllClose(out.todense(), np.array([[0.0, 1.0], [1.0, 0.0]]))
+        out = unp.asarray(qobj)\
+        
+        self.assertTrue(isinstance(out, np.ndarray))
+        self.assertAllClose(out, np.array([[0.0, 1.0], [1.0, 0.0]]))
