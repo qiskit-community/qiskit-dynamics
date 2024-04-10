@@ -22,7 +22,7 @@ import numpy as np
 import jax.numpy as jnp
 from jax import random
 from qiskit import QiskitError
-from qiskit_dynamics_internal.compute_utils.parallel_maps import (
+from qiskit_dynamics.compute_utils.parallel_maps import (
     grid_map,
     _move_args_to_front,
     _tree_product_with_keys,
