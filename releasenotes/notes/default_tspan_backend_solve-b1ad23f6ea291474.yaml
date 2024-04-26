@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    ``DynamicsBackend.solve()`` method can now work without specifying a ``t_span`` argument. 
+    The default ``t_span`` is set to be ``[0, solve_input.duration]`` for each provided ``solve_input``.
+    This allows users to solve the dynamics of a quantum circuit without having to specify its
+    duration in advance.
