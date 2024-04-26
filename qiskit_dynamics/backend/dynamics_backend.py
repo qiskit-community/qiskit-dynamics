@@ -362,7 +362,7 @@ class DynamicsBackend(BackendV2):
 
         Args:
             t_span: Time interval to integrate over. Defaults to ``None``, in which case the
-                    interval is set to [[0, input.duration] for input in solve_input]].
+                    interval is set to ``[[0, input.duration] for input in solve_input]]``.
             y0: Initial state.
             solve_input: Time evolution of the system in terms of quantum circuits or qiskit
                          pulse schedules.
