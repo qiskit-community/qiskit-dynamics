@@ -232,7 +232,6 @@ parameters can be systematically analyzed - we encourage you to try it!
 
     from qiskit.visualization import plot_bloch_vector
     import matplotlib.pyplot as plt
-    %matplotlib inline
 
     fontsize = 16
 
