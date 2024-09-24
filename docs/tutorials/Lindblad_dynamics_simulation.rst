@@ -65,6 +65,7 @@ Below, we first set the number of qubits :math:`N` to be simulated, and then pre
 single-qubit Pauli operators that will be used in the rest of this tutorial.
 
 .. plot::
+    :context:
     :include-source:
 
     import numpy as np
@@ -102,6 +103,7 @@ derivatives of parameters, we do not use the :class:`Signal` class in this tutor
 tutorials for various generalizations of this approach supported with ``qiskit-dynamics``.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit_dynamics import Solver, Signal
@@ -143,6 +145,7 @@ We now define the initial state for the simulation, the time span to simulate fo
 intermediate times for which the solution is requested.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit.quantum_info import DensityMatrix
@@ -179,6 +182,7 @@ observing that this equality holds is a simple and useful verification of the nu
 that will be added in the next section.
 
 .. plot::
+    :context:
     :include-source:
 
     n_times = len(sol.y)
@@ -223,6 +227,7 @@ a mixed state), becoming tilted along :math:`-y`. This complex dependence of the
 parameters can be systematically analyzed - we encourage you to try it!
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit.visualization import plot_bloch_vector

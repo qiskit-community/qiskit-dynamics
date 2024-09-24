@@ -29,12 +29,14 @@ when using a JAX solver method. Here we configure JAX to run on CPU in 64 bit mo
 array libraries>` for more information.
 
 .. plot::
+    :context:
 
     # a parallelism warning raised by JAX is being raised due to somethign outside of Dynamics
     import warnings
     warnings.filterwarnings("ignore", message="os.fork")
 
 .. plot::
+    :context:
     :include-source:
 
     # Configure JAX
@@ -69,6 +71,7 @@ where
   respectively.
 
 .. plot::
+    :context:
     :include-source:
 
     import numpy as np
@@ -120,6 +123,7 @@ outcomes of :meth:`.DynamicsBackend.run` are independent of the choice of rotati
 performance.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit_dynamics import Solver
@@ -149,6 +153,7 @@ Furthermore, note that in the solver options we set the max step size to the pul
 variable step solvers from accidentally stepping over pulses in schedules with long idle times.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit_dynamics import DynamicsBackend
@@ -186,6 +191,7 @@ that the usual instructions work on the :class:`.DynamicsBackend`.
 
 
 .. plot::
+    :context:
     :include-source:
 
     import time
@@ -221,6 +227,7 @@ that the usual instructions work on the :class:`.DynamicsBackend`.
 Visualize one of the schedules.
 
 .. plot::
+    :context:
     :include-source:
 
     schedules[3].draw()
@@ -229,6 +236,7 @@ Retrieve the counts for one of the experiments as would be done using the result
 backend.
 
 .. plot::
+    :context:
     :include-source:
 
     result.get_counts(3)
@@ -248,6 +256,7 @@ Build a simple circuit. Here we build one consisting of a single Hadamard gate o
 followed by measurement.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit import QuantumCircuit
@@ -263,6 +272,7 @@ we are only demonstrating the mechanics of adding a calibration; we have not att
 the schedule to implement the Hadamard gate with high fidelity.
 
 .. plot::
+    :context:
     :include-source:
 
     with pulse.build() as h_q0:
@@ -276,6 +286,7 @@ the schedule to implement the Hadamard gate with high fidelity.
 Call run on the circuit, and get counts as usual.
 
 .. plot::
+    :context:
     :include-source:
 
     start_time = time.time()
@@ -294,6 +305,7 @@ Hadamard gate on qubit :math:`0` to `backend.target`, which impacts how jobs are
 backend. See the :class:`~qiskit.transpiler.Target` class documentation for further information.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit.circuit.library import HGate
@@ -305,6 +317,7 @@ Rebuild the same circuit, however this time we do not need to add the calibratio
 gate to the circuit object.
 
 .. plot::
+    :context:
     :include-source:
 
     circ2 = QuantumCircuit(1, 1)
@@ -318,6 +331,7 @@ gate to the circuit object.
     print(f"Run time: {time.time() - start_time}")
 
 .. plot::
+    :context:
     :include-source:
 
     result.get_counts(0)
@@ -348,6 +362,7 @@ To enable running of the single qubit experiments, we add the following to the `
   will pass.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit.circuit.library import XGate, SXGate, RZGate, CXGate
@@ -389,6 +404,7 @@ object. Here we use the
 template library to initialize our calibrations.
 
 .. plot::
+    :context:
     :include-source:
 
     import pandas as pd
@@ -406,6 +422,7 @@ Next, run a rough amplitude calibration for ``X`` and ``SX`` gates for both qubi
 experiments.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit_experiments.library.calibration import RoughXSXAmplitudeCal
@@ -419,6 +436,7 @@ experiments.
 Run the Rabi experiments.
 
 .. plot::
+    :context:
     :include-source:
 
     start_time = time.time()
@@ -431,11 +449,13 @@ Run the Rabi experiments.
 Plot the results.
 
 .. plot::
+    :context:
     :include-source:
 
     rabi0_data.figure(0)
 
 .. plot::
+    :context:
     :include-source:
 
     rabi1_data.figure(0)
@@ -443,6 +463,7 @@ Plot the results.
 Observe the updated parameters for qubit 0.
 
 .. plot::
+    :context:
     :include-source:
 
     pd.DataFrame(**cals.parameters_table(qubit_list=[0, ()], parameters="amp"))
@@ -454,6 +475,7 @@ Run rough Drag parameter calibration for the ``X`` and ``SX`` gates. This follow
 as above.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit_experiments.library.calibration import RoughDragCal
@@ -467,6 +489,7 @@ as above.
     cal_drag0.circuits()[5].draw(output="mpl")
 
 .. plot::
+    :context:
     :include-source:
 
     start_time = time.time()
@@ -477,12 +500,14 @@ as above.
     print(f"Run time: {time.time() - start_time}")
 
 .. plot::
+    :context:
     :include-source:
 
     drag0_data.figure(0)
 
 
 .. plot::
+    :context:
     :include-source:
 
     drag1_data.figure(0)
@@ -490,6 +515,7 @@ as above.
 The updated calibrations object:
 
 .. plot::
+    :context:
     :include-source:
 
     pd.DataFrame(**cals.parameters_table(qubit_list=[0, ()], parameters="amp"))
@@ -505,6 +531,7 @@ the control channel index used to drive the corresponding cross-resonance intera
 required by the experiment to determine which channel to drive for each control-target pair.
 
 .. plot::
+    :context:
     :include-source:
     
     # set the control channel map
@@ -514,6 +541,7 @@ Build the characterization experiment object, and update gate definitions in ``t
 values for the single qubit gates calibrated above.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit_experiments.library import CrossResonanceHamiltonian
@@ -527,6 +555,7 @@ values for the single qubit gates calibrated above.
     backend.target.update_from_instruction_schedule_map(cals.get_inst_map())
 
 .. plot::
+    :context:
     :include-source:
 
     cr_ham_experiment.circuits()[10].draw("mpl")
@@ -534,6 +563,7 @@ values for the single qubit gates calibrated above.
 Run the simulation.
 
 .. plot::
+    :context:
     :include-source:
 
     start_time = time.time()
@@ -544,6 +574,7 @@ Run the simulation.
 
 
 .. plot::
+    :context:
     :include-source:
 
     data_cr.figure(0)

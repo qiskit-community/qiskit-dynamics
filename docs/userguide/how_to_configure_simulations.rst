@@ -42,6 +42,7 @@ where:
 First, construct the components of the model:
 
 .. plot::
+    :context:
     :include-source:
 
     import numpy as np
@@ -72,6 +73,7 @@ Construct a :class:`.Solver` for the model as stated, without entering a rotatin
 timing the solver.
 
 .. plot::
+    :context:
     :include-source:
 
     import time
@@ -93,6 +95,7 @@ Next, define a :class:`.Solver` in the rotating frame of the static Hamiltonian 
 ``rotating_frame`` kwarg, and solve, again timing the solver.
 
 .. plot::
+    :context:
     :include-source:
 
     rf_solver = Solver(
@@ -123,6 +126,7 @@ To compare the results, we use the fidelity function for unitary matrices:
 where :math:`d` is the dimension. A value of :math:`1` indicates equality of the unitaries.
 
 .. plot::
+    :context:
     :include-source:
 
     def fidelity(U, V):
@@ -144,6 +148,7 @@ evaluations when solving the differential equation in each instance. The number 
 for the first simulation (not in the rotating frame) was:
 
 .. plot::
+    :context:
     :include-source:
 
     results.nfev
@@ -151,6 +156,7 @@ for the first simulation (not in the rotating frame) was:
 Whereas the number of evaluations for the second simulation in the rotating frame was:
 
 .. plot::
+    :context:
     :include-source:
 
     rf_results.nfev
@@ -171,6 +177,7 @@ Construct a solver for the same problem, now specifying an RWA cutoff frequency 
 frequencies relative to which the cutoff should be applied:
 
 .. plot::
+    :context:
     :include-source:
 
     rwa_solver = Solver(
@@ -193,6 +200,7 @@ We observe a further reduction in time, which is a result of the solver requirin
 evaluations with the RWA:
 
 .. plot::
+    :context:
     :include-source:
 
     rwa_results.nfev
@@ -201,6 +209,7 @@ This speed comes at the cost of lower accuracy, owing to the fact that RWA is a 
 *approximation*, which modifies the structure of the solution:
 
 .. plot::
+    :context:
     :include-source:
 
     U_rwa = rwa_solver.model.rotating_frame.state_out_of_frame(T, rwa_results.y[-1])
@@ -232,6 +241,7 @@ Dynamics.
 Start off by configuring JAX.
 
 .. plot::
+    :context:
     :include-source:
 
     # configure jax to use 64 bit mode
@@ -246,6 +256,7 @@ arrays. Furthermore, set up the initial state to be a single column vector, to f
 benefits of the sparse representation.
 
 .. plot::
+    :context:
     :include-source:
 
     dim = 300
@@ -271,6 +282,7 @@ Construct standard dense solver in the rotating frame of the static Hamiltonian,
 to solve the system for a given amplitude, and just-in-time compile it using JAX.
 
 .. plot::
+    :context:
     :include-source:
 
     solver = Solver(
@@ -298,6 +310,7 @@ function to solve the system for a given amplitude, and just-in-time compile it.
 case the static Hamiltonian is already diagonal, but we explicitly highlight the need for this.
 
 .. plot::
+    :context:
     :include-source:
 
     sparse_solver = Solver(
@@ -324,6 +337,7 @@ case the static Hamiltonian is already diagonal, but we explicitly highlight the
 Run the dense simulation (twice to see the true compiled speed).
 
 .. plot::
+    :context:
     :include-source:
 
     yf = jitted_dense_func(1.).block_until_ready()
@@ -337,6 +351,7 @@ Run the dense simulation (twice to see the true compiled speed).
 Run the sparse solver (twice to see the true compiled speed).
 
 .. plot::
+    :context:
     :include-source:
 
     yf_sparse = jitted_sparse_func(1.).block_until_ready()
@@ -350,6 +365,7 @@ Run the sparse solver (twice to see the true compiled speed).
 Verify equality of the results in a common frame.
 
 .. plot::
+    :context:
     :include-source:
 
     yf = solver.model.rotating_frame.state_out_of_frame(T, yf)

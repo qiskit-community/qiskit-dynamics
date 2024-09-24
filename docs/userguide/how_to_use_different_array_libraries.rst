@@ -24,6 +24,7 @@ This guide addresses the following topics:
 First, configure JAX and import array libraries.
 
 .. plot::
+    :context:
     :include-source:
 
     # configure jax to use 64 bit mode
@@ -40,6 +41,7 @@ First, configure JAX and import array libraries.
 Defining equivalent :class:`.Signal` instances, with envelope implemented in either NumPy or JAX.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit_dynamics import Signal
@@ -57,6 +59,7 @@ Defining equivalent :class:`.Signal` instances, with envelope implemented in eit
 Evaluation of ``signal_numpy`` is executed with NumPy:
 
 .. plot::
+    :context:
     :include-source:
 
     type(signal_numpy(0.1))
@@ -64,6 +67,7 @@ Evaluation of ``signal_numpy`` is executed with NumPy:
 Evaluation of ``signal_jax`` is executed with JAX:
 
 .. plot::
+    :context:
     :include-source:
 
     type(signal_jax(0.1))
@@ -71,6 +75,7 @@ Evaluation of ``signal_jax`` is executed with JAX:
 JAX transformations can be applied to ``signal_jax``, e.g. just-in-time compilation:
 
 .. plot::
+    :context:
     :include-source:
 
     from jax import jit
@@ -86,6 +91,7 @@ Internally, Qiskit Dynamics uses an extension of the default NumPy and SciPy arr
 by `Arraylias <https://qiskit-community.github.io/arraylias/>`_. These can be imported as:
 
 .. plot::
+    :context:
     :include-source:
     
     # alias for NumPy and corresponding aliased library
@@ -115,6 +121,7 @@ scans over a control parameter.
 First, we construct a :class:`.Solver` instance with a simple qubit model.
 
 .. plot::
+    :context:
     :include-source:
 
     import numpy as np
@@ -144,6 +151,7 @@ Next, define the function to be compiled:
     total evolution time.
 
 .. plot::
+    :context:
     :include-source:
 
     def sim_function(amp):
@@ -165,6 +173,7 @@ Next, define the function to be compiled:
 Compile the function.
 
 .. plot::
+    :context:
     :include-source:
 
     from jax import jit
@@ -175,6 +184,7 @@ version of the function, which is then executed. Hence, the time taken on the fi
 compilation time.
 
 .. plot::
+    :context:
     :include-source:
 
     start_time = time.time()
@@ -188,6 +198,7 @@ On subsequent calls the compiled function is directly executed, demonstrating th
 compiled function.
 
 .. plot::
+    :context:
     :include-source:
 
     start_time = time.time()
@@ -200,6 +211,7 @@ compiled function.
 We use this function to plot the :math:`Z` expectation value over a range of input amplitudes.
 
 .. plot::
+    :context:
     :include-source:
 
     import matplotlib.pyplot as plt

@@ -25,6 +25,7 @@ We will optimize an :math:`X`-gate on a model of a qubit system using the follow
 First, set JAX to operate in 64-bit mode and to run on CPU.
 
 .. plot::
+    :context:
     :include-source:
 
     import jax
@@ -53,6 +54,7 @@ In the above:
 We will setup the problem to be in the rotating frame of the drift term.
 
 .. plot::
+    :context:
     :include-source:
 
     import numpy as np
@@ -103,6 +105,7 @@ more efficient strategies for achieving a value of :math:`0` at the beginning an
 This is only meant to demonstrate the need for such an approach, and one simple example of one.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit_dynamics import DiscreteSignal
@@ -138,6 +141,7 @@ This is only meant to demonstrate the need for such an approach, and one simple 
 Observe, for example, the signal generated when all parameters are :math:`10^8`:
 
 .. plot::
+    :context:
     :include-source:
 
     signal = signal_mapping(np.ones(80) * 1e8)
@@ -153,6 +157,7 @@ the pulse via the standard fidelity measure:
 .. math:: f(U) = \frac{|\text{Tr}(XU)|^2}{4}
 
 .. plot::
+    :context:
     :include-source:
 
     X_op = Operator.from_label('X').data
@@ -170,6 +175,7 @@ The function we want to optimize consists of:
 -  Computing and return the infidelity (we minimize :math:`1 - f(U)`).
 
 .. plot::
+    :context:
     :include-source:
 
     def objective(params):
@@ -206,6 +212,7 @@ Finally, we gradient optimize the objective:
    indicate that the passed objective also computes the gradient.
 
 .. plot::
+    :context:
     :include-source:
 
     from jax import jit, value_and_grad
@@ -228,6 +235,7 @@ We can draw the optimized signal, which is retrieved by applying the ``signal_ma
 optimized parameters.
 
 .. plot::
+    :context:
     :include-source:
 
     opt_signal = signal_mapping(opt_results.x)
@@ -245,6 +253,7 @@ Summing the signal samples yields approximately :math:`\pm 50`, which is equival
 would expect based on a rotating wave approximation analysis.
 
 .. plot::
+    :context:
     :include-source:
 
     opt_signal.samples.sum()
@@ -262,6 +271,7 @@ instance, parameterized by ``sigma`` and ``width``. Although qiskit pulse provid
 entry on :ref:`JAX-compatible pulse schedules <how-to use pulse schedules for jax-jit>`.
 
 .. plot::
+    :context:
     :include-source:
 
     import sympy as sym
@@ -321,6 +331,7 @@ Next, we construct a pulse schedule using the above parametrized Gaussian square
 to a signal, and simulate the equation over the length of the pulse sequence.
 
 .. plot::
+    :context:
     :include-source:
 
     from qiskit_dynamics.pulse import InstructionToSignals
@@ -353,12 +364,14 @@ We set the initial values of ``sigma`` and ``width`` for the optimization as
 ``initial_params = np.array([10, 10])``.
 
 .. plot::
+    :context:
     :include-source:
 
     initial_params = np.array([10, 10])
     gaussian_square_generated_by_pulse(initial_params).draw()
 
 .. plot::
+    :context:
     :include-source:
 
     from jax import jit, value_and_grad
@@ -381,6 +394,7 @@ We set the initial values of ``sigma`` and ``width`` for the optimization as
 We can draw the optimized pulse, whose parameters are retrieved by ``opt_results.x``.
 
 .. plot::
+    :context:
     :include-source:
 
     gaussian_square_generated_by_pulse(opt_results.x).draw()

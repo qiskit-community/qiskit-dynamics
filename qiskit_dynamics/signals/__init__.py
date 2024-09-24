@@ -143,6 +143,7 @@ signal superimposed with sampled versions, both in the case of sampling the carr
 of sampling just the envelope (and keeping the carrier analog).
 
 .. plot::
+    :context:
 
     from qiskit_dynamics.signals import Signal, DiscreteSignal
     from matplotlib import pyplot as plt
@@ -177,6 +178,7 @@ carrier frequency of 400 MHz to create a signal at 500 MHz. Note that the code b
 any assumptions about the time and frequency units which we interpret as ns and GHz, respectively.
 
 .. plot::
+    :context:
     :include-source:
 
     import numpy as np
