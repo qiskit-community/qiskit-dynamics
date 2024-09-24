@@ -137,12 +137,17 @@ should produce identical behavior.
 .. plot::
     :include-source:
 
+    import time
     from qiskit.quantum_info.states import Statevector
 
     # Start the qubit in its ground state.
     y0 = Statevector([1., 0.])
 
-    %time sol = hamiltonian_solver.solve(t_span=[0., 2*T], y0=y0, signals=sxp, atol=1e-8, rtol=1e-8)
+    start_time = time.time()
+    
+    sol = hamiltonian_solver.solve(t_span=[0., 2*T], y0=y0, signals=sxp, atol=1e-8, rtol=1e-8)
+
+    print(f"Run time: {time.time() - start_time}")
 
 
 .. plot::

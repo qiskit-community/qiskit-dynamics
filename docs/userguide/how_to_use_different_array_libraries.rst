@@ -177,7 +177,11 @@ compilation time.
 .. plot::
     :include-source:
 
-    %time ys = fast_sim(1.).block_until_ready()
+    start_time = time.time()
+
+    ys = fast_sim(1.).block_until_ready()
+
+    print(f"Run time: {time.time() - start_time}")
 
 
 On subsequent calls the compiled function is directly executed, demonstrating the true speed of the
@@ -186,7 +190,11 @@ compiled function.
 .. plot::
     :include-source:
 
-    %timeit fast_sim(1.).block_until_ready()
+    start_time = time.time()
+    
+    fast_sim(1.).block_until_ready()
+
+    print(f"Run time: {time.time() - start_time}")
 
 
 We use this function to plot the :math:`Z` expectation value over a range of input amplitudes.

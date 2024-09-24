@@ -74,13 +74,20 @@ timing the solver.
 .. plot::
     :include-source:
 
+    import time
+
     solver = Solver(
         static_hamiltonian=static_hamiltonian,
         hamiltonian_operators=[drive_hamiltonian],
     )
 
     y0 = np.eye(dim, dtype=complex)
-    %time results = solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
+
+    start_time = time.time()
+
+    results = solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
+
+    print(f"Run time: {time.time() - start_time}")
 
 Next, define a :class:`.Solver` in the rotating frame of the static Hamiltonian by setting the
 ``rotating_frame`` kwarg, and solve, again timing the solver.
@@ -95,7 +102,12 @@ Next, define a :class:`.Solver` in the rotating frame of the static Hamiltonian 
     )
 
     y0 = np.eye(dim, dtype=complex)
-    %time rf_results = rf_solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
+
+    start_time = time.time()
+
+    rf_results = rf_solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
+
+    print(f"Run time: {time.time() - start_time}")
 
 Observe that despite the two simulation problems being mathematically equivalent, it takes less time
 to solve in the rotating frame.
@@ -170,7 +182,12 @@ frequencies relative to which the cutoff should be applied:
     )
 
     y0 = np.eye(dim, dtype=complex)
-    %time rwa_results = rwa_solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
+
+    start_time = time.time()
+
+    rwa_results = rwa_solver.solve(t_span=[0., T], y0=y0, signals=[drive_signal], atol=1e-10, rtol=1e-10)
+
+    print(f"Run time: {time.time() - start_time}")
 
 We observe a further reduction in time, which is a result of the solver requiring even fewer RHS
 evaluations with the RWA:
@@ -310,7 +327,12 @@ Run the dense simulation (twice to see the true compiled speed).
     :include-source:
 
     yf = jitted_dense_func(1.).block_until_ready()
-    %time yf = jitted_dense_func(1.).block_until_ready()
+
+    start_time = time.time()
+
+    yf = jitted_dense_func(1.).block_until_ready()
+
+    print(f"Run time: {time.time() - start_time}")
 
 Run the sparse solver (twice to see the true compiled speed).
 
@@ -318,7 +340,12 @@ Run the sparse solver (twice to see the true compiled speed).
     :include-source:
 
     yf_sparse = jitted_sparse_func(1.).block_until_ready()
-    %time yf_sparse = jitted_sparse_func(1.).block_until_ready()
+
+    start_time = time.time()
+    
+    yf_sparse = jitted_sparse_func(1.).block_until_ready()
+
+    print(f"Run time: {time.time() - start_time}")
 
 Verify equality of the results in a common frame.
 

@@ -129,9 +129,10 @@ For our example Hamiltonian we configure the :class:`.DysonSolver` as follows:
 .. plot::
     :include-source:
 
-    %%time
-
+    import time
     from qiskit_dynamics import DysonSolver
+
+    start_time = time.time()
 
     dt = 0.1
     dyson_solver = DysonSolver(
@@ -145,6 +146,8 @@ For our example Hamiltonian we configure the :class:`.DysonSolver` as follows:
         atol=1e-12,
         rtol=1e-12
     )
+
+    print(f"Run time: {time.time() - start_time}")
 
 The above parameters are chosen so that the :class:`.DysonSolver` is fast and produces high accuracy
 solutions (measured and confirmed after the fact). The relatively large step size ``dt = 0.1`` is
@@ -187,7 +190,13 @@ First run includes compile time.
 .. plot::
     :include-source:
 
-    %time yf_dyson = dyson_sim(1.).block_until_ready()
+    import time
+
+    start_time = time.time()
+    
+    yf_dyson = dyson_sim(1.).block_until_ready()
+
+    print(f"Run time: {time.time() - start_time}")
 
 
 Once JIT compilation has been performance we can benchmark the performance of the JIT-compiled
@@ -196,7 +205,11 @@ solver:
 .. plot::
     :include-source:
 
-    %time yf_dyson = dyson_sim(1.).block_until_ready()
+    start_time = time.time()
+    
+    yf_dyson = dyson_sim(1.).block_until_ready()
+
+    print(f"Run time: {time.time() - start_time}")
 
 
 4. Comparison to traditional ODE solver
@@ -245,14 +258,22 @@ For speed comparison, compile at a tolerance with similar accuracy.
 
     jit_ode_sim = jit(lambda amp: ode_sim(amp, 1e-8))
 
-    %time yf_ode = jit_ode_sim(1.).block_until_ready()
+    start_time = time.time()
+
+    yf_ode = jit_ode_sim(1.).block_until_ready()
+
+    print(f"Run time: {time.time() - start_time}")
 
 Measure compiled time.
 
 .. plot::
     :include-source:
 
-    %time yf_ode = jit_ode_sim(1.).block_until_ready()
+    start_time = time.time()
+
+    yf_ode = jit_ode_sim(1.).block_until_ready()
+
+    print(f"Run time: {time.time() - start_time}")
 
 
 Confirm similar accuracy solution.
@@ -276,9 +297,9 @@ matrix exponentiation to simulate over each fixed time step.
 .. plot::
     :include-source:
 
-    %%time
-
     from qiskit_dynamics import MagnusSolver
+
+    start_time = time.time()
 
     dt = 0.1
     magnus_solver = MagnusSolver(
@@ -292,6 +313,8 @@ matrix exponentiation to simulate over each fixed time step.
         atol=1e-12,
         rtol=1e-12
     )
+
+    print(f"Run time: {time.time() - start_time}")
 
 
 Setup simulation function.
@@ -315,14 +338,22 @@ First run includes compile time.
 .. plot::
     :include-source:
 
-    %time yf_magnus = magnus_sim(1.).block_until_ready()
+    start_time = time.time()
+
+    yf_magnus = magnus_sim(1.).block_until_ready()
+
+    print(f"Run time: {time.time() - start_time}")
 
 Second run demonstrates speed of the simulation.
 
 .. plot::
     :include-source:
 
-    %time yf_magnus = magnus_sim(1.).block_until_ready()
+    start_time = time.time()
+    
+    yf_magnus = magnus_sim(1.).block_until_ready()
+
+    print(f"Run time: {time.time() - start_time}")
 
 
 .. plot::

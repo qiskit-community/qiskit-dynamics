@@ -188,10 +188,9 @@ that the usual instructions work on the :class:`.DynamicsBackend`.
 .. plot::
     :include-source:
 
-    %%time
-    
+    import time
     from qiskit import pulse
-    
+
     sigma = 128
     num_samples = 256
     
@@ -211,9 +210,13 @@ that the usual instructions work on the :class:`.DynamicsBackend`.
                 pulse.acquire(duration=1, qubit_or_channel=0, register=pulse.MemorySlot(0))
             
         schedules.append(schedule)
-        
+    
+    start_time = time.time()
+
     job = backend.run(schedules, shots=100)
     result = job.result()
+
+    print(f"Run time: {time.time() - start_time}")
 
 Visualize one of the schedules.
 
@@ -275,8 +278,12 @@ Call run on the circuit, and get counts as usual.
 .. plot::
     :include-source:
 
-    %time res = backend.run(circ).result()
+    start_time = time.time()
     
+    res = backend.run(circ).result()
+    
+    print(f"Run time: {time.time() - start_time}")
+
     res.get_counts(0)
 
 4.2 Simulating circuits via gate definitions in the backend :class:`~qiskit.transpiler.Target`
@@ -304,7 +311,11 @@ gate to the circuit object.
     circ2.h(0)
     circ2.measure([0], [0])
     
-    %time result = backend.run(circ2).result()
+    start_time = time.time()
+
+    result = backend.run(circ2).result()
+
+    print(f"Run time: {time.time() - start_time}")
 
 .. plot::
     :include-source:
@@ -410,9 +421,12 @@ Run the Rabi experiments.
 .. plot::
     :include-source:
 
-    %%time
+    start_time = time.time()
+
     rabi0_data = rabi0.run().block_for_results()
     rabi1_data = rabi1.run().block_for_results()
+
+    print(f"Run time: {time.time() - start_time}")
 
 Plot the results.
 
@@ -455,9 +469,12 @@ as above.
 .. plot::
     :include-source:
 
-    %%time
+    start_time = time.time()
+
     drag0_data = cal_drag0.run().block_for_results()
     drag1_data = cal_drag1.run().block_for_results()
+
+    print(f"Run time: {time.time() - start_time}")
 
 .. plot::
     :include-source:
@@ -519,7 +536,11 @@ Run the simulation.
 .. plot::
     :include-source:
 
-    %time data_cr = cr_ham_experiment.run().block_for_results()
+    start_time = time.time()
+
+    data_cr = cr_ham_experiment.run().block_for_results()
+
+    print(f"Run time: {time.time() - start_time}")
 
 
 .. plot::
