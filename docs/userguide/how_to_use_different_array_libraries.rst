@@ -24,6 +24,7 @@ This guide addresses the following topics:
 First, configure JAX and import array libraries.
 
 .. plot::
+    :include-source:
     
     1 + 1
 
