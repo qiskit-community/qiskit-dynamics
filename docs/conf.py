@@ -61,6 +61,10 @@ docs_url_prefix = "qiskit-dynamics"
 
 html_context = {"version_list": ["0.4"]}
 
+html_theme_options = {
+    "sidebar_qiskit_ecosystem_member": True,
+}
+
 # autodoc/autosummary options
 autosummary_generate = True
 autosummary_generate_overwrite = False
