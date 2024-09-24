@@ -33,7 +33,7 @@ steps:
 First, we use the pulse module in Qiskit to create a pulse schedule.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     import numpy as np
@@ -74,7 +74,7 @@ envelopes and the signals resulting from this conversion. The dashed line shows 
 the virtual ``Z`` gate is applied.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     from matplotlib import pyplot as plt
@@ -104,7 +104,7 @@ carrier frequencies, and sample width ``dt``. Additionally, we setup this solver
 frame and perform the rotating wave approximation.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     from qiskit.quantum_info.operators import Operator
@@ -138,7 +138,7 @@ In the last step we perform the simulation and plot the results. Note that, as w
 should produce identical behavior.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     import time
@@ -155,7 +155,7 @@ should produce identical behavior.
 
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     def plot_populations(sol):
@@ -179,7 +179,7 @@ the ``Y`` operator. Therefore, the second pulse, which drives around the ``Y``-a
 shift, has hardley any influence on the populations of the qubit.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     plot_populations(sol)

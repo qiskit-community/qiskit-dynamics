@@ -54,7 +54,7 @@ different array libraries>` for a more detailed explanation of how to work with 
 Dynamics.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
     
     # configure jax to use 64 bit mode
@@ -76,7 +76,7 @@ solver. However after the initial construction, the higher frequencies in the mo
 on the perturbative solver speed.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     import numpy as np
@@ -129,7 +129,7 @@ See the :class:`.DysonSolver` API docs for more details.
 For our example Hamiltonian we configure the :class:`.DysonSolver` as follows:
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     import time
@@ -169,7 +169,7 @@ over the interval ``[0, (T // dt) * dt]`` for an on-resonance drive with envelop
 attainable by these solvers.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     from qiskit_dynamics import Signal
@@ -192,7 +192,7 @@ attainable by these solvers.
 First run includes compile time.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     import time
@@ -208,7 +208,7 @@ Once JIT compilation has been performance we can benchmark the performance of th
 solver:
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     start_time = time.time()
@@ -225,7 +225,7 @@ We now construct the same simulation using a standard solver to compare accuracy
 speed.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     from qiskit_dynamics import Solver
@@ -252,7 +252,7 @@ speed.
 Simulate with low tolerance for comparison to high accuracy solution.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     yf_low_tol = ode_sim(1., 1e-13)
@@ -262,7 +262,7 @@ Simulate with low tolerance for comparison to high accuracy solution.
 For speed comparison, compile at a tolerance with similar accuracy.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     jit_ode_sim = jit(lambda amp: ode_sim(amp, 1e-8))
@@ -276,7 +276,7 @@ For speed comparison, compile at a tolerance with similar accuracy.
 Measure compiled time.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     start_time = time.time()
@@ -289,7 +289,7 @@ Measure compiled time.
 Confirm similar accuracy solution.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     np.linalg.norm(yf_low_tol - yf_ode)
@@ -306,7 +306,7 @@ Next, we repeat our example using the Magnus-based perturbative solver. Setup of
 matrix exponentiation to simulate over each fixed time step.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     from qiskit_dynamics import MagnusSolver
@@ -332,7 +332,7 @@ matrix exponentiation to simulate over each fixed time step.
 Setup simulation function.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     @jit
@@ -349,7 +349,7 @@ Setup simulation function.
 First run includes compile time.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     start_time = time.time()
@@ -361,7 +361,7 @@ First run includes compile time.
 Second run demonstrates speed of the simulation.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     start_time = time.time()
@@ -372,7 +372,7 @@ Second run demonstrates speed of the simulation.
 
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     np.linalg.norm(yf_magnus - yf_low_tol)

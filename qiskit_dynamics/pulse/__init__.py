@@ -41,7 +41,7 @@ instantiation, and how to use it to convert a :class:`~qiskit.pulse.Schedule` to
 An example schedule, and the corresponding converted signals, is shown below.
 
 .. plot::
-    :context:
+    :context: close-figs
 
     import matplotlib.pyplot as plt
     import matplotlib.gridspec as gridspec

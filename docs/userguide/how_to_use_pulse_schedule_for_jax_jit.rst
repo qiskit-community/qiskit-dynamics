@@ -31,7 +31,7 @@ Dynamics.
 First, configure JAX to run on CPU in 64 bit mode.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     # configure jax to use 64 bit mode
@@ -51,7 +51,7 @@ Gaussian pulse to use in optimization, we need to instantiate a
 the symbolic representation in `sympy`.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     from qiskit import pulse
@@ -80,7 +80,7 @@ the symbolic representation in `sympy`.
 Next, define the :class:`~qiskit.pulse.library.ScalableSymbolicPulse` using the above expression.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     _t, _duration, _amp, _sigma, _angle = sym.symbols("t, duration, amp, sigma, angle")
@@ -112,7 +112,7 @@ Using a Gaussian pulse as an example, we show that a function involving
 JAX-compiled (or more generally, JAX-transformed).
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     # use amplitude as the function argument

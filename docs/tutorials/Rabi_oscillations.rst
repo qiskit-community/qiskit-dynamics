@@ -36,7 +36,7 @@ using matrices and :class:`.Signal` instances. For the time-independent :math:`z
 signal to a constant, while for the trasverse driving term we setup a harmonic signal.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     import numpy as np
@@ -65,7 +65,7 @@ We now define the initial state for the simulation, the time span to simulate fo
 intermediate times for which the solution is requested, and solve the evolution.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     from qiskit.quantum_info.states import Statevector
@@ -101,7 +101,7 @@ gates used to manipulate quantum devices - in particular this is a realization o
 gate.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     from qiskit.visualization import plot_bloch_vector
@@ -167,7 +167,7 @@ state vectors and density matrices. The shrinking of the qubit’s state within 
 to the incoherent evolution can be clearly seen in the plots below.
 
 .. plot::
-    :context:
+    :context: close-figs
     :include-source:
 
     Gamma_1 = .8
