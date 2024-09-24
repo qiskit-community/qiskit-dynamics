@@ -53,7 +53,8 @@ First, configure JAX to run on CPU in 64 bit mode. See the :ref:`userguide on us
 different array libraries>` for a more detailed explanation of how to work with JAX in Qiskit
 Dynamics.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
     
     # configure jax to use 64 bit mode
     import jax
@@ -73,7 +74,8 @@ the model, which will slow down both the ODE solver and the initial construction
 solver. However after the initial construction, the higher frequencies in the model have no impact
 on the perturbative solver speed.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     import numpy as np
 
@@ -124,7 +126,8 @@ See the :class:`.DysonSolver` API docs for more details.
 
 For our example Hamiltonian we configure the :class:`.DysonSolver` as follows:
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     %%time
 
@@ -159,7 +162,8 @@ over the interval ``[0, (T // dt) * dt]`` for an on-resonance drive with envelop
 ``envelope_func`` above. Running compiled versions of these functions gives a sense of the speeds
 attainable by these solvers.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     from qiskit_dynamics import Signal
     from jax import jit
@@ -180,7 +184,8 @@ attainable by these solvers.
 
 First run includes compile time.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     %time yf_dyson = dyson_sim(1.).block_until_ready()
 
@@ -188,7 +193,8 @@ First run includes compile time.
 Once JIT compilation has been performance we can benchmark the performance of the JIT-compiled
 solver:
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     %time yf_dyson = dyson_sim(1.).block_until_ready()
 
@@ -199,7 +205,8 @@ solver:
 We now construct the same simulation using a standard solver to compare accuracy and simulation
 speed.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     from qiskit_dynamics import Solver
 
@@ -224,7 +231,8 @@ speed.
 
 Simulate with low tolerance for comparison to high accuracy solution.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     yf_low_tol = ode_sim(1., 1e-13)
     np.linalg.norm(yf_low_tol - yf_dyson)
@@ -232,7 +240,8 @@ Simulate with low tolerance for comparison to high accuracy solution.
 
 For speed comparison, compile at a tolerance with similar accuracy.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     jit_ode_sim = jit(lambda amp: ode_sim(amp, 1e-8))
 
@@ -240,14 +249,16 @@ For speed comparison, compile at a tolerance with similar accuracy.
 
 Measure compiled time.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     %time yf_ode = jit_ode_sim(1.).block_until_ready()
 
 
 Confirm similar accuracy solution.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     np.linalg.norm(yf_low_tol - yf_ode)
 
@@ -262,7 +273,8 @@ Next, we repeat our example using the Magnus-based perturbative solver. Setup of
 :class:`.MagnusSolver` is similar to the :class:`.DysonSolver`, but it uses the Magnus expansion and
 matrix exponentiation to simulate over each fixed time step.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     %%time
 
@@ -284,7 +296,8 @@ matrix exponentiation to simulate over each fixed time step.
 
 Setup simulation function.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     @jit
     def magnus_sim(amp):
@@ -299,18 +312,21 @@ Setup simulation function.
 
 First run includes compile time.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     %time yf_magnus = magnus_sim(1.).block_until_ready()
 
 Second run demonstrates speed of the simulation.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     %time yf_magnus = magnus_sim(1.).block_until_ready()
 
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     np.linalg.norm(yf_magnus - yf_low_tol)
 

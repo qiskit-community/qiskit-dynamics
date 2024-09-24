@@ -25,11 +25,6 @@ First, configure JAX and import array libraries.
 
 .. plot::
     :include-source:
-    
-    1 + 1
-
-
-.. jupyter-execute::
 
     # configure jax to use 64 bit mode
     import jax
@@ -44,7 +39,8 @@ First, configure JAX and import array libraries.
 
 Defining equivalent :class:`.Signal` instances, with envelope implemented in either NumPy or JAX.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     from qiskit_dynamics import Signal
 
@@ -60,19 +56,22 @@ Defining equivalent :class:`.Signal` instances, with envelope implemented in eit
 
 Evaluation of ``signal_numpy`` is executed with NumPy:
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     type(signal_numpy(0.1))
 
 Evaluation of ``signal_jax`` is executed with JAX:
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     type(signal_jax(0.1))
 
 JAX transformations can be applied to ``signal_jax``, e.g. just-in-time compilation:
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     from jax import jit
 
@@ -86,7 +85,8 @@ JAX transformations can be applied to ``signal_jax``, e.g. just-in-time compilat
 Internally, Qiskit Dynamics uses an extension of the default NumPy and SciPy array libraries offered
 by `Arraylias <https://qiskit-community.github.io/arraylias/>`_. These can be imported as:
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
     
     # alias for NumPy and corresponding aliased library
     from qiskit_dynamics import DYNAMICS_NUMPY_ALIAS
@@ -114,7 +114,8 @@ scans over a control parameter.
 
 First, we construct a :class:`.Solver` instance with a simple qubit model.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     import numpy as np
     from qiskit.quantum_info import Operator
@@ -142,7 +143,8 @@ Next, define the function to be compiled:
   - The output is the state of the system, starting in the ground state, at ``100`` points over the
     total evolution time.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     def sim_function(amp):
 
@@ -162,7 +164,8 @@ Next, define the function to be compiled:
 
 Compile the function.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     from jax import jit
     fast_sim = jit(sim_function)
@@ -171,7 +174,8 @@ The first time the function is called, JAX will compile an `XLA <https://www.ten
 version of the function, which is then executed. Hence, the time taken on the first call *includes*
 compilation time.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     %time ys = fast_sim(1.).block_until_ready()
 
@@ -179,14 +183,16 @@ compilation time.
 On subsequent calls the compiled function is directly executed, demonstrating the true speed of the
 compiled function.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     %timeit fast_sim(1.).block_until_ready()
 
 
 We use this function to plot the :math:`Z` expectation value over a range of input amplitudes.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     import matplotlib.pyplot as plt
 

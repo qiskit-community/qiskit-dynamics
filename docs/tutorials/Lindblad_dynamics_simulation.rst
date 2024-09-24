@@ -64,7 +64,8 @@ syntax of ``Pauli`` classes to indicate a qubit number, as below.
 Below, we first set the number of qubits :math:`N` to be simulated, and then prepare and store the
 single-qubit Pauli operators that will be used in the rest of this tutorial.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     import numpy as np
     from qiskit.quantum_info import Operator, Pauli
@@ -100,7 +101,8 @@ two-qubit terms. Since there are no time-dependent terms, and we do not plan to 
 derivatives of parameters, we do not use the :class:`Signal` class in this tutorial. See the other
 tutorials for various generalizations of this approach supported with ``qiskit-dynamics``.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     from qiskit_dynamics import Solver, Signal
 
@@ -140,7 +142,8 @@ tutorials for various generalizations of this approach supported with ``qiskit-d
 We now define the initial state for the simulation, the time span to simulate for, and the
 intermediate times for which the solution is requested.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     from qiskit.quantum_info import DensityMatrix
 
@@ -175,7 +178,8 @@ invariant as well. Hence the mean Bloch vector should be equal to any qubit’s 
 observing that this equality holds is a simple and useful verification of the numerical solution
 that will be added in the next section.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     n_times = len(sol.y)
     x_data = np.zeros((N, n_times))
@@ -218,7 +222,8 @@ tilt along :math:`+x`, while for :math:`J=3` it will significantly shorten (the 
 a mixed state), becoming tilted along :math:`-y`. This complex dependence of the Bloch vector on the
 parameters can be systematically analyzed - we encourage you to try it!
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     from qiskit.visualization import plot_bloch_vector
     import matplotlib.pyplot as plt

@@ -35,7 +35,8 @@ then setup the :class:`.Solver` class instance that stores and manipulates the m
 using matrices and :class:`.Signal` instances. For the time-independent :math:`z` term we set the
 signal to a constant, while for the trasverse driving term we setup a harmonic signal.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     import numpy as np
     from qiskit.quantum_info import Operator
@@ -62,7 +63,8 @@ signal to a constant, while for the trasverse driving term we setup a harmonic s
 We now define the initial state for the simulation, the time span to simulate for, and the
 intermediate times for which the solution is requested, and solve the evolution.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     from qiskit.quantum_info.states import Statevector
     from qiskit.quantum_info import DensityMatrix
@@ -96,7 +98,8 @@ increases and decreases). This mechanism of Rabi oscillations is the basis for t
 gates used to manipulate quantum devices - in particular this is a realization of the :math:`X`
 gate.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     from qiskit.visualization import plot_bloch_vector
     import matplotlib.pyplot as plt
@@ -161,7 +164,8 @@ since in ``qiskit`` and in ``qiskit-dynamics`` the syntax of many functions is i
 state vectors and density matrices. The shrinking of the qubit’s state within the Bloch sphere due
 to the incoherent evolution can be clearly seen in the plots below.
 
-.. jupyter-execute::
+.. plot::
+    :include-source:
 
     Gamma_1 = .8
     Gamma_2 = .2
