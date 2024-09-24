@@ -8,7 +8,7 @@ and types. A user can choose to use either NumPy or JAX to define their models, 
 Qiskit Dynamics will execute as if the array operations had been natively written in either library.
 Additionally, a user can specify that the operators in a model be stored in sparse types offered by
 SciPy or JAX (see :ref:`configuring simulations for performance <configuring simulations>`).
-Internally, Qiskit Dynamics utilizes `Arraylias <https://qiskit-extensions.github.io/arraylias/>`_
+Internally, Qiskit Dynamics utilizes `Arraylias <https://qiskit-community.github.io/arraylias/>`_
 to dispatch computations on different array types to the appropriate library function.
 
 This guide addresses the following topics:
@@ -78,7 +78,7 @@ JAX transformations can be applied to ``signal_jax``, e.g. just-in-time compilat
 -------------------------------------------------------------------
 
 Internally, Qiskit Dynamics uses an extension of the default NumPy and SciPy array libraries offered
-by `Arraylias <https://qiskit-extensions.github.io/arraylias/>`_. These can be imported as:
+by `Arraylias <https://qiskit-community.github.io/arraylias/>`_. These can be imported as:
 
 .. jupyter-execute::
     
@@ -90,7 +90,7 @@ by `Arraylias <https://qiskit-extensions.github.io/arraylias/>`_. These can be i
     from qiskit_dynamics import DYNAMICS_SCIPY_ALIAS
     from qiskit_dynamics import DYNAMICS_SCIPY
 
-See the `Arraylias documentation <https://qiskit-extensions.github.io/arraylias/>`_ for how the
+See the `Arraylias documentation <https://qiskit-community.github.io/arraylias/>`_ for how the
 general library aliasing framework works, as well as the Qiskit Dynamics submodule :mod:`.arraylias`
 for a description of how the default NumPy and SciPy aliases have been extended for use in this
 package.

@@ -20,9 +20,9 @@ Arraylias (:mod:`qiskit_dynamics.arraylias`)
 .. currentmodule:: qiskit_dynamics.arraylias
 
 This module contains Qiskit Dynamics-global extensions of the default NumPy and SciPy aliases
-provided by `Arraylias <https://qiskit-extensions.github.io/arraylias/>`_. These are used to manage
+provided by `Arraylias <https://qiskit-community.github.io/arraylias/>`_. These are used to manage
 dispatching of array operations for the different array types supported by Qiskit Dynamics. They
-have been configured beyond the `Arraylias <https://qiskit-extensions.github.io/arraylias/>`_
+have been configured beyond the `Arraylias <https://qiskit-community.github.io/arraylias/>`_
 defaults to additionally support both `JAX <https://jax.readthedocs.io/en/latest/>`_ and SciPy
 sparse types. The following table summarizes the registered libraries and respective types.
 

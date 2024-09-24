@@ -347,9 +347,11 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         input_variety = [x_sched0, x_circ0]
 
         # solve for all combinations of input types and initial states
-        for solve_input, (y0, expected_result) in product(input_variety, y0_and_expected_results):
+        for solve_input, (y0, expected_result), t_span in product(
+            input_variety, y0_and_expected_results, ([0, n_samples * backend.dt], None)
+        ):
             solver_results = backend.solve(
-                t_span=[0, n_samples * backend.dt],
+                t_span=t_span,
                 y0=y0,
                 solve_input=[solve_input],
             )
@@ -358,6 +360,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
             for solver_result in solver_results:
                 self.assertTrue(solver_result.success)
                 self.assertAllClose(solver_result.y[-1], expected_result, atol=1e-8, rtol=1e-8)
+                self.assertEqual(solver_result.t[-1], n_samples * backend.dt)
 
     def test_pi_pulse_initial_state(self):
         """Test simulation of a pi pulse with a different initial state."""

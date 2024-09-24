@@ -20,11 +20,11 @@ automatic differentiation, and GPU execution, and therefore is well-suited to ta
 repeated evaluation of functions with different parameters; E.g. simulating a model of a quantum
 system over a range of parameter values, or optimizing the parameters of control sequence.
 
-Reference documentation may be found [here](https://qiskit-extensions.github.io/qiskit-dynamics/), including
-[tutorials](https://qiskit-extensions.github.io/qiskit-dynamics/tutorials/index.html),
-[user guide](https://qiskit-extensions.github.io/qiskit-dynamics/userguide/index.html),
-[API reference](https://qiskit-extensions.github.io/qiskit-dynamics/apidocs/index.html), and
-[Discussions](https://qiskit-extensions.github.io/qiskit-dynamics/discussions/index.html).
+Reference documentation may be found [here](https://qiskit-community.github.io/qiskit-dynamics/), including
+[tutorials](https://qiskit-community.github.io/qiskit-dynamics/tutorials/index.html),
+[user guide](https://qiskit-community.github.io/qiskit-dynamics/userguide/index.html),
+[API reference](https://qiskit-community.github.io/qiskit-dynamics/apidocs/index.html), and
+[Discussions](https://qiskit-community.github.io/qiskit-dynamics/discussions/index.html).
 
 ## Installation
 
@@ -51,7 +51,7 @@ If you'd like to contribute to Qiskit Dynamics, please take a look at our
 [contribution guidelines](CONTRIBUTING.md). This project adheres to Qiskit's 
 [code of conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
-We use [GitHub issues](https://github.com/Qiskit-Extensions/qiskit-dynamics/issues) for tracking
+We use [GitHub issues](https://github.com/Qiskit-Community/qiskit-dynamics/issues) for tracking
 requests and bugs. Please [join the Qiskit Slack community](https://qisk.it/join-slack) and use our
 [#qiskit-dynamics](https://qiskit.slack.com/archives/C03E7UVCDEV) channel for discussion and simple
 questions. For questions that are more suited for a forum we use the Qiskit tag in the 
@@ -60,10 +60,10 @@ questions. For questions that are more suited for a forum we use the Qiskit tag 
 ## Authors and Citation
 
 Qiskit Dynamics is the work of 
-[many people](https://github.com/Qiskit-Extensions/qiskit-dynamics/graphs/contributors) who
+[many people](https://github.com/Qiskit-Community/qiskit-dynamics/graphs/contributors) who
 contribute to the project at different levels. If you use Qiskit Dynamics, please cite our
 [paper](https://joss.theoj.org/papers/10.21105/joss.05853) as per the included
-[BibTeX file](https://github.com/Qiskit-Extensions/qiskit-dynamics/blob/main/CITATION.bib).
+[BibTeX file](https://github.com/Qiskit-Community/qiskit-dynamics/blob/main/CITATION.bib).
 
 ## License
 

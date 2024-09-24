@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    To enable compatibility with QuTiP 5.0.0, ``qutip.Qobj`` instances are now converted to a raw
+    array type in Dynamics via the ``qutip.Qobj.full`` method. This method always returns a dense
+    array, and hence ``qutip.Qobj`` instances are no longer turned into ``scipy.sparse.csr_matrix``
+    instances in Dynamics. 

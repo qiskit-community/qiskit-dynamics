@@ -29,13 +29,7 @@ def _isinstance_qutip_qobj(obj):
     Returns:
         Bool: True if obj is qutip Qobj
     """
-    if (
-        type(obj).__name__ == "Qobj"
-        and hasattr(obj, "_data")
-        and type(obj._data).__name__ == "fast_csr_matrix"
-    ):
-        return True
-    return False
+    return type(obj).__name__ == "Qobj"
 
 
 def register_asarray(alias):
@@ -44,7 +38,7 @@ def register_asarray(alias):
     @alias.register_default(path="asarray")
     def _(arr):
         if _isinstance_qutip_qobj(arr):
-            return csr_matrix(arr)
+            return arr.full()
         return np.asarray(arr)
 
     @alias.register_function(lib="scipy_sparse", path="asarray")
