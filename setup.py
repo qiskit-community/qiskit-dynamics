@@ -61,7 +61,6 @@ setuptools.setup(
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
@@ -75,7 +74,7 @@ setuptools.setup(
     },
     install_requires=requirements,
     include_package_data=True,
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     extras_require={
         "jax": jax_extras
     },
