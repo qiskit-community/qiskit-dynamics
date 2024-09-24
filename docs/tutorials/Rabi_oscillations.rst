@@ -130,8 +130,8 @@ gate.
         ax.set_title('Bloch vector vs. $t$', fontsize = fontsize)
         plt.show()
 
-        display(plot_bloch_vector([x_data[-1], y_data[-1], z_data[-1]],
-                                  f'Bloch vector at $t = {t_eval[-1]}$'))
+        plot_bloch_vector([x_data[-1], y_data[-1], z_data[-1]],
+                                  f'Bloch vector at $t = {t_eval[-1]}$')
 
     plot_qubit_dynamics(sol, t_eval, X, Y, Z)
 

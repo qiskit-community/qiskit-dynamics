@@ -244,8 +244,8 @@ parameters can be systematically analyzed - we encourage you to try it!
     ax.set_xlabel('$t$', fontsize = fontsize)
     ax.set_title('Mean Bloch vector vs. $t$', fontsize = fontsize)
 
-    display(plot_bloch_vector([x_mean[-1], y_mean[-1], z_mean[-1]],
-                      f'Mean Bloch vector at $t = {t_eval[-1]}$'))
+    plot_bloch_vector([x_mean[-1], y_mean[-1], z_mean[-1]],
+                      f'Mean Bloch vector at $t = {t_eval[-1]}$')
 
     if N > 1 and ((abs(x_mean[-1]) > 1e-5 and abs(x_data[0, -1] / x_mean[-1] - 1) > 1e-5 or
                   (abs(z_mean[-1]) > 1e-5 and abs(z_data[1, -1] / z_mean[-1] - 1) > 1e-5))):
