@@ -37,6 +37,7 @@ extensions = [
     'nbsphinx',
     'sphinxcontrib.bibtex',
     "qiskit_sphinx_theme",
+    "matplotlib.sphinxext.plot_directive",
 ]
 templates_path = ["_templates"]
 

@@ -23,6 +23,11 @@ This guide addresses the following topics:
 
 First, configure JAX and import array libraries.
 
+.. plot::
+    
+    1 + 1
+
+
 .. jupyter-execute::
 
     # configure jax to use 64 bit mode
