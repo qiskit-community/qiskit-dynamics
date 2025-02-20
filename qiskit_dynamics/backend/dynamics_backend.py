@@ -137,7 +137,7 @@ class DynamicsBackend(BackendV2):
       Must be a positive float. Defaults to ``0.2``.
     * ``max_outcome_level``: For ``meas_level == 2``, the maximum outcome for each subsystem. Values
       will be rounded down to be no larger than ``max_outcome_level``. Must be a positive integer or
-      ``None``. If ``None``, no rounding occurs. Defaults to ``1``.
+      ``None``. If ``None``, defaults to ``1``.
     * ``memory``: Boolean indicating whether to return a list of explicit measurement outcomes for
       every experimental shot. Defaults to ``True``.
     * ``seed_simulator``: Seed to use in random sampling. Defaults to ``None``.
