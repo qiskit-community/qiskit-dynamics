@@ -121,12 +121,13 @@ def _get_memory_slot_probabilities(
             defaults to the maximum index in memory_slot_indices. The default value
             of unused memory slots is 0.
         max_outcome_value: Maximum value that can be stored in a memory slot. All outcomes higher
-            than this will be rounded down.
+            than this will be rounded down. Defaults to 1.
 
     Returns:
         Dict: Keys are memory slot outcomes, values are the probabilities of those outcomes.
     """
     num_memory_slots = num_memory_slots or (max(memory_slot_indices) + 1)
+    max_outcome_value = max_outcome_value or 1
     memory_slot_probs = {}
     for level_str, prob in probability_dict.items():
         memory_slot_result = ["0"] * num_memory_slots
@@ -136,7 +137,7 @@ def _get_memory_slot_probabilities(
                 level = str(max_outcome_value)
             memory_slot_result[-(idx + 1)] = level
 
-        memory_slot_result = hex(int("".join(memory_slot_result), 2))
+        memory_slot_result = hex(int("".join(memory_slot_result), max_outcome_value + 1))
         if memory_slot_result in memory_slot_probs:
             memory_slot_probs[memory_slot_result] += prob
         else:
