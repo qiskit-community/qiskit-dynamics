@@ -29,7 +29,7 @@ def _kron(A, B):
 
 
 def vec_commutator(
-    A: Union[ArrayLike, csr_matrix, List[csr_matrix]]
+    A: Union[ArrayLike, csr_matrix, List[csr_matrix]],
 ) -> Union[ArrayLike, csr_matrix, List[csr_matrix]]:
     r"""Linear algebraic vectorization of the linear map X -> -i[A, X]
     in column-stacking convention. In column-stacking convention we have
@@ -72,7 +72,7 @@ def vec_commutator(
 
 
 def vec_dissipator(
-    L: Union[ArrayLike, csr_matrix, List[csr_matrix]]
+    L: Union[ArrayLike, csr_matrix, List[csr_matrix]],
 ) -> Union[ArrayLike, csr_matrix, List[csr_matrix]]:
     r"""Linear algebraic vectorization of the linear map
     X -> L X L^\dagger - 0.5 * (L^\dagger L X + X L^\dagger L)

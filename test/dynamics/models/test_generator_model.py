@@ -10,7 +10,7 @@
 # files need to carry a notice indicating that they have been altered from the originals.
 # pylint: disable=invalid-name,no-member
 
-"""Tests for generator_models.py. """
+"""Tests for generator_models.py."""
 
 from functools import partial
 

@@ -486,10 +486,10 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         # results object converts memory into binary
         result0_dict = result0.get_counts()
         result1_dict = result1.get_counts()
-        
-        result0_dict["1"] == result1_dict["100"]
-        result0_dict["11"] == result1_dict["10100"]
-        result0_dict["10"] == result1_dict["10000"]
+
+        self.assertEqual(result0_dict["1"], result1_dict["100"])
+        self.assertEqual(result0_dict["11"], result1_dict["10100"])
+        self.assertEqual(result0_dict["10"], result1_dict["10000"])
 
     def test_schedule_memory_slot_num(self):
         """Test correct memory_slot number in schedule."""
@@ -516,10 +516,10 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         # results object converts memory into binary
         result0_dict = result0.get_counts()
         result1_dict = result1.get_counts()
-        
-        result0_dict["1"] == result1_dict["100"]
-        result0_dict["11"] == result1_dict["10100"]
-        result0_dict["10"] == result1_dict["10000"]
+
+        self.assertEqual(result0_dict["1"], result1_dict["100"])
+        self.assertEqual(result0_dict["11"], result1_dict["10100"])
+        self.assertEqual(result0_dict["10"], result1_dict["10000"])
 
         result0_iq = (
             self.backend_2q.run(schedule0, meas_level=1, seed_simulator=1234567)
