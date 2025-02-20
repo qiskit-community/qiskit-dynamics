@@ -1038,8 +1038,9 @@ class Test_default_experiment_result_function(QiskitDynamicsTestCase):
             backend=self.simple_backend,
             seed=1234567,
         )
+        expected = {"000": 513, "010": 511}
 
-        self.assertDictEqual(output.data.counts, {"000": 513, "010": 511})
+        self.assertDictEqual(output.data.counts, {hex(int(k, 2)): v for k, v in expected.items()})
 
 
 class Test_get_channel_backend_freqs(QiskitDynamicsTestCase):
