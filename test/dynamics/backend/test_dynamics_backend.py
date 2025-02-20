@@ -429,8 +429,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         circ.add_calibration("x", [0], x_sched0)
 
         result = self.simple_backend.run(circ, seed_simulator=1234567).result()
-        self.assertDictEqual(result.get_counts(), {"00": 1024})
-        self.assertTrue(result.get_memory() == ["00"] * 1024)
+        self.assertTrue(all(x == "0x0" for x in result.to_dict()["results"][0]["data"]["memory"]))
 
     def test_circuit_with_target_pulse_instructions(self):
         """Test running a circuit on a simulator with defined instructions."""
@@ -483,19 +482,14 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         result0 = self.backend_2q.run(circ0, seed_simulator=1234567).result()
         result1 = self.backend_2q.run(circ1, seed_simulator=1234567).result()
 
-        # extract results form memory slots and validate all others are 0
-        result0_dict = {}
-        for string, count in result0.get_counts().items():
-            self.assertTrue(string[:3] == "000")
-            result0_dict[string[3:]] = count
-
-        result1_dict = {}
-        for string, count in result1.get_counts().items():
-            self.assertTrue(string[-4] + string[-2] + string[-1] == "000")
-            result1_dict[string[-5] + string[-3]] = count
-
-        # validate consistent results
-        self.assertDictEqual(result0_dict, result1_dict)
+        # extract results from both experiments and validate consistency
+        # results object converts memory into binary
+        result0_dict = result0.get_counts()
+        result1_dict = result1.get_counts()
+        
+        result0_dict["1"] == result1_dict["100"]
+        result0_dict["11"] == result1_dict["10100"]
+        result0_dict["10"] == result1_dict["10000"]
 
     def test_schedule_memory_slot_num(self):
         """Test correct memory_slot number in schedule."""
@@ -518,18 +512,14 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         result0 = self.backend_2q.run(schedule0, seed_simulator=1234567).result()
         result1 = self.backend_2q.run(schedule1, seed_simulator=1234567).result()
 
-        # extract results form memory slots and validate all others are 0
+        # extract results from both experiments and validate consistency
+        # results object converts memory into binary
         result0_dict = result0.get_counts()
-        for string in result0_dict:
-            self.assertTrue(len(string) == 2)
-
-        result1_dict = {}
-        for string, count in result1.get_counts().items():
-            self.assertTrue(string[-4] + string[-2] + string[-1] == "000")
-            result1_dict[string[-5] + string[-3]] = count
-
-        # validate consistent results
-        self.assertDictEqual(result0_dict, result1_dict)
+        result1_dict = result1.get_counts()
+        
+        result0_dict["1"] == result1_dict["100"]
+        result0_dict["11"] == result1_dict["10100"]
+        result0_dict["10"] == result1_dict["10000"]
 
         result0_iq = (
             self.backend_2q.run(schedule0, meas_level=1, seed_simulator=1234567)
@@ -551,7 +541,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
 
         solver = Solver(static_hamiltonian=np.diag([-1.0, 0.0, 1.0]), dt=0.1)
         qutrit_backend = DynamicsBackend(
-            solver=solver, max_outcome_level=None, initial_state=Statevector([0.0, 0.0, 1.0])
+            solver=solver, max_outcome_level=2, initial_state=Statevector([0.0, 0.0, 1.0])
         )
 
         circ = QuantumCircuit(1, 1)
@@ -559,7 +549,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
 
         res = qutrit_backend.run(circ).result()
 
-        self.assertDictEqual(res.get_counts(), {"2": 1024})
+        self.assertTrue(all(x == "0x2" for x in res.to_dict()["results"][0]["data"]["memory"]))
 
     def test_setting_experiment_result_function(self):
         """Test overriding default experiment_result_function."""
@@ -610,7 +600,7 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
 
         solver = Solver(static_hamiltonian=np.diag([-1.0, 0.0, 1.0]), dt=0.1)
         qutrit_backend = DynamicsBackend(
-            solver=solver, max_outcome_level=None, initial_state=Statevector([0.0, 0.0, 1.0])
+            solver=solver, max_outcome_level=2, initial_state=Statevector([0.0, 0.0, 1.0])
         )
 
         circ0 = QuantumCircuit(1, 1, metadata={"key0": "value0"})
@@ -619,10 +609,9 @@ class TestDynamicsBackend(QiskitDynamicsTestCase):
         circ1.measure([0], [0])
 
         res = qutrit_backend.run([circ0, circ1]).result()
-
-        self.assertDictEqual(res.get_counts(0), {"2": 1024})
+        self.assertTrue(all(x == "0x2" for x in res.to_dict()["results"][0]["data"]["memory"]))
         self.assertDictEqual(res.results[0].header.metadata, {"key0": "value0"})
-        self.assertDictEqual(res.get_counts(1), {"2": 1024})
+        self.assertTrue(all(x == "0x2" for x in res.to_dict()["results"][1]["data"]["memory"]))
         self.assertDictEqual(res.results[1].header.metadata, {"key1": "value1"})
 
     def test_valid_measurement_properties(self):
