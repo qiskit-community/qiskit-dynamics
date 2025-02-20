@@ -53,10 +53,11 @@ class TestJaxTransformations(JAXTestBase):
 
             ham = HamiltonianModel(operators=self.operators, signals=signals, validate=False)
 
+            # The addition of 1e-16j is a workaround that should be removed when possible. See #371
             results = solve_lmde(
                 ham,
                 t_span=[0.0, 1 / self.r],
-                y0=np.array([0.0, 1.0], dtype=complex),
+                y0=np.array([0.0, 1.0], dtype=complex) + 1e-16j,
                 method="jax_odeint",
                 atol=1e-10,
                 rtol=1e-10,
@@ -73,10 +74,11 @@ class TestJaxTransformations(JAXTestBase):
 
             ham = HamiltonianModel(operators=self.operators, signals=signals, validate=False)
 
+            # The addition of 1e-16j is a workaround that should be removed when possible. See #371
             results = solve_lmde(
                 ham,
                 t_span=np.array([0.0, 1 / self.r]),
-                y0=np.array([0.0, 1.0], dtype=complex),
+                y0=np.array([0.0, 1.0], dtype=complex) + 1e-16j,
                 method="jax_odeint",
                 t_eval=[0.0, 0.5 / self.r, 1 / self.r],
                 atol=1e-10,
@@ -101,10 +103,11 @@ class TestJaxTransformations(JAXTestBase):
 
             ham = HamiltonianModel(operators=self.operators, signals=signals, validate=False)
 
+            # The addition of 1e-16j is a workaround that should be removed when possible. See #371
             results = solve_lmde(
                 ham,
                 t_span=[0.0, (1 / self.r) * amp],
-                y0=np.array([0.0, 1.0], dtype=complex),
+                y0=np.array([0.0, 1.0], dtype=complex) + 1e-16j,
                 method="jax_odeint",
                 atol=1e-10,
                 rtol=1e-10,
