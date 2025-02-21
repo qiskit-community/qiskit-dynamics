@@ -3,14 +3,14 @@ astroid==3.2.2
 pylint==3.2.3
 black~=24.1
 qiskit-sphinx-theme~=2.0
-sphinx-autodoc-typehints
+sphinx-autodoc-typehints~=2.2.3
 jupyter-sphinx
 # The following line is needed until
 # https://github.com/jupyter/jupyter-sphinx/pull/226 is resolved.
 ipykernel>=4.5.1
 pygments>=2.4
 reno>=4.1.0
-nbsphinx<=0.9.5
+nbsphinx~=0.9.5
 sphinxcontrib-bibtex
 qutip
 ddt~=1.4.2
