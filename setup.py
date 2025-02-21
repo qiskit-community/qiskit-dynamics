@@ -19,7 +19,7 @@ requirements = [
     "numpy>=1.17",
     "scipy>=1.4",
     "matplotlib>=3.0",
-    "qiskit",
+    "qiskit<=1.2.4",
     "multiset>=3.0.1",
     "sympy>=1.12",
     "arraylias"
