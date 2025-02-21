@@ -29,10 +29,7 @@ This module also exposes some functions utilized by :class:`.DynamicsBackend` th
 experienced users. The function :func:`.default_experiment_result_function` is the default method by
 which results are computed and returned to the user after the underlying differential equation is
 solved. This function can be overridden with a custom user-defined function by setting the
-``experiment_result_function`` option of :class:`.DynamicsBackend`. The
-:func:`.parse_backend_hamiltonian_dict` function is used by :meth:`.DynamicsBackend.from_backend` to
-construct model matrices from the backend Hamiltonian description. The function documentation gives
-a detailed explanation on the expected input formatting.
+``experiment_result_function`` option of :class:`.DynamicsBackend`.
 
 
 Classes and functions
@@ -43,8 +40,6 @@ Classes and functions
 
    DynamicsBackend
    default_experiment_result_function
-   parse_backend_hamiltonian_dict
 """
 
 from .dynamics_backend import DynamicsBackend, default_experiment_result_function
-from .backend_string_parser import parse_backend_hamiltonian_dict
