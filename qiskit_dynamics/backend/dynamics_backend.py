@@ -35,7 +35,7 @@ from qiskit.circuit.library import Measure
 from qiskit.pulse import Schedule, ScheduleBlock
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit.providers.options import Options
-from qiskit.providers.backend import BackendV1, BackendV2
+from qiskit.providers.backend import BackendV2
 from qiskit.providers.models.pulsedefaults import PulseDefaults
 from qiskit.providers.models.backendconfiguration import PulseBackendConfiguration
 from qiskit.result import Result

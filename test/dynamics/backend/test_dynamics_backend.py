@@ -20,7 +20,6 @@ from itertools import product
 
 import numpy as np
 from scipy.integrate._ivp.ivp import OdeResult
-from scipy.sparse import csr_matrix
 from scipy.linalg import expm
 
 from qiskit import QiskitError, pulse, QuantumCircuit, QuantumRegister, ClassicalRegister
