@@ -10,7 +10,7 @@ jupyter-sphinx
 ipykernel>=4.5.1
 pygments>=2.4
 reno>=4.1.0
-nbsphinx
+nbsphinx<=0.9.5
 sphinxcontrib-bibtex
 qutip
 ddt~=1.4.2
