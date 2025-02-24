@@ -11,6 +11,7 @@ ipykernel>=4.5.1
 pygments>=2.4
 reno>=4.1.0
 nbsphinx~=0.9.5
+sphinx>=6.2.1,<8.2
 sphinxcontrib-bibtex
 qutip
 ddt~=1.4.2
