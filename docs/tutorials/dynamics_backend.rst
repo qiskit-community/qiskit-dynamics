@@ -5,7 +5,8 @@
 
 .. warning::
 
-    This tutorial supresses ``DeprecationWarning`` instances raised by Qiskit Pulse in `qiskit` `1.3`.
+    This tutorial supresses ``DeprecationWarning`` instances raised by Qiskit Pulse in `qiskit`
+    `1.3`.
 
 .. jupyter-execute::
     :hide-code:

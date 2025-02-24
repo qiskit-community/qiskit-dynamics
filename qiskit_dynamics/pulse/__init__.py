@@ -35,7 +35,8 @@ instantiation, and how to use it to convert a :class:`~qiskit.pulse.Schedule` to
 
 .. warning::
 
-    The code blocks below supress ``DeprecationWarning`` instances raised by Qiskit Pulse in `qiskit` `1.3`.
+    The code blocks below supress ``DeprecationWarning`` instances raised by Qiskit Pulse in
+    `qiskit` `1.3`.
 
 .. jupyter-execute::
     :hide-code:
