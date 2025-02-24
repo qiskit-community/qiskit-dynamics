@@ -1,5 +1,17 @@
 .. _optimization tutorial:
 
+.. warning::
+
+    This tutorial supresses ``DeprecationWarning`` instances raised by Qiskit Pulse in `qiskit` `1.3`.
+
+.. jupyter-execute::
+    :hide-code:
+
+    # silence deprecation warnings from pulse
+    import warnings
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+
 Gradient optimization of a pulse sequence
 =========================================
 

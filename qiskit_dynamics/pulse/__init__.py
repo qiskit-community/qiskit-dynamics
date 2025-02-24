@@ -33,6 +33,17 @@ with the :class:`InstructionToSignals` converter. The following codeblock shows 
 instantiation, and how to use it to convert a :class:`~qiskit.pulse.Schedule` to a list of
 :class:`Signal` instances.
 
+.. warning::
+
+    The code blocks below supress ``DeprecationWarning`` instances raised by Qiskit Pulse in `qiskit` `1.3`.
+
+.. jupyter-execute::
+    :hide-code:
+
+    # silence deprecation warnings from pulse
+    import warnings
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 .. code-block:: python
 
     converter = InstructionToSignals(dt=1, carriers=None)

@@ -3,6 +3,21 @@
 
 .. _dynamics backend:
 
+.. warning::
+
+    This tutorial supresses ``DeprecationWarning`` instances raised by Qiskit Pulse in `qiskit` `1.3`.
+
+.. jupyter-execute::
+    :hide-code:
+
+    # a parallelism warning raised by JAX is being raised due to somethign outside of Dynamics
+    import warnings
+    warnings.filterwarnings("ignore", message="os.fork")
+
+    # also silence deprecation warnings from pulse
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+
 Simulating backends at the pulse-level with :class:`.DynamicsBackend`
 =====================================================================
 
@@ -27,13 +42,6 @@ Note that the :class:`.DynamicsBackend` internally performs just-in-time compila
 when using a JAX solver method. Here we configure JAX to run on CPU in 64 bit mode. See the
 :ref:`User Guide entry on using different array libraries with Qiskit Dynamics <how-to use different
 array libraries>` for more information.
-
-.. jupyter-execute::
-    :hide-code:
-
-    # a parallelism warning raised by JAX is being raised due to somethign outside of Dynamics
-    import warnings
-    warnings.filterwarnings("ignore", message="os.fork")
 
 .. jupyter-execute::
 
