@@ -19,6 +19,7 @@ Simulating backends at the pulse-level with :class:`.DynamicsBackend`
     warnings.filterwarnings("ignore", message="os.fork")
 
     # also silence deprecation warnings from pulse
+    warnings.filterwarnings("ignore", message="Could not determine job completion")
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
