@@ -1,3 +1,6 @@
+Simulating Qiskit Pulse Schedules with Qiskit Dynamics
+======================================================
+
 .. warning::
 
     This tutorial supresses ``DeprecationWarning`` instances raised by Qiskit Pulse in `qiskit`
@@ -10,9 +13,6 @@
     import warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-
-Simulating Qiskit Pulse Schedules with Qiskit Dynamics
-======================================================
 
 This tutorial shows how to use Qiskit Dynamics to simulate a Pulse schedule with a simple model of a
 qubit. The qubit is modeled by the drift hamiltonian

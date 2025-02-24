@@ -3,6 +3,9 @@
 
 .. _dynamics backend:
 
+Simulating backends at the pulse-level with :class:`.DynamicsBackend`
+=====================================================================
+
 .. warning::
 
     This tutorial supresses ``DeprecationWarning`` instances raised by Qiskit Pulse in `qiskit`
@@ -18,9 +21,6 @@
     # also silence deprecation warnings from pulse
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-
-Simulating backends at the pulse-level with :class:`.DynamicsBackend`
-=====================================================================
 
 In this tutorial we walk through how to use the :class:`.DynamicsBackend` class as a Qiskit
 Dynamics-backed, pulse-level simulator of a real backend. In particular, we demonstrate how to
