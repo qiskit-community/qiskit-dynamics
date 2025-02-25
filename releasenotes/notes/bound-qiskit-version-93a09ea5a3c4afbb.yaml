@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    This version of Qiskit Dynamics requires ``qiskit <= 1.3``, as a result of the removal of
+    ``qiskit.pulse`` in Qiskit 2.0. Due to the minimal dependance of Qiskit Dynamics on other parts
+    of Qiskit, any workflow not utilizing ``qiskit.pulse`` should still be compatible with the
+    latest version of Qiskit.
