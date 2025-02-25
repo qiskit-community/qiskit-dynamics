@@ -1205,8 +1205,8 @@ class TestPulseSimulation:
             schedules=[sched0, sched1],
             signals=signals,
             test_tol=1e-8,
-            atol=1e-11,
-            rtol=1e-11,
+            atol=1e-12,
+            rtol=1e-12,
         )
 
     def test_channel_without_instructions(self):
