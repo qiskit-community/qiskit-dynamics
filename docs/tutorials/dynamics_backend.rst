@@ -9,7 +9,7 @@ Simulating backends at the pulse-level with :class:`.DynamicsBackend`
 .. warning::
 
     This tutorial supresses ``DeprecationWarning`` instances raised by Qiskit Pulse in `qiskit`
-    `1.3`.
+    `1.3`. Note that this tutorial uses Qiskit Experiments ``0.8``.
 
 .. jupyter-execute::
     :hide-code:

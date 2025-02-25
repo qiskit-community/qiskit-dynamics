@@ -16,7 +16,7 @@ sphinxcontrib-bibtex
 qutip
 ddt~=1.4.2
 matplotlib>=3.3.0
-qiskit-experiments
+qiskit-experiments~=0.8
 qiskit_ibm_runtime
 pandas # for docs only
 pylatexenc>=1.4 # for docs only
