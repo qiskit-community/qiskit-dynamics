@@ -13,12 +13,9 @@
 
 """Tests for subsystem.py."""
 
-import unittest
-
-import jax.numpy as jnp
-
 from qiskit_dynamics.systems import Subsystem
 from ..common import QiskitDynamicsTestCase
+
 
 class TestSubsystem(QiskitDynamicsTestCase):
     """Tests for Subsystem class."""
@@ -28,7 +25,7 @@ class TestSubsystem(QiskitDynamicsTestCase):
         s = Subsystem(name="Q0", dim=3)
         self.assertEqual(s.name, "Q0")
         self.assertEqual(s.dim, 3)
-    
+
     def test_string_representations(self):
         """Test string representations."""
         s = Subsystem(name="Q0", dim=3)

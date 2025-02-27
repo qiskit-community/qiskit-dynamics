@@ -15,11 +15,13 @@
 Quantum system model
 """
 
+from typing import Optional, List, Union
 from copy import copy
 
 import numpy as np
 
 from qiskit_dynamics import Solver
+from qiskit_dynamics.systems.subsystem import Subsystem
 from qiskit_dynamics.systems.abstract_subsystem_operators import AbstractSubsystemOperator
 from .orthonormal_basis import DressedBasis
 
@@ -36,7 +38,7 @@ class QuantumSystemModel:
         drive_dissipator_coefficients=None,
         drive_dissipators=None,
     ):
-        """Initialize. Lists of operators are assumed to be """
+        """Initialize. Lists of operators are assumed to be"""
 
         drive_hamiltonians = drive_hamiltonians or []
         static_dissipators = static_dissipators or []
@@ -65,47 +67,58 @@ class QuantumSystemModel:
 
     @property
     def subsystems(self):
+        """The model subsystems."""
         return self._subsystems
 
     @property
     def static_hamiltonian(self):
+        """The model static Hamiltonian."""
         return self._operators["static_hamiltonian"]
 
     @property
     def drive_hamiltonians(self):
+        """The model drive Hamiltonians."""
         return self._operators["drive_hamiltonians"]
 
     @property
     def static_dissipators(self):
+        """The model static dissipators."""
         return self._operators["static_dissipators"]
 
     @property
     def drive_dissipators(self):
+        """The model drive dissipators."""
         return self._operators["drive_dissipators"]
 
     @property
     def drive_hamiltonian_coefficients(self):
+        """The drive Hamiltonian coefficients."""
         return self._drive_hamiltonian_coefficients
 
     @property
     def drive_dissipator_coefficients(self):
+        """The drive dissipator coefficients."""
         return self._drive_dissipator_coefficients
 
-    def dressed_basis(self, ordered_subsystems=None, ordering="default"):
+    def dressed_basis(self, ordered_subsystems: Optional[List] = None, ordering: str = "default"):
+        """Get the DressedBasis object for the system.
+
+        Args:
+            ordered_subsystems: Subsystems in the desired order.
+            ordering: Ordering convention for the eigenvectors.
+        """
         ordered_subsystems = ordered_subsystems or self.subsystems
         return DressedBasis.from_hamiltonian(
-            self.static_hamiltonian, 
-            ordered_subsystems, 
-            ordering=ordering
+            self.static_hamiltonian, ordered_subsystems, ordering=ordering
         )
 
     def get_Solver(
         self,
-        rotating_frame=None,
-        array_library=None,
-        vectorized=False,
-        validate=False,
-        subsystem_order=None,
+        rotating_frame: Optional[Union[np.ndarray, AbstractSubsystemOperator]] = None,
+        array_library: Optional[str] = None,
+        vectorized: bool = False,
+        validate: bool = False,
+        subsystem_order: Optional[List[Subsystem]] = None,
     ):
         """Build concrete operators and instantiate solver.
 
@@ -204,13 +217,11 @@ class QuantumSystemModel:
 
     def __add__(self, other):
         """Add two models.
-        
+
         To do: Merge operators with the same drive coefficients.
         """
 
-        new_operators = {
-            key: self._operators[key] + other._operators[key] for key in self._operators.keys()
-        }
+        new_operators = {key: op + other._operators[key] for key, op in self._operators.items()}
 
         return QuantumSystemModel(
             drive_hamiltonian_coefficients=self.drive_hamiltonian_coefficients
@@ -234,18 +245,18 @@ class QuantumSystemModel:
 
     def _map_model(self, f):
         """Apply a function to the underlying operators, returning a new QuantumSystemModel.
-        
+
         If an operator or operator list is ``None``, it will remain ``None`` under the mapping.
         """
 
         static_hamiltonian = None
         if self.static_hamiltonian is not None:
             static_hamiltonian = f(self.static_hamiltonian)
-        
+
         drive_hamiltonians = [f(x) for x in self.drive_hamiltonians]
         static_dissipators = [f(x) for x in self.static_dissipators]
         drive_dissipators = [f(x) for x in self.drive_dissipators]
-        
+
         return QuantumSystemModel(
             static_hamiltonian=static_hamiltonian,
             drive_hamiltonian_coefficients=self.drive_hamiltonian_coefficients,
@@ -255,8 +266,21 @@ class QuantumSystemModel:
             drive_dissipators=drive_dissipators,
         )
 
+
 class IdealQubit(QuantumSystemModel):
+    """Simple dynamical model of a quantum system. Intended to represent a 2 level system, though
+    can be constructed on higher dimensional subsystems.
+    """
+
     def __init__(self, subsystem, frequency, drive_strength, drive_label=None):
+        """Initialize.
+        
+        Args:
+            subsystem: The subsystem to define the qubit on.
+            frequency: The frequency of the qubit.
+            drive_strength: The drive strength of the qubit.
+            drive_label: The label for the drive term.
+        """
         if drive_label is None:
             drive_label = f"d{subsystem.name}"
         super().__init__(

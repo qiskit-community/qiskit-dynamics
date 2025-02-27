@@ -57,7 +57,7 @@ class TestSubsystemMapping(QiskitDynamicsTestCase):
         q2 = Subsystem("Q2", dim=4)
         expected_mat = np.kron(np.eye(4), expected_mat)
         self.assertAllClose(op.matrix([q1, q2]), expected_mat)
-    
+
     def test_map_with_unmapped_subsystems(self):
         """Mapping on an unspecified subsystem."""
         q0 = Subsystem("Q0", dim=2)
@@ -71,7 +71,6 @@ class TestSubsystemMapping(QiskitDynamicsTestCase):
         expected_mat = np.kron(X(q2).matrix(), A @ np.eye(2) @ A.conj().transpose())
         self.assertAllClose(op.matrix([q1, q2]), expected_mat)
 
-    
     def test_multiple_subsystem_map(self):
         """Mapping with multiple subsystems."""
         q0 = Subsystem("Q0", dim=2)
@@ -81,7 +80,7 @@ class TestSubsystemMapping(QiskitDynamicsTestCase):
         rng = np.random.default_rng(523421)
         A = rng.random((2, 6)) + 1j * rng.random((2, 6))
         mapping = SubsystemMapping(matrix=A, in_subsystems=[q0, q1], out_subsystems=[q2])
-        
+
         op = mapping(X(q0) @ Y(q1))
         self.assertEqual(op.unmapped_subsystems, [])
         expected_mat = A @ np.kron(Y(q1).matrix(), X(q0).matrix()) @ A.conj().transpose()
@@ -90,7 +89,9 @@ class TestSubsystemMapping(QiskitDynamicsTestCase):
         q3 = Subsystem("Q3", dim=4)
         op = mapping(X(q0) @ Y(q1) @ Z(q3))
         self.assertEqual(op.unmapped_subsystems, [q3])
-        expected_mat = np.kron(Z(q3).matrix(), A @ np.kron(Y(q1).matrix(), X(q0).matrix()) @ A.conj().transpose())
+        expected_mat = np.kron(
+            Z(q3).matrix(), A @ np.kron(Y(q1).matrix(), X(q0).matrix()) @ A.conj().transpose()
+        )
         self.assertAllClose(op.matrix([q2, q3]), expected_mat)
 
     def test_disjoint_outputs(self):
@@ -104,13 +105,17 @@ class TestSubsystemMapping(QiskitDynamicsTestCase):
         rng = np.random.default_rng(234223)
         A = rng.random((8, 6)) + 1j * rng.random((8, 6))
         mapping = SubsystemMapping(matrix=A, in_subsystems=[q0, q1], out_subsystems=[q2, q3])
-        
+
         op = mapping(X(q0) @ Y(q1) @ Z(q4))
         self.assertEqual(op.unmapped_subsystems, [q4])
-        expected_mat = np.kron(Z(q4).matrix(), A @ np.kron(Y(q1).matrix(), X(q0).matrix()) @ A.conj().transpose())
-        expected_mat = np.kron(swap(5, 4), np.eye(2)) @ expected_mat @ np.kron(swap(4, 5), np.eye(2))
+        expected_mat = np.kron(
+            Z(q4).matrix(), A @ np.kron(Y(q1).matrix(), X(q0).matrix()) @ A.conj().transpose()
+        )
+        expected_mat = (
+            np.kron(swap(5, 4), np.eye(2)) @ expected_mat @ np.kron(swap(4, 5), np.eye(2))
+        )
         self.assertAllClose(op.matrix([q2, q4, q3]), expected_mat)
-    
+
     def test_QuantumSystemModel_mapping(self):
         """Test simple example."""
 
@@ -122,11 +127,16 @@ class TestSubsystemMapping(QiskitDynamicsTestCase):
         model = QuantumSystemModel(
             static_hamiltonian=Z(q0),
             drive_hamiltonian_coefficients=["d0"],
-            drive_hamiltonians=[X(q0)]
+            drive_hamiltonians=[X(q0)],
         )
 
         out_model = mapping(model)
 
         self.assertEqual(out_model.subsystems, [q1])
-        self.assertAllClose(out_model.static_hamiltonian.matrix(), A @ np.diag([1, -1]) @ A.conj().transpose())
-        self.assertAllClose(out_model.drive_hamiltonians[0].matrix(), A @ np.array([[0, 1], [1, 0]]) @ A.conj().transpose())
+        self.assertAllClose(
+            out_model.static_hamiltonian.matrix(), A @ np.diag([1, -1]) @ A.conj().transpose()
+        )
+        self.assertAllClose(
+            out_model.drive_hamiltonians[0].matrix(),
+            A @ np.array([[0, 1], [1, 0]]) @ A.conj().transpose(),
+        )

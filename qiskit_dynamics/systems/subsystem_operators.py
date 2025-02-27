@@ -15,27 +15,35 @@
 Concrete subsystem operators.
 """
 
-from .abstract_subsystem_operators import AbstractSubsystemOperator
-
 import numpy as np
+
+from .abstract_subsystem_operators import AbstractSubsystemOperator
 
 
 class SubsystemOperator(AbstractSubsystemOperator):
+    """A concrete operator specified in terms of a matrix."""
 
     def __init__(self, matrix, subsystems, str_label=None):
+        """Initialize.
+
+        Args:
+            matrix: The matrix of the operator.
+            subsystems: The ordered subsystems representing the tensor factor system the matrix is
+                specified on.
+        """
         if matrix.shape[0] != np.prod([s.dim for s in subsystems]):
-            raise Exception("Subsystem dimensions don't match matrix shape.")
+            raise ValueError("Subsystem dimensions don't match matrix shape.")
 
         self._matrix = matrix
         self._str_label = str_label
         super().__init__(subsystems)
-    
+
     def base_matrix(self):
         return self._matrix
-    
+
     def __str__(self):
         str_label = self._str_label or "SubsystemOperator"
-        
+
         subsystem_str = str(self.subsystems[0])
         for s in self.subsystems[1:]:
             subsystem_str += f", {s}"
@@ -103,11 +111,7 @@ class Y(AbstractSubsystemOperator):
 
 
 class Z(AbstractSubsystemOperator):
-    """Z operator.
-
-    To do:
-        - Implement higher dimensional versions in terms of a/adagger.
-    """
+    """Z operator."""
 
     def base_matrix(self):
         return I(self.subsystems).base_matrix() - 2 * N(self.subsystems).base_matrix()

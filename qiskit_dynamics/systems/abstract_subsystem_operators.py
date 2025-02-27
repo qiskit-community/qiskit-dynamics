@@ -17,13 +17,14 @@ Base classes for subsystem operators.
 
 from abc import ABC, abstractmethod
 from typing import Optional, Union, List
-from qiskit import QiskitError
 from copy import copy
 
+import numpy as np
+
+from qiskit import QiskitError
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import ArrayLike
-import numpy as np
 
 from .subsystem import Subsystem
 
@@ -31,10 +32,7 @@ from .subsystem import Subsystem
 class AbstractSubsystemOperator(ABC):
     """Abstract base class for operators acting on Subsystems."""
 
-    def __init__(
-        self, 
-        subsystems: Union[Subsystem, List[Subsystem]]
-    ):
+    def __init__(self, subsystems: Union[Subsystem, List[Subsystem]]):
         """Initialize with the list of subsystems the operator acts on."""
         if isinstance(subsystems, Subsystem):
             subsystems = [subsystems]
@@ -47,7 +45,7 @@ class AbstractSubsystemOperator(ABC):
     @abstractmethod
     def __str__(self):
         """String representation."""
-    
+
     def __repr__(self):
         return str(self)
 
@@ -55,7 +53,7 @@ class AbstractSubsystemOperator(ABC):
     def subsystems(self) -> List[Subsystem]:
         """Get the subsystems the operator acts on."""
         return self._subsystems
-    
+
     def matrix(self, ordered_subsystems: Optional[List[Subsystem]] = None):
         """Build the matrix for the operator relative to the ordered subsystems."""
 
@@ -64,7 +62,7 @@ class AbstractSubsystemOperator(ABC):
 
         if any(subsystem not in ordered_subsystems for subsystem in self.subsystems):
             raise QiskitError("Attempted to build matrix but missing subsystem.")
-        
+
         return _matrix_implicit_identity(self.base_matrix(), self.subsystems, ordered_subsystems)
 
     def restrict_subsystems(self, subsystems: List[Subsystem]) -> "AbstractSubsystemOperator":
@@ -77,7 +75,7 @@ class AbstractSubsystemOperator(ABC):
             for subsystem in subsystems:
                 if subsystem in self.subsystems:
                     new_subsystems.append(subsystem)
-            
+
             return ZeroOperator(new_subsystems)
 
         return self
@@ -92,7 +90,7 @@ class AbstractSubsystemOperator(ABC):
             for subsystem in self.subsystems:
                 if subsystem not in subsystems:
                     new_subsystems.append(subsystem)
-                
+
             return ZeroOperator(new_subsystems)
 
         return self
@@ -132,7 +130,7 @@ class AbstractSubsystemOperator(ABC):
         """Could add more validation here."""
         if _isscalar(other):
             raise QiskitError("matmul of a scalar with a AbstractSubsystemOperator is not defined.")
-    
+
     def __mul__(self, other):
         if isinstance(other, ZeroOperator):
             return other
@@ -150,17 +148,21 @@ class AbstractSubsystemOperator(ABC):
 
 
 class ScalarOperator(AbstractSubsystemOperator):
-    """Only operator with no subsystems.
-
-    Change this to "scalar operator"
-    """
+    """A scalar operator."""
 
     def __init__(self, value, subsystems):
+        """Initialize.
+
+        Args:
+            value: The value of the scalar.
+            subsystems: List of subsystems.
+        """
         self._value = value
         super().__init__(subsystems)
 
     @property
     def value(self):
+        """The scalar value."""
         return self._value
 
     def base_matrix(self):
@@ -172,7 +174,14 @@ class ScalarOperator(AbstractSubsystemOperator):
 
 
 class ZeroOperator(ScalarOperator):
+    """The zero operator."""
+
     def __init__(self, subsystems):
+        """Initialize.
+
+        Args:
+            subsystems: List of subsystems.
+        """
         super().__init__(value=0.0, subsystems=subsystems)
 
     def base_matrix(self):
@@ -186,6 +195,11 @@ class CompositeOperator(AbstractSubsystemOperator):
     """An operator built from multiple sub operators."""
 
     def __init__(self, operators):
+        """Initialize.
+
+        Args:
+            operators: A list of operators.
+        """
         subsystems = copy(operators[0].subsystems)
         for op in operators[1:]:
             for x in op.subsystems:
@@ -197,13 +211,20 @@ class CompositeOperator(AbstractSubsystemOperator):
 
     @property
     def operators(self):
+        """The operators making up the composite operator."""
         return self._operators
-    
+
 
 class OperatorSum(CompositeOperator):
     """Sum of operators A + B."""
 
     def __init__(self, a, b):
+        """Initialize.
+
+        Args:
+            a: An operator.
+            b: An operator.
+        """
         super().__init__(operators=[a, b])
 
     def base_matrix(self):
@@ -238,7 +259,7 @@ class OperatorSum(CompositeOperator):
         else:
             op2_string = str(self.operators[1])
         return f"{op1_string} + {op2_string}"
-    
+
 
 class OperatorMatmul(CompositeOperator):
     """Matmul of operators A @ B."""
@@ -285,13 +306,22 @@ class OperatorMul(CompositeOperator):
 
 
 class ScalarOperatorProduct(AbstractSubsystemOperator):
+    """Product of a scalar and an operator."""
+
     def __init__(self, scalar, operator):
+        """Initialize.
+
+        Args:
+            scalar: The scalar.
+            operator: The operator.
+        """
         self._scalar = scalar
         self._operator = operator
         super().__init__(operator.subsystems)
 
     @property
     def scalar(self):
+        """The scalar."""
         return self._scalar
 
     def base_matrix(self):
@@ -302,11 +332,18 @@ class ScalarOperatorProduct(AbstractSubsystemOperator):
 
 
 class FunctionOperator(AbstractSubsystemOperator):
-    """Apply a function to an operator. This assumes the output is the same shape/dimension as the
+    """A function applied on an operator. This assumes the output is the same shape/dimension as the
     input.
     """
 
     def __init__(self, func, operator, func_name=None):
+        """Initialize.
+
+        Args:
+            func: The function.
+            operator: The operator.
+            func_name: The name of the function.
+        """
         self._func = func
         self._operator = operator
         self._func_name = func_name
@@ -314,6 +351,7 @@ class FunctionOperator(AbstractSubsystemOperator):
 
     @property
     def func(self):
+        """The function applied to the operator."""
         return self._func
 
     def base_matrix(self):
@@ -351,7 +389,7 @@ def _matrix_implicit_identity(matrix, matrix_subsystems, target_subsystems):
     num_subsystems = len(matrix_subsystems)
     matrix_subsystems = list(reversed(matrix_subsystems))
     target_subsystems = list(reversed(target_subsystems))
-    
+
     reorder = [matrix_subsystems.index(x) for x in target_subsystems]
     reorder = reorder + [x + num_subsystems for x in reorder]
 
@@ -367,6 +405,7 @@ def _isscalar(x):
             x = unp.asarray(x)
             if x.ndim == 0:
                 return True
-        except:
+        # pylint: disable=broad-exception-caught
+        except Exception:
             pass
     return False

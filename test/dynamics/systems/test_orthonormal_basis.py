@@ -36,40 +36,31 @@ class TestONBasis(QiskitDynamicsTestCase):
         """Test construction of default labels."""
 
         s0 = Subsystem(name="Q0", dim=5)
-        basis = ONBasis(
-            basis_vectors=np.eye(5, dtype=complex), 
-            subsystems=[s0]
-        )
+        basis = ONBasis(basis_vectors=np.eye(5, dtype=complex), subsystems=[s0])
         self.assertEqual(basis.labels, [(idx,) for idx in range(5)])
 
         s1 = Subsystem(name="Q1", dim=3)
-        basis = ONBasis(
-            basis_vectors=np.eye(15, dtype=complex), 
-            subsystems=[s0, s1]
-        )
+        basis = ONBasis(basis_vectors=np.eye(15, dtype=complex), subsystems=[s0, s1])
         self.assertEqual(basis.labels, [(y, x) for x, y in product(range(5), range(3))])
-    
+
     def test_subset(self):
         """Test restricting to a subset."""
 
         s0 = Subsystem(name="Q0", dim=5)
         s1 = Subsystem(name="Q1", dim=3)
-        basis = ONBasis(
-            basis_vectors=np.eye(15, dtype=complex), 
-            subsystems=[s0, s1]
-        )
+        basis = ONBasis(basis_vectors=np.eye(15, dtype=complex), subsystems=[s0, s1])
 
-        sub_basis = basis.subset(condition = lambda label: all(x <= 1 for x in label))
+        sub_basis = basis.subset(condition=lambda label: all(x <= 1 for x in label))
 
         self.assertEqual(sub_basis.labels, [(0, 0), (1, 0), (0, 1), (1, 1)])
         expected_basis = np.zeros((15, 4), dtype=complex)
-        expected_basis[0, 0] = 1. # (0, 0)
-        expected_basis[1, 1] = 1. # (1, 0)
-        expected_basis[3, 2] = 1. # (0, 1)
-        expected_basis[4, 3] = 1. # (1, 1)
+        expected_basis[0, 0] = 1.0  # (0, 0)
+        expected_basis[1, 1] = 1.0  # (1, 0)
+        expected_basis[3, 2] = 1.0  # (0, 1)
+        expected_basis[4, 3] = 1.0  # (1, 1)
         self.assertAllClose(sub_basis.basis_vectors, expected_basis)
 
-    
+
 class TestDressedBasis(QiskitDynamicsTestCase):
     """Test the DressedBasis class."""
 
@@ -78,91 +69,91 @@ class TestDressedBasis(QiskitDynamicsTestCase):
         s0 = Subsystem("Q0", dim=3)
         s1 = Subsystem("Q1", dim=3)
         basis = DressedBasis(
-            subsystems=[s0, s1],
-            basis_vectors=np.eye(9, dtype=complex),
-            evals=jnp.arange(9)
+            subsystems=[s0, s1], basis_vectors=np.eye(9, dtype=complex), evals=jnp.arange(9)
         )
         expected_labels = [
-            {"index": (0, 0), "eval": 0}, {"index": (1, 0), "eval": 1}, {"index": (2, 0), "eval": 2},
-            {"index": (0, 1), "eval": 3}, {"index": (1, 1), "eval": 4}, {"index": (2, 1), "eval": 5},
-            {"index": (0, 2), "eval": 6}, {"index": (1, 2), "eval": 7}, {"index": (2, 2), "eval": 8}
+            {"index": (0, 0), "eval": 0},
+            {"index": (1, 0), "eval": 1},
+            {"index": (2, 0), "eval": 2},
+            {"index": (0, 1), "eval": 3},
+            {"index": (1, 1), "eval": 4},
+            {"index": (2, 1), "eval": 5},
+            {"index": (0, 2), "eval": 6},
+            {"index": (1, 2), "eval": 7},
+            {"index": (2, 2), "eval": 8},
         ]
         self.assertEqual(basis.labels, expected_labels)
-    
+
     def test_ground_state(self):
         """Test ground state property."""
 
         s0 = Subsystem("Q0", dim=3)
         s1 = Subsystem("Q1", dim=3)
         basis = DressedBasis(
-            subsystems=[s0, s1],
-            basis_vectors=np.eye(9, dtype=complex),
-            evals=jnp.arange(9)
+            subsystems=[s0, s1], basis_vectors=np.eye(9, dtype=complex), evals=jnp.arange(9)
         )
 
         self.assertAllClose(basis.basis_vectors[:, 0], basis.ground_state)
-    
+
     def test_computational_subspace(self):
         """Test restriction to computational subspace."""
 
         s0 = Subsystem("Q0", dim=3)
         s1 = Subsystem("Q1", dim=3)
         basis = DressedBasis(
-            subsystems=[s0, s1],
-            basis_vectors=np.eye(9, dtype=complex),
-            evals=jnp.arange(9)
+            subsystems=[s0, s1], basis_vectors=np.eye(9, dtype=complex), evals=jnp.arange(9)
         )
 
         comp_subspace = basis.computational_states
         self.assertEqual(
-            comp_subspace.labels, 
+            comp_subspace.labels,
             [
-                {"index": (0, 0), "eval": 0}, {"index": (1, 0), "eval": 1},
-                {"index": (0, 1), "eval": 3}, {"index": (1, 1), "eval": 4},
-            ]
+                {"index": (0, 0), "eval": 0},
+                {"index": (1, 0), "eval": 1},
+                {"index": (0, 1), "eval": 3},
+                {"index": (1, 1), "eval": 4},
+            ],
         )
         expected_basis = np.zeros((9, 4), dtype=complex)
-        expected_basis[0, 0] = 1. # (0, 0)
-        expected_basis[1, 1] = 1. # (1, 0)
-        expected_basis[3, 2] = 1. # (0, 1)
-        expected_basis[4, 3] = 1. # (1, 1)
+        expected_basis[0, 0] = 1.0  # (0, 0)
+        expected_basis[1, 1] = 1.0  # (1, 0)
+        expected_basis[3, 2] = 1.0  # (0, 1)
+        expected_basis[4, 3] = 1.0  # (1, 1)
 
-        self.assertAllClose(
-            comp_subspace.basis_vectors, expected_basis
-        )
-    
+        self.assertAllClose(comp_subspace.basis_vectors, expected_basis)
+
     def test_low_energy_states(self):
         """Test selection of low energy states."""
 
         s0 = Subsystem("Q0", dim=3)
         s1 = Subsystem("Q1", dim=3)
         basis = DressedBasis(
-            subsystems=[s0, s1],
-            basis_vectors=np.eye(9, dtype=complex),
-            evals=jnp.arange(9)
+            subsystems=[s0, s1], basis_vectors=np.eye(9, dtype=complex), evals=jnp.arange(9)
         )
 
         low_energy = basis.low_energy_states(cutoff_energy=5.1)
 
         self.assertEqual(
-            low_energy.labels, 
+            low_energy.labels,
             [
-                {"index": (0, 0), "eval": 0}, {"index": (1, 0), "eval": 1}, {"index": (2, 0), "eval": 2},
-                {"index": (0, 1), "eval": 3}, {"index": (1, 1), "eval": 4}, {"index": (2, 1), "eval": 5},
-            ]
+                {"index": (0, 0), "eval": 0},
+                {"index": (1, 0), "eval": 1},
+                {"index": (2, 0), "eval": 2},
+                {"index": (0, 1), "eval": 3},
+                {"index": (1, 1), "eval": 4},
+                {"index": (2, 1), "eval": 5},
+            ],
         )
 
         expected_basis = np.zeros((9, 6), dtype=complex)
-        expected_basis[0, 0] = 1.
-        expected_basis[1, 1] = 1.
-        expected_basis[2, 2] = 1.
-        expected_basis[3, 3] = 1.
-        expected_basis[4, 4] = 1.
-        expected_basis[5, 5] = 1.
+        expected_basis[0, 0] = 1.0
+        expected_basis[1, 1] = 1.0
+        expected_basis[2, 2] = 1.0
+        expected_basis[3, 3] = 1.0
+        expected_basis[4, 4] = 1.0
+        expected_basis[5, 5] = 1.0
 
-        self.assertAllClose(
-            low_energy.basis_vectors, expected_basis
-        )
+        self.assertAllClose(low_energy.basis_vectors, expected_basis)
 
 
 class Test_sorted_eigh(QiskitDynamicsTestCase):

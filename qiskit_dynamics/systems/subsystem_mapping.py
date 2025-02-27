@@ -31,15 +31,15 @@ class SubsystemMapping:
     def __init__(
         self,
         matrix: np.ndarray,
-        in_subsystems: Union[Subsystem, List[Subsystem]], 
-        out_subsystems: Optional[Union[Subsystem, List[Subsystem]]] = None
+        in_subsystems: Union[Subsystem, List[Subsystem]],
+        out_subsystems: Optional[Union[Subsystem, List[Subsystem]]] = None,
     ):
         if in_subsystems is None or in_subsystems == []:
             raise QiskitError("in_subsystems cannot be None or [] for SystemMapping.")
 
         if isinstance(in_subsystems, Subsystem):
             in_subsystems = [in_subsystems]
-        
+
         if isinstance(out_subsystems, Subsystem):
             out_subsystems = [out_subsystems]
         elif out_subsystems is None:
@@ -53,10 +53,10 @@ class SubsystemMapping:
 
         if matrix.shape != (out_dim, in_dim):
             raise QiskitError("matrix.shape does not match input and output dimensions.")
-        
+
         self._matrix = matrix
         self._matrix_adj = matrix.conj().transpose()
-    
+
     @property
     def in_subsystems(self):
         return self._in_subsystems
@@ -64,11 +64,11 @@ class SubsystemMapping:
     @property
     def out_subsystems(self):
         return self._out_subsystems
-    
+
     @property
     def matrix(self):
         return self._matrix
-    
+
     def conjugate(self, operator: Union[AbstractSubsystemOperator, "QuantumSystemModel"]):
         """Conjugate a subsystem operator."""
 
@@ -77,8 +77,10 @@ class SubsystemMapping:
         elif type(operator).__name__ == "QuantumSystemModel":
             return operator._map_model(lambda x: MappedOperator(x, self))
 
-        raise QiskitError(f"Input of type {type(operator)} not recognized by SubsystemMapping.conjugate.")
-    
+        raise QiskitError(
+            f"Input of type {type(operator)} not recognized by SubsystemMapping.conjugate."
+        )
+
     def __call__(self, operator: Union[AbstractSubsystemOperator, "QuantumSystemModel"]):
         return self.conjugate(operator)
 
@@ -95,7 +97,7 @@ class MappedOperator(AbstractSubsystemOperator):
         # validate that none of the out_subsystems of system_mapping are in the operator definition
         if any(s in system_mapping.out_subsystems for s in operator.subsystems):
             raise QiskitError("Output subsystem found in input operator subsystems.")
-        
+
         unmapped_subsystems = []
         for s in operator.subsystems:
             if s not in system_mapping.in_subsystems:
@@ -108,7 +110,7 @@ class MappedOperator(AbstractSubsystemOperator):
     def operator(self):
         """The operator being mapped."""
         return self._operator
-    
+
     @property
     def system_mapping(self):
         return self._system_mapping

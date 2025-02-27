@@ -27,8 +27,9 @@ from qiskit_dynamics.systems.abstract_subsystem_operators import ScalarOperator,
 from ..common import QiskitDynamicsTestCase
 
 
-pauliX = np.array([[0., 1.], [1., 0.]])
-pauliY = np.array([[0., -1j], [1j, 0.]])
+pauliX = np.array([[0.0, 1.0], [1.0, 0.0]])
+pauliY = np.array([[0.0, -1j], [1j, 0.0]])
+
 
 def swap(d0, d1):
     """Generate swap operator mapping C^d0 x C^d1 -> C^d1 x C^d0."""
@@ -62,7 +63,7 @@ class TestSubsystemOperator(QiskitDynamicsTestCase):
         self.assertAllClose(op.matrix([s0, s1]), np.kron(np.eye(3), mat))
         self.assertAllClose(op.matrix([s1, s0]), np.kron(mat, np.eye(3)))
         self.assertAllClose(op.matrix([s2, s0, s1]), np.kron(np.kron(np.eye(3), mat), np.eye(2)))
-    
+
     def test_two_system_matrix(self):
         """Test correct construction of matrix with two subsystems."""
 
@@ -80,11 +81,11 @@ class TestSubsystemOperator(QiskitDynamicsTestCase):
 
         s2 = Subsystem("Q2", dim=6)
         self.assertAllClose(op.matrix([s0, s1, s2]), np.kron(np.eye(6), mat))
-        
+
         W = np.kron(swap(6, 5), np.eye(2))
         expected_mat = W @ np.kron(np.eye(6), mat) @ W.conj().transpose()
         self.assertAllClose(op.matrix([s0, s2, s1]), expected_mat)
-        
+
         s3 = Subsystem("Q3", dim=3)
         W = np.kron(swap(6, 5), np.eye(6))
         expected_mat = W @ np.kron(np.kron(np.eye(6), mat), np.eye(3)) @ W.conj().transpose()
@@ -93,7 +94,7 @@ class TestSubsystemOperator(QiskitDynamicsTestCase):
         W = np.kron(swap(6, 5), swap(2, 3))
         expected_mat = W @ np.kron(np.kron(np.eye(6), mat), np.eye(3)) @ W.conj().transpose()
         self.assertAllClose(op.matrix([s0, s3, s2, s1]), expected_mat)
-    
+
     def test_three_system_matrix(self):
         """Test correct construction of matrix with three subsystems."""
 
@@ -123,51 +124,66 @@ class TestNamedOperators(QiskitDynamicsTestCase):
     def testA(self):
         """Validate A."""
         op = A(Subsystem("Q0", 2))
-        self.assertAllClose(op.matrix(), np.array([[0., 1.], [0., 0.]]))
+        self.assertAllClose(op.matrix(), np.array([[0.0, 1.0], [0.0, 0.0]]))
         op = A(Subsystem("Q0", 3))
-        self.assertAllClose(op.matrix(), np.array([[0., 1., 0.], [0., 0., np.sqrt(2)], [0., 0., 0.]]))
-    
+        self.assertAllClose(
+            op.matrix(), np.array([[0.0, 1.0, 0.0], [0.0, 0.0, np.sqrt(2)], [0.0, 0.0, 0.0]])
+        )
+
     def testAdag(self):
         """Validate Adag."""
         op = Adag(Subsystem("Q0", 2))
-        self.assertAllClose(op.matrix(), np.array([[0., 0.], [1., 0.]]))
+        self.assertAllClose(op.matrix(), np.array([[0.0, 0.0], [1.0, 0.0]]))
         op = Adag(Subsystem("Q0", 3))
-        self.assertAllClose(op.matrix(), np.array([[0., 0., 0.], [1., 0., 0.], [0., np.sqrt(2), 0.]]))
-    
+        self.assertAllClose(
+            op.matrix(), np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, np.sqrt(2), 0.0]])
+        )
+
     def testN(self):
         """Validate N."""
         op = N(Subsystem("Q0", 2))
-        self.assertAllClose(op.matrix(), np.array([[0., 0.], [0., 1.]]))
+        self.assertAllClose(op.matrix(), np.array([[0.0, 0.0], [0.0, 1.0]]))
         op = N(Subsystem("Q0", 3))
-        self.assertAllClose(op.matrix(), np.array([[0., 0., 0.], [0., 1., 0.], [0., 0., 2.]]))
-    
+        self.assertAllClose(
+            op.matrix(), np.array([[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 2.0]])
+        )
+
     def testI(self):
         """Validate I."""
         op = I(Subsystem("Q0", 2))
-        self.assertAllClose(op.matrix(), np.array([[1., 0.], [0., 1.]]))
+        self.assertAllClose(op.matrix(), np.array([[1.0, 0.0], [0.0, 1.0]]))
         op = I(Subsystem("Q0", 3))
-        self.assertAllClose(op.matrix(), np.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]]))
-    
+        self.assertAllClose(
+            op.matrix(), np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+        )
+
     def testX(self):
         """Validate X."""
         op = X(Subsystem("Q0", 2))
-        self.assertAllClose(op.matrix(), np.array([[0., 1.], [1., 0.]]))
+        self.assertAllClose(op.matrix(), np.array([[0.0, 1.0], [1.0, 0.0]]))
         op = X(Subsystem("Q0", 3))
-        self.assertAllClose(op.matrix(), np.array([[0., 1., 0.], [1., 0., np.sqrt(2)], [0., np.sqrt(2), 0.]]))
-    
+        self.assertAllClose(
+            op.matrix(), np.array([[0.0, 1.0, 0.0], [1.0, 0.0, np.sqrt(2)], [0.0, np.sqrt(2), 0.0]])
+        )
+
     def testY(self):
         """Validate Y."""
         op = Y(Subsystem("Q0", 2))
-        self.assertAllClose(op.matrix(), np.array([[0., -1j], [1j, 0.]]))
+        self.assertAllClose(op.matrix(), np.array([[0.0, -1j], [1j, 0.0]]))
         op = Y(Subsystem("Q0", 3))
-        self.assertAllClose(op.matrix(), np.array([[0., -1j, 0.], [1j, 0., -1j * np.sqrt(2)], [0., 1j * np.sqrt(2), 0.]]))
-    
+        self.assertAllClose(
+            op.matrix(),
+            np.array([[0.0, -1j, 0.0], [1j, 0.0, -1j * np.sqrt(2)], [0.0, 1j * np.sqrt(2), 0.0]]),
+        )
+
     def testZ(self):
         """Validate Z."""
         op = Z(Subsystem("Q0", 2))
-        self.assertAllClose(op.matrix(), np.array([[1., 0.], [0., -1.]]))
+        self.assertAllClose(op.matrix(), np.array([[1.0, 0.0], [0.0, -1.0]]))
         op = Z(Subsystem("Q0", 3))
-        self.assertAllClose(op.matrix(), np.array([[1., 0., 0.], [0., -1., 0.], [0., 0., -3.]]))
+        self.assertAllClose(
+            op.matrix(), np.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -3.0]])
+        )
 
 
 class TestScalarOperators(QiskitDynamicsTestCase):
@@ -177,10 +193,10 @@ class TestScalarOperators(QiskitDynamicsTestCase):
         """Test correct identity construction."""
 
         s0 = Subsystem("Q0", dim=5)
-        op = ScalarOperator(value=3., subsystems=[s0])
+        op = ScalarOperator(value=3.0, subsystems=[s0])
 
-        self.assertAllClose(op.matrix([s0]), 3. * np.eye(5))
-    
+        self.assertAllClose(op.matrix([s0]), 3.0 * np.eye(5))
+
     def test_ZeroOperator(self):
         """Test correct identity construction."""
 
@@ -197,7 +213,7 @@ class TestOperatorSum(QiskitDynamicsTestCase):
         """Test addition of operators."""
         s0 = Subsystem("Q0", dim=2)
         op = X(s0) + Y(s0)
-        self.assertAllClose(op.matrix(), np.array([[0., 1 -1j], [1 + 1j, 0.]]))
+        self.assertAllClose(op.matrix(), np.array([[0.0, 1 - 1j], [1 + 1j, 0.0]]))
         self.assertEqual(str(op), "X(Q0) + Y(Q0)")
 
     def test_non_overlapping_sum(self):
@@ -206,10 +222,12 @@ class TestOperatorSum(QiskitDynamicsTestCase):
         s1 = Subsystem("Q1", dim=2)
         op = X(s0) + Y(s1)
         ident = np.eye(2, dtype=complex)
-        expected_op = np.kron(ident, np.array([[0., 1], [1, 0.]])) + np.kron(np.array([[0., -1j], [1j, 0.]]), ident)
+        expected_op = np.kron(ident, np.array([[0.0, 1], [1, 0.0]])) + np.kron(
+            np.array([[0.0, -1j], [1j, 0.0]]), ident
+        )
         self.assertAllClose(op.matrix([s0, s1]), expected_op)
         self.assertEqual(str(op), "X(Q0) + Y(Q1)")
-    
+
     def test_zero_operator_sum(self):
         """Test addition of an operator with the zero operator."""
         s0 = Subsystem("Q0", dim=2)
@@ -239,14 +257,15 @@ class TestOperatorMatmul(QiskitDynamicsTestCase):
 
         expected_op = np.kron(pauliX, pauliY)
         self.assertAllClose(op.matrix([s1, s0]), expected_op)
-    
+
     def test_zero_operator_matmul(self):
         """Test matmul of an operator with the zero operator."""
         s0 = Subsystem("Q0", dim=2)
         op = X(s0)
         self.assertTrue(isinstance(op @ ZeroOperator(s0), ZeroOperator))
         self.assertTrue(isinstance(ZeroOperator(s0) @ op, ZeroOperator))
-    
+
+
 class TestOperatorMul(QiskitDynamicsTestCase):
     """Tests for mul of operations."""
 
@@ -269,14 +288,14 @@ class TestOperatorMul(QiskitDynamicsTestCase):
 
         expected_op = np.kron(pauliX, ident) * np.kron(ident, pauliY)
         self.assertAllClose(op.matrix([s1, s0]), expected_op)
-    
+
     def test_zero_operator_mul(self):
         """Test matmul of an operator with the zero operator."""
         s0 = Subsystem("Q0", dim=2)
         op = X(s0)
         self.assertTrue(isinstance(op * ZeroOperator(s0), ZeroOperator))
         self.assertTrue(isinstance(ZeroOperator(s0) * op, ZeroOperator))
-    
+
     def test_scalar_operator_mul(self):
         s0 = Subsystem("Q0", dim=2)
         op = 3 * X(s0)
@@ -314,7 +333,7 @@ class TestFilterAndRestrict(QiskitDynamicsTestCase):
         self.assertAllClose(op.matrix([s1]), np.zeros((2, 2)))
         self.assertEqual(str(op), "0.0")
         self.assertTrue(isinstance(op, ZeroOperator))
-    
+
     def test_orthogonal_removal(self):
         """Test removal of subsystem that isn't in the operator."""
         s0 = Subsystem("Q0", dim=2)

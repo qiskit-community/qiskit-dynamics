@@ -15,13 +15,14 @@
 Basis classes.
 """
 
-from typing import List, Optional, Callable
+from typing import List, Optional, Callable, Tuple
 
 from itertools import product
 
 from qiskit import QiskitError
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
+from qiskit_dynamics.arraylias.alias import _preferred_lib
 
 from .subsystem import Subsystem
 from .abstract_subsystem_operators import AbstractSubsystemOperator
@@ -33,10 +34,10 @@ class ONBasis:
     """Represents a list of orthogonal vectors."""
 
     def __init__(
-        self, 
+        self,
         subsystems: List[Subsystem],
-        basis_vectors: Optional[np.ndarray] = None, 
-        labels: Optional[List] = None
+        basis_vectors: Optional[np.ndarray] = None,
+        labels: Optional[List] = None,
     ):
         """An orthonormal basis specified as a 2d array whose columns are the vectors.
 
@@ -91,8 +92,7 @@ class ONBasis:
         return self.basis_vectors @ self.basis_vectors_adj
 
     def probabilities(self, x):
-        """Compute probabilities, treating x as a state vector or density matrix depending on ndim.
-        """
+        """Compute probabilities, treating x as a state vector or density matrix depending on ndim."""
         if x.ndim == 1:
             return unp.abs(self.decompose(x)) ** 2
         elif x.ndim == 2:
@@ -134,7 +134,7 @@ class DressedBasis(ONBasis):
 
     def __init__(self, subsystems, basis_vectors, evals, indices: Optional[List] = None):
         """Initialize a basis where each element has an associated eval.
-        
+
         The labels for the basis vectors will be dictionaries with keys "index" and "eval". Note
         that the ``ground_state`` property will always return the first basis vector.
 
@@ -147,27 +147,17 @@ class DressedBasis(ONBasis):
 
         indices = indices or _default_indexing(subsystems, basis_vectors.shape[1])
         labels = [{"index": idx, "eval": eval} for idx, eval in zip(indices, evals)]
-        
-        super().__init__(
-            subsystems=subsystems,
-            basis_vectors=basis_vectors,
-            labels=labels
-        )
 
+        super().__init__(subsystems=subsystems, basis_vectors=basis_vectors, labels=labels)
 
     @classmethod
-    def from_hamiltonian(
-        cls, 
-        hamiltonian, 
-        subsystems,
-        ordering="default"
-    ):
+    def from_hamiltonian(cls, hamiltonian, subsystems, ordering="default"):
         """Build a DressedBasis instance from a Hamiltonian.
 
         Args:
             hamiltonian: The Hamiltonian operator.
             subsystems: A list of subsystem instances.
-            ordering: The ordering with which to set the basis. 
+            ordering: The ordering with which to set the basis.
         """
 
         if isinstance(hamiltonian, AbstractSubsystemOperator):
@@ -204,9 +194,7 @@ class DressedBasis(ONBasis):
         new_evals = []
         new_indices = []
         new_basis_vectors = []
-        for label, vector in zip(
-            self.labels, self.basis_vectors.transpose()
-        ):
+        for label, vector in zip(self.labels, self.basis_vectors.transpose()):
             if label["eval"] < cutoff_energy:
                 new_evals.append(label["eval"])
                 new_indices.append(label["index"])
@@ -232,7 +220,7 @@ def _default_indexing(subsystems, num):
     return labels[:num]
 
 
-def _sorted_eigh(H: jnp.array) -> Tuple[jnp.array, jnp.array]:
+def _sorted_eigh(H: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """Given a Hermitian operator ``H``, return the output of ``jnp.linalg.eigh``, but with
     the eigenvalues and eigenvectors sorted so that the argmax of the absolute value of the
     eigenvectors is in non-decreasing order. This also ensures that the diagonal of the matrix
@@ -253,16 +241,24 @@ def _sorted_eigh(H: jnp.array) -> Tuple[jnp.array, jnp.array]:
         Tuple: The sorted eigenvalues and eigenvectors.
     """
 
-    evals, evecs = jnp.linalg.eigh(H)
+    evals, evecs = unp.linalg.eigh(H)
 
     # sort based on largest entry of each column
     evecs_trans = evecs.transpose()
-    max_indices_argsort = vmap(jnp.argmax)(jnp.abs(evecs_trans)).argsort()
+
+    if _preferred_lib(H) == "jax":
+        import jax.numpy as jnp
+        from jax import vmap
+
+        max_indices_argsort = vmap(jnp.argmax)(unp.abs(evecs_trans)).argsort()
+    else:
+        max_indices_argsort = np.array([np.argmax(np.abs(x)) for x in evecs_trans]).argsort()
+
     sorted_evecs_trans = evecs_trans[max_indices_argsort]
     sorted_evals = evals[max_indices_argsort]
 
     # ensure all largest entries are positive
-    exp_factors = jnp.exp(-1j * jnp.angle(jnp.diag(sorted_evecs_trans)))
-    sorted_evecs_trans = exp_factors[:, jnp.newaxis] * sorted_evecs_trans
+    exp_factors = unp.exp(-1j * unp.angle(unp.diag(sorted_evecs_trans)))
+    sorted_evecs_trans = exp_factors[:, np.newaxis] * sorted_evecs_trans
 
     return sorted_evals, sorted_evecs_trans.transpose()
