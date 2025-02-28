@@ -9,11 +9,12 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,no-member
 
 """Tests for orthonormal_basis.py."""
 
 from itertools import product
+from functools import partial
 
 import numpy as np
 import jax.numpy as jnp
@@ -21,7 +22,7 @@ import jax.numpy as jnp
 from qiskit_dynamics.systems import Subsystem, ONBasis, DressedBasis
 from qiskit_dynamics.systems.orthonormal_basis import _sorted_eigh
 
-from ..common import QiskitDynamicsTestCase
+from ..common import QiskitDynamicsTestCase, test_array_backends
 
 
 class TestONBasis(QiskitDynamicsTestCase):
@@ -157,29 +158,30 @@ class TestDressedBasis(QiskitDynamicsTestCase):
         self.assertAllClose(low_energy.basis_vectors, expected_basis)
 
 
+@partial(test_array_backends, array_libraries=["numpy", "jax"])
 class Test_sorted_eigh(QiskitDynamicsTestCase):
     """Tests for _sorted_eigh function."""
 
     def test_2d_case(self):
         """Test for 2x2 matrix."""
 
-        H = jnp.array([[1.0, 0.1], [0.1, -1.0]])
+        H = self.asarray([[1.0, 0.1], [0.1, -1.0]])
         evals, evecs = _sorted_eigh(H)
 
-        expected_evals = jnp.array([1.0049876, -1.0049876])
-        expected_evecs = jnp.array([[0.99875855, -0.0498137], [0.0498137, 0.99875855]])
+        expected_evals = self.asarray([1.0049876, -1.0049876])
+        expected_evecs = self.asarray([[0.99875855, -0.0498137], [0.0498137, 0.99875855]])
 
-        self.assertTrue(jnp.allclose(evals, expected_evals))
-        self.assertTrue(jnp.allclose(evecs, expected_evecs))
+        self.assertAllClose(evals, expected_evals, atol=1e-7, rtol=1e-7)
+        self.assertAllClose(evecs, expected_evecs, atol=1e-7, rtol=1e-7)
 
     def test_3d_case(self):
         """Test for 3x3 matrix."""
 
-        H = jnp.array([[1.0, 0.0, 0.01j], [0.0, 0.0, 0.1], [-0.01j, 0.1, 0.9]])
+        H = self.asarray([[1.0, 0.0, 0.01j], [0.0, 0.0, 0.1], [-0.01j, 0.1, 0.9]])
         evals, evecs = _sorted_eigh(H)
 
-        expected_evals = jnp.array([1.0010976, -0.0109784, 0.9098808])
-        expected_evecs = jnp.array(
+        expected_evals = self.asarray([1.0010976, -0.0109784, 0.9098808])
+        expected_evecs = self.asarray(
             [
                 [0.99397135, 0.00107943j, -0.10963501j],
                 [-0.01089778j, 0.9940271, 0.10858816],
@@ -187,5 +189,5 @@ class Test_sorted_eigh(QiskitDynamicsTestCase):
             ]
         )
 
-        self.assertTrue(jnp.allclose(evals, expected_evals))
-        self.assertTrue(jnp.allclose(evecs, expected_evecs))
+        self.assertAllClose(evals, expected_evals, atol=1e-7, rtol=1e-7)
+        self.assertAllClose(evecs, expected_evecs, atol=1e-7, rtol=1e-7)
