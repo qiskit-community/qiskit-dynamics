@@ -17,7 +17,77 @@ Systems (:mod:`qiskit_dynamics.systems`)
 
 .. currentmodule:: qiskit_dynamics.systems
 
-Modeling tools.
+This module provides high level interfaces for building and solving models of quantum systems. Where
+the :mod:`.solvers` and :mod:`.models` modules provide interfaces for defining and solving systems
+in terms of user-defined arrays, this module provides tools for building descriptions of systems
+in terms of tensor-factor subsystems, an algebraic system for defining operators on subsystems, a
+high level class representing an abstract dynamical model of a quantum system, and tools for
+analysing results. The ultimate purpose of the module is to minimize the need for a user to work
+explicitly with building and manipulating arrays and array indexing, which can be time consuming and
+prone to error. See the :ref:`Systems Modelling Tutorial <systems modelling tutorial>` for examples.
+
+The basis building block is a :class:`.Subsystem`, which represents a single finite-dimensional
+complex vector space on which to define the model of a quantum system. A single model may be defined
+on multiple subsystems, in which each subsystem represents a tensor factor in a tensor-product
+space.
+
+.. code-block:: python
+
+    Q0 = Subsystem(name="Q0", dim=2)
+    Q1 = Subsystem(name="Q0", dim=2)
+
+
+Abstract operators acting on these subsystems can be defined as follows:
+
+.. code-block:: python
+
+    X0 = X(Q0)
+    Y1 = Y(Q1)
+
+Using algebraic operations, new operators may be defined. For example, the tensor product of ``X``
+on ``Q0`` and ``Y`` on ``Q1`` can be constructed through matrix multiplication:
+
+.. code-block:: python
+
+    X0 @ Y1
+
+Similarly, the sum of these operators can be constructed through addition ``X0 + Y1``.
+
+The matrix of an abstract operator can be built by calling the :meth:`.matrix` method. The specific
+ordering of the tensor factors desired in the calculation can be supplied, e.g.:
+
+.. code-block:: python
+    
+    (X0 @ Y1).matrix(ordered_subsystems=[Q0, Q1])
+
+If no explicitly ordering is supplied, the default internal ordering built during the construction
+of the operator will be used.
+
+Operators can be assumbled into models of quantum systems using the :class:`.QuantumSystemModel`
+class. For example, a model of a standard qubit can be built as follows:
+
+.. code-block:: python
+
+    q0_model = QuantumSystemModel(
+        static_hamiltonian=2 * np.pi * 5. * N(Q0),
+        drive_hamiltonians=[2 * np.pi * 0.1 * X(Q0)], 
+        drive_hamiltonian_coefficients=["d0"]
+    )
+
+This model can now be solved with a single call:
+
+.. code-block:: python
+
+    results = q0_model.solve(
+        signals={"d0": Signal(1., carrier_freq=5.)},
+        t_span=t_span,
+        t_eval=t_eval,
+        y0=y0
+    )
+
+with ``results`` being the standard ``OdeResult`` object returned by Qiskit Dynamics solvers.
+
+In addition to the functionality above, the module contains 
 """
 
 from .subsystem import Subsystem
