@@ -11,6 +11,7 @@ Qiskit Dynamics User Guide
 
    how_to_use_different_array_libraries.rst
    how_to_configure_simulations.rst
+   advanced_system_modelling.rst
    perturbative_solvers.rst
    how_to_use_pulse_schedule_for_jax_jit.rst
 

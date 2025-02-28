@@ -19,12 +19,13 @@ Systems (:mod:`qiskit_dynamics.systems`)
 
 This module provides high level interfaces for building and solving models of quantum systems. Where
 the :mod:`.solvers` and :mod:`.models` modules provide interfaces for defining and solving systems
-in terms of user-defined arrays, this module provides tools for building descriptions of systems
-in terms of tensor-factor subsystems, an algebraic system for defining operators on subsystems, a
-high level class representing an abstract dynamical model of a quantum system, and tools for
-analysing results. The ultimate purpose of the module is to minimize the need for a user to work
-explicitly with building and manipulating arrays and array indexing, which can be time consuming and
-prone to error. See the :ref:`Systems Modelling Tutorial <systems modelling tutorial>` for examples.
+in terms of user-defined arrays, this module provides tools for building descriptions of systems in
+terms of tensor-factor subsystems, an algebraic system for defining operators on subsystems, a high
+level class representing an abstract dynamical model of a quantum system, and tools for analysing
+results. The ultimate purpose of the module is to minimize the need for a user to work explicitly
+with building and manipulating arrays and array indexing, which can be time consuming and prone to
+error. See the :ref:`Systems Modelling Tutorial <systems modelling tutorial>` and the :ref:`Advanced
+systems Modelling userguide <systems modelling userguide>` for more detailed examples.
 
 The basis building block is a :class:`.Subsystem`, which represents a single finite-dimensional
 complex vector space on which to define the model of a quantum system. A single model may be defined
