@@ -117,7 +117,7 @@ class QuantumSystemModel:
         array_library: Optional[str] = None,
         vectorized: bool = False,
         validate: bool = False,
-        subsystem_order: Optional[List[Subsystem]] = None,
+        ordered_subsystems: Optional[List[Subsystem]] = None,
     ):
         """Build concrete operators and instantiate solver.
 
@@ -126,41 +126,41 @@ class QuantumSystemModel:
             array_library: array library to use (e.g. "numpy", "jax", "jax_sparse", "scipy_sparse")
             vectorized: If doing lindblad simulation, whether or not to vectorize.
             validate: Whether or not to validate the operators.
-            subsystem_order: Chosen non-standard ordering for building the solver.
+            ordered_subsystems: Chosen non-standard ordering for building the solver.
         """
-        if subsystem_order is None:
-            subsystem_order = self.subsystems
+        if ordered_subsystems is None:
+            ordered_subsystems = self.subsystems
 
         if self.static_hamiltonian is None:
             static_hamiltonian = None
         else:
-            static_hamiltonian = self.static_hamiltonian.matrix(subsystem_order)
+            static_hamiltonian = self.static_hamiltonian.matrix(ordered_subsystems)
 
         if len(self.drive_hamiltonians) == 0:
             drive_hamiltonians = None
         else:
             drive_hamiltonians = np.array(
-                [op.matrix(subsystem_order) for op in self.drive_hamiltonians]
+                [op.matrix(ordered_subsystems) for op in self.drive_hamiltonians]
             )
 
         if len(self.static_dissipators) == 0:
             static_dissipators = None
         else:
             static_dissipators = np.array(
-                [op.matrix(subsystem_order) for op in self.static_dissipators]
+                [op.matrix(ordered_subsystems) for op in self.static_dissipators]
             )
 
         if len(self.static_dissipators) == 0:
             drive_dissipators = None
         else:
             drive_dissipators = np.array(
-                [op.matrix(subsystem_order) for op in self.drive_dissipators]
+                [op.matrix(ordered_subsystems) for op in self.drive_dissipators]
             )
 
         if rotating_frame == "static_hamiltonian":
             rotating_frame = static_hamiltonian
         elif isinstance(rotating_frame, AbstractSubsystemOperator):
-            rotating_frame = rotating_frame.matrix(subsystem_order)
+            rotating_frame = rotating_frame.matrix(ordered_subsystems)
 
         return Solver(
             static_hamiltonian=static_hamiltonian,
@@ -197,7 +197,7 @@ class QuantumSystemModel:
         rotating_frame=None,
         array_library=None,
         vectorized=False,
-        subsystem_order=None,
+        ordered_subsystems=None,
         **kwargs,
     ):
         """Solve. Internally constructs a Solver."""
@@ -207,7 +207,7 @@ class QuantumSystemModel:
             array_library=array_library,
             vectorized=vectorized,
             validate=False,
-            subsystem_order=subsystem_order,
+            ordered_subsystems=ordered_subsystems,
         )
 
         signals = self.map_signal_dictionary(signals)
