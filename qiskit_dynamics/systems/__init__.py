@@ -53,15 +53,17 @@ on ``Q0`` and ``Y`` on ``Q1`` can be constructed through matrix multiplication:
 
 Similarly, the sum of these operators can be constructed through addition ``X0 + Y1``.
 
-The matrix of an abstract operator can be built by calling the :meth:`.matrix` method. The specific
-ordering of the tensor factors desired in the calculation can be supplied, e.g.:
+The matrix of an abstract operator can be built by calling the ``matrix`` method. The specific
+ordering of the tensor factors desired can be supplied, e.g.:
 
 .. code-block:: python
-    
+
     (X0 @ Y1).matrix(ordered_subsystems=[Q0, Q1])
 
 If no explicitly ordering is supplied, the default internal ordering built during the construction
-of the operator will be used.
+of the operator will be used. In addition to a set of pre-defined operators, users can instantiate a
+:class:`.SubsystemOperator` instance with an arbitrary concrete matrix which acts on an arbitrary
+list of :class:`.Subsystem` instances.
 
 Operators can be assumbled into models of quantum systems using the :class:`.QuantumSystemModel`
 class. For example, a model of a standard qubit can be built as follows:
@@ -70,7 +72,7 @@ class. For example, a model of a standard qubit can be built as follows:
 
     q0_model = QuantumSystemModel(
         static_hamiltonian=2 * np.pi * 5. * N(Q0),
-        drive_hamiltonians=[2 * np.pi * 0.1 * X(Q0)], 
+        drive_hamiltonians=[2 * np.pi * 0.1 * X(Q0)],
         drive_hamiltonian_coefficients=["d0"]
     )
 
@@ -87,7 +89,43 @@ This model can now be solved with a single call:
 
 with ``results`` being the standard ``OdeResult`` object returned by Qiskit Dynamics solvers.
 
-In addition to the functionality above, the module contains 
+In addition to the functionality above, the module contains ...
+
+To do:
+- SubsystemMapping
+- Bases
+- References to userguide
+
+System modelling classes
+========================
+
+.. autosummary::
+   :toctree: ../stubs/
+
+   Subsystem
+   SubsystemOperator
+   FunctionOperator
+   ONBasis
+   DressedBasis
+   SubsystemMapping
+   QuantumSystemModel
+   IdealQubit
+   DuffingOscillator
+   ExchangeInteraction
+
+Pre-defined operators
+=====================
+
+.. autosummary::
+   :toctree: ../stubs/
+
+   I
+   X
+   Y
+   Z
+   N
+   A
+   Adag
 """
 
 from .subsystem import Subsystem

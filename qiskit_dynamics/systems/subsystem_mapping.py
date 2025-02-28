@@ -21,13 +21,15 @@ from qiskit import QiskitError
 import numpy as np
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
-from qiskit_dynamics.systems import Subsystem
+from qiskit_dynamics.systems import Subsystem, quantum_system_model
 from .abstract_subsystem_operators import AbstractSubsystemOperator
 
 
 class SubsystemMapping:
     """A mapping from one subsystem to another. Write out explicitly that this is represents
     conjugation.
+
+    Reminder: these can be applied to QuantumSystemModel instances as well
     """
 
     def __init__(
@@ -74,7 +76,9 @@ class SubsystemMapping:
         """Concrete matrix encoding the action of the mapping."""
         return self._matrix
 
-    def conjugate(self, operator: Union[AbstractSubsystemOperator, "QuantumSystemModel"]):
+    def conjugate(
+        self, operator: Union[AbstractSubsystemOperator, "quantum_system_model.QuantumSystemModel"]
+    ):
         """Conjugate a subsystem operator."""
 
         if isinstance(operator, AbstractSubsystemOperator):
@@ -86,7 +90,9 @@ class SubsystemMapping:
             f"Input of type {type(operator)} not recognized by SubsystemMapping.conjugate."
         )
 
-    def __call__(self, operator: Union[AbstractSubsystemOperator, "QuantumSystemModel"]):
+    def __call__(
+        self, operator: Union[AbstractSubsystemOperator, "quantum_system_model.QuantumSystemModel"]
+    ):
         return self.conjugate(operator)
 
 
