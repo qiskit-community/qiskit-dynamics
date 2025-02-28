@@ -17,7 +17,6 @@ from itertools import product
 from functools import partial
 
 import numpy as np
-import jax.numpy as jnp
 
 from qiskit_dynamics.systems import Subsystem, ONBasis, DressedBasis
 from qiskit_dynamics.systems.orthonormal_basis import _sorted_eigh
@@ -71,7 +70,7 @@ class TestDressedBasis(QiskitDynamicsTestCase):
         s0 = Subsystem("Q0", dim=3)
         s1 = Subsystem("Q1", dim=3)
         basis = DressedBasis(
-            subsystems=[s0, s1], basis_vectors=np.eye(9, dtype=complex), evals=jnp.arange(9)
+            subsystems=[s0, s1], basis_vectors=np.eye(9, dtype=complex), evals=np.arange(9)
         )
         expected_labels = [
             {"index": (0, 0), "eval": 0},
@@ -92,7 +91,7 @@ class TestDressedBasis(QiskitDynamicsTestCase):
         s0 = Subsystem("Q0", dim=3)
         s1 = Subsystem("Q1", dim=3)
         basis = DressedBasis(
-            subsystems=[s0, s1], basis_vectors=np.eye(9, dtype=complex), evals=jnp.arange(9)
+            subsystems=[s0, s1], basis_vectors=np.eye(9, dtype=complex), evals=np.arange(9)
         )
 
         self.assertAllClose(basis.basis_vectors[:, 0], basis.ground_state)
@@ -103,7 +102,7 @@ class TestDressedBasis(QiskitDynamicsTestCase):
         s0 = Subsystem("Q0", dim=3)
         s1 = Subsystem("Q1", dim=3)
         basis = DressedBasis(
-            subsystems=[s0, s1], basis_vectors=np.eye(9, dtype=complex), evals=jnp.arange(9)
+            subsystems=[s0, s1], basis_vectors=np.eye(9, dtype=complex), evals=np.arange(9)
         )
 
         comp_subspace = basis.computational_states
@@ -130,7 +129,7 @@ class TestDressedBasis(QiskitDynamicsTestCase):
         s0 = Subsystem("Q0", dim=3)
         s1 = Subsystem("Q1", dim=3)
         basis = DressedBasis(
-            subsystems=[s0, s1], basis_vectors=np.eye(9, dtype=complex), evals=jnp.arange(9)
+            subsystems=[s0, s1], basis_vectors=np.eye(9, dtype=complex), evals=np.arange(9)
         )
 
         low_energy = basis.low_energy_states(cutoff_energy=5.1)
