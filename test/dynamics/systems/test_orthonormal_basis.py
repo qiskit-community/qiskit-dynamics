@@ -28,6 +28,7 @@ class TestONBasis(QiskitDynamicsTestCase):
     """Tests for Subsystem class."""
 
     def test_default_standard_basis(self):
+        """Test construction of default standard basis."""
         s = Subsystem(name="Q0", dim=5)
         basis = ONBasis(subsystems=[s])
         self.assertAllClose(basis.basis_vectors, np.eye(5, dtype=complex))

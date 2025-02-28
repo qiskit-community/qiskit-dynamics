@@ -21,9 +21,8 @@ from copy import copy
 import numpy as np
 
 from qiskit_dynamics import Solver
-from qiskit_dynamics.systems.subsystem import Subsystem
+from qiskit_dynamics.systems import Subsystem, DressedBasis, I, X, N
 from qiskit_dynamics.systems.abstract_subsystem_operators import AbstractSubsystemOperator
-from .orthonormal_basis import DressedBasis
 
 
 class QuantumSystemModel:
@@ -274,7 +273,7 @@ class IdealQubit(QuantumSystemModel):
 
     def __init__(self, subsystem, frequency, drive_strength, drive_label=None):
         """Initialize.
-        
+
         Args:
             subsystem: The subsystem to define the qubit on.
             frequency: The frequency of the qubit.
@@ -294,7 +293,10 @@ class IdealQubit(QuantumSystemModel):
 
 
 class DuffingOscillator(QuantumSystemModel):
+    """Duffing oscillator."""
+
     def __init__(self, subsystem, frequency, anharm, drive_strength, drive_label=None):
+        """Initialize."""
         if drive_label is None:
             drive_label = f"d{subsystem.name}"
 

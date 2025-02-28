@@ -16,12 +16,11 @@
 from itertools import product
 
 import numpy as np
-import jax.numpy as jnp
 
 from qiskit import QiskitError
 
 from qiskit_dynamics.systems import Subsystem
-from qiskit_dynamics.systems.subsystem_operators import *
+from qiskit_dynamics.systems.subsystem_operators import A, Adag, I, N, X, Y, Z, SubsystemOperator
 from qiskit_dynamics.systems.abstract_subsystem_operators import ScalarOperator, ZeroOperator
 
 from ..common import QiskitDynamicsTestCase
@@ -297,6 +296,7 @@ class TestOperatorMul(QiskitDynamicsTestCase):
         self.assertTrue(isinstance(ZeroOperator(s0) * op, ZeroOperator))
 
     def test_scalar_operator_mul(self):
+        """Test multiplication of scalars with operators."""
         s0 = Subsystem("Q0", dim=2)
         op = 3 * X(s0)
         self.assertAllClose(op.matrix([s0]), 3 * pauliX)

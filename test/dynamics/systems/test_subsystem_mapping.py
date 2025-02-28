@@ -16,12 +16,9 @@
 from itertools import product
 
 import numpy as np
-import jax.numpy as jnp
-
-from qiskit import QiskitError
 
 from qiskit_dynamics.systems import Subsystem, SubsystemMapping, QuantumSystemModel
-from qiskit_dynamics.systems.subsystem_operators import *
+from qiskit_dynamics.systems.subsystem_operators import X, Y, Z
 
 from ..common import QiskitDynamicsTestCase
 

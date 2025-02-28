@@ -15,9 +15,10 @@
 Basis classes.
 """
 
-from typing import List, Optional, Callable, Tuple
-
+from typing import List, Optional, Callable, Tuple, Union
 from itertools import product
+
+import numpy as np
 
 from qiskit import QiskitError
 
@@ -26,8 +27,6 @@ from qiskit_dynamics.arraylias.alias import _preferred_lib
 
 from .subsystem import Subsystem
 from .abstract_subsystem_operators import AbstractSubsystemOperator
-
-import numpy as np
 
 
 class ONBasis:
@@ -56,7 +55,7 @@ class ONBasis:
             basis_vectors = np.eye(np.prod(subsystem_dims), dtype=complex)
 
         if basis_vectors.ndim != 2:
-            raise Exception("basis_vectors must be supplied as a 2d array.")
+            raise ValueError("basis_vectors must be supplied as a 2d array.")
 
         if basis_vectors.shape[0] != np.prod(subsystem_dims):
             raise QiskitError("Vector dimension does not match subsystem dimension.")
@@ -73,26 +72,33 @@ class ONBasis:
 
     @property
     def subsystems(self):
+        """Subsystems on which the basis is defined."""
         return self._subsystems
 
     @property
     def labels(self):
+        """Basis element labels."""
         return self._labels
 
     @property
     def basis_vectors(self):
+        """Basis vectors as the columns of an array."""
         return self._basis_vectors
 
     @property
     def basis_vectors_adj(self):
+        """Adjoint of the basis vectors matrix."""
         return self._basis_vectors_adj
 
     @property
     def projection(self):
+        """Matrix for the orthogonal projection onto the subspace spanned by the basis."""
         return self.basis_vectors @ self.basis_vectors_adj
 
     def probabilities(self, x):
-        """Compute probabilities, treating x as a state vector or density matrix depending on ndim."""
+        """Compute probabilities, treating x as a state vector or density matrix depending on
+        ndim.
+        """
         if x.ndim == 1:
             return unp.abs(self.decompose(x)) ** 2
         elif x.ndim == 2:
@@ -101,9 +107,11 @@ class ONBasis:
             raise QiskitError("ONBasis.probabilities not defined for a >2d array.")
 
     def decompose(self, x):
+        """Return the coefficients of the projection of ``x`` in the basis."""
         return self.basis_vectors_adj @ x
 
     def project(self, x):
+        """Project ``x`` onto the subspace spanned by the basis."""
         return self.projection @ x
 
     def subset(self, condition: Callable):
@@ -151,13 +159,20 @@ class DressedBasis(ONBasis):
         super().__init__(subsystems=subsystems, basis_vectors=basis_vectors, labels=labels)
 
     @classmethod
-    def from_hamiltonian(cls, hamiltonian, subsystems, ordering="default"):
+    def from_hamiltonian(
+        cls,
+        hamiltonian: Union[np.ndarray, AbstractSubsystemOperator],
+        subsystems: List[Subsystem],
+        ordering: str = "default",
+    ):
         """Build a DressedBasis instance from a Hamiltonian.
 
         Args:
             hamiltonian: The Hamiltonian operator.
             subsystems: A list of subsystem instances.
-            ordering: The ordering with which to set the basis.
+            ordering: The ordering with which to set the basis. The value ``"default"`` returns the
+                basis ordered according to the entries of the vectors with the maximum absolute
+                value.
         """
 
         if isinstance(hamiltonian, AbstractSubsystemOperator):
@@ -177,6 +192,7 @@ class DressedBasis(ONBasis):
 
     @property
     def evals(self):
+        """The eigenvalues."""
         return unp.array([x["eval"] for x in self.labels])
 
     @property

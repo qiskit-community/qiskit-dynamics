@@ -18,15 +18,17 @@ Mappings on subsystems.
 from typing import Optional, Union, List
 from qiskit import QiskitError
 
-from qiskit_dynamics import DYNAMICS_NUMPY as unp
 import numpy as np
 
-from .abstract_subsystem_operators import AbstractSubsystemOperator
+from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics.systems import Subsystem
+from .abstract_subsystem_operators import AbstractSubsystemOperator
 
 
 class SubsystemMapping:
-    """A mapping from one subsystem to another."""
+    """A mapping from one subsystem to another. Write out explicitly that this is represents
+    conjugation.
+    """
 
     def __init__(
         self,
@@ -59,14 +61,17 @@ class SubsystemMapping:
 
     @property
     def in_subsystems(self):
+        """Subsystems for input to the mapping."""
         return self._in_subsystems
 
     @property
     def out_subsystems(self):
+        """Subsystems for mapping output."""
         return self._out_subsystems
 
     @property
     def matrix(self):
+        """Concrete matrix encoding the action of the mapping."""
         return self._matrix
 
     def conjugate(self, operator: Union[AbstractSubsystemOperator, "QuantumSystemModel"]):
@@ -113,6 +118,7 @@ class MappedOperator(AbstractSubsystemOperator):
 
     @property
     def system_mapping(self):
+        """The system mapping being applied to the operator."""
         return self._system_mapping
 
     @property
@@ -129,4 +135,5 @@ class MappedOperator(AbstractSubsystemOperator):
         return A @ mat @ A.conj().transpose()
 
     def __str__(self):
-        return f"MappedOperator({self._operator}, {self.system_mapping.in_subsystems} -> {self.system_mapping.out_subsystems})"
+        return f"""MappedOperator({self._operator}, {self.system_mapping.in_subsystems} ->
+                {self.system_mapping.out_subsystems})"""
