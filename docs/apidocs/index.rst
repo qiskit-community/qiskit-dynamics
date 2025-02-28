@@ -12,6 +12,7 @@ Qiskit Dynamics API Reference
    solvers
    backend
    models
+   systems
    signals
    pulse
    perturbation
