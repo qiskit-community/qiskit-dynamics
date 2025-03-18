@@ -17,7 +17,7 @@ qutip
 ddt~=1.4.2
 matplotlib>=3.3.0
 qiskit-experiments~=0.8
-qiskit_ibm_runtime
+qiskit_ibm_runtime<=0.36.1
 pandas # for docs only
 pylatexenc>=1.4 # for docs only
 ipython<8.13.0 # for docs build with python 3.8
