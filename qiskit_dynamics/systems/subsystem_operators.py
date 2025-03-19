@@ -51,7 +51,11 @@ class SubsystemOperator(AbstractSubsystemOperator):
 
 
 class A(AbstractSubsystemOperator):
-    """Annihilation operator."""
+    """Annihilation operator.
+    
+    Defined as the matrix with non-zero entries :math:`0, 1, \sqrt{2}, ..., \sqrt{n - 1}` in the
+    first off-diagonal, where :math:`n` is the dimension of the subsystem being acted on.
+    """
 
     def base_matrix(self):
         return np.diag(np.sqrt(np.arange(1, self.subsystems[0].dim, dtype=complex)), 1)
@@ -61,7 +65,11 @@ class A(AbstractSubsystemOperator):
 
 
 class Adag(AbstractSubsystemOperator):
-    """Creation operator."""
+    """Creation operator.
+    
+    Defined as the matrix with non-zero entries :math:`0, 1, \sqrt{2}, ..., \sqrt{n - 1}` in the
+    first lower off-diagonal, where :math:`n` is the dimension of the subsystem being acted on.
+    """
 
     def base_matrix(self):
         return np.diag(np.sqrt(np.arange(1, self.subsystems[0].dim, dtype=complex)), -1)
@@ -71,7 +79,11 @@ class Adag(AbstractSubsystemOperator):
 
 
 class N(AbstractSubsystemOperator):
-    """Number operator."""
+    """The number operator.
+    
+    Defined as the diagonal matrix with with entries ``[0, ..., dim - 1]``, where ``dim`` is the
+    dimension of the :class:`Subsystem` the operator is defined on.
+    """
 
     def base_matrix(self):
         return np.diag(np.arange(self.subsystems[0].dim, dtype=complex))
@@ -81,7 +93,7 @@ class N(AbstractSubsystemOperator):
 
 
 class I(AbstractSubsystemOperator):  # noqa: E742
-    """identity."""
+    """The identity operator."""
 
     def base_matrix(self):
         return np.eye(self.subsystems[0].dim, dtype=complex)
@@ -91,7 +103,10 @@ class I(AbstractSubsystemOperator):  # noqa: E742
 
 
 class X(AbstractSubsystemOperator):
-    """X operator. For higher dimensions, generalizes to A + Adag."""
+    """X operator.
+    
+    The standard Pauli :math:`X` operator, generalized to ``A + Adag`` for higher dimensions.
+    """
 
     def base_matrix(self):
         return A(self.subsystems).base_matrix() + Adag(self.subsystems).base_matrix()
@@ -101,7 +116,11 @@ class X(AbstractSubsystemOperator):
 
 
 class Y(AbstractSubsystemOperator):
-    """Y operator.For higher dimensions, generalizes to -1j * (A - Adag)."""
+    """Y operator.
+    
+    The standard Pauli :math:`Y` operator, generalized to ``-1j * (A - Adag)`` for higher
+    dimensions.
+    """
 
     def base_matrix(self):
         return -1j * (A(self.subsystems).base_matrix() + (-1 * Adag(self.subsystems).base_matrix()))
@@ -111,7 +130,10 @@ class Y(AbstractSubsystemOperator):
 
 
 class Z(AbstractSubsystemOperator):
-    """Z operator."""
+    """Z operator.
+    
+    The standard Pauli :math:`Z` operator, generalized to ``I - 2 * N`` for higher dimensions.
+    """
 
     def base_matrix(self):
         return I(self.subsystems).base_matrix() - 2 * N(self.subsystems).base_matrix()

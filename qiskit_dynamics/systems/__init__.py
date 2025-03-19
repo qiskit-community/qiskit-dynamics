@@ -24,13 +24,13 @@ terms of tensor-factor subsystems, an algebraic system for defining operators on
 level class representing an abstract dynamical model of a quantum system, and tools for analysing
 results. The ultimate purpose of the module is to minimize the need for a user to work explicitly
 with building and manipulating arrays and array indexing, which can be time consuming and prone to
-error. See the :ref:`Systems Modelling Tutorial <systems modelling tutorial>` and the :ref:`Advanced
-systems Modelling userguide <systems modelling userguide>` for more detailed examples.
+error. See the :ref:`Systems Modelling Tutorial <systems modelling tutorial>` and the :ref:`How-to
+use advanced system modelling functionality <systems modelling userguide>` for detailed examples.
 
-The basis building block is a :class:`.Subsystem`, which represents a single finite-dimensional
-complex vector space on which to define the model of a quantum system. A single model may be defined
-on multiple subsystems, in which each subsystem represents a tensor factor in a tensor-product
-space.
+The core building block of a model is a :class:`.Subsystem`, which represents a single
+finite-dimensional complex vector space on which to define the model of a quantum system. A single
+model may be defined on multiple subsystems, in which each subsystem represents a tensor factor in a
+tensor-product space.
 
 .. code-block:: python
 
@@ -52,7 +52,11 @@ on ``Q0`` and ``Y`` on ``Q1`` can be constructed through matrix multiplication:
 
     X0 @ Y1
 
-Similarly, the sum of these operators can be constructed through addition ``X0 + Y1``.
+Similarly, the sum of these operators can be constructed through addition ``X0 + Y1``. To facilitate
+working with operators on subsystems without needing to always specify the full context of all
+subsystems in a given model, operators are always assumed to act as the identity on all unspecified
+subsystems, similar to the common mathematical notation in which an operator :math:`a_2` means "the
+operator :math:`a` acting on subsystem :math:`2` and the identity on all others".
 
 The matrix of an abstract operator can be built by calling the ``matrix`` method. The specific
 ordering of the tensor factors desired can be supplied, e.g.:
@@ -90,12 +94,14 @@ This model can now be solved with a single call:
 
 with ``results`` being the standard ``OdeResult`` object returned by Qiskit Dynamics solvers.
 
-In addition to the functionality above, the module contains ...
+In addition to the functionality above, this module contains the :class:`SubsystemMapping` class for
+defining linear maps between tensor factor spaces given as lists of :class:`Subsystem` instances. As
+shown in the :ref:`How-to use advanced system modelling functionality <systems modelling userguide>`
+userguide entry, this class can be used to define injections of subspaces into larger spaces, or to
+restrict a model to a subspace of interest.
 
-To do:
-- SubsystemMapping
-- Bases
-- References to userguide
+Furthermore, the :class:`ONBasis` and :class:`DressedBasis` classes represent bases for subspaces on
+tensor product spaces represented by lists of :class:`Subsystem` instances.
 
 System modelling classes
 ========================

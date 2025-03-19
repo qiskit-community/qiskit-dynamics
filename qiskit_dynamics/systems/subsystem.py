@@ -17,16 +17,21 @@ Subsystem  class
 
 
 class Subsystem:
-    """A Hilbert space with a label and a dimension."""
+    """A Hilbert space with a name and a dimension."""
 
     def __init__(self, name: str, dim: int):
-        """Initialize with name and dimension."""
+        """Initialize with name and dimension.
+        
+        Args:
+            name: Name of the subsystem.
+            dim: Dimension of the subsystem.
+        """
         self._name = name
         self._dim = dim
 
     @property
     def name(self) -> str:
-        """name of subsystem."""
+        """Name of subsystem."""
         return self._name
 
     @property
