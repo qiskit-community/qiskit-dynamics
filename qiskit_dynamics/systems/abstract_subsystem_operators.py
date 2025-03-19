@@ -12,7 +12,7 @@
 # pylint: disable=invalid-name
 
 """
-Base classes for subsystem operators.
+Base classes and abstract subsystem operators.
 """
 
 from abc import ABC, abstractmethod
@@ -363,7 +363,7 @@ class FunctionOperator(AbstractSubsystemOperator):
 
 
 def _matrix_implicit_identity(matrix, matrix_subsystems, target_subsystems):
-    """Given a matrix defined on a tensor factor system described by matrix_subsystems, return the
+    """Given a matrix defined on a tensor product system described by matrix_subsystems, return the
     definition of the matrix as it acts on target_subsystems in the given order, with implicit
     identity on the subsystems in the complement of matrix_subsystems.
     """

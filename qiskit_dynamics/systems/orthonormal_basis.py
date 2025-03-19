@@ -12,7 +12,7 @@
 # pylint: disable=invalid-name
 
 """
-Basis classes.
+Orthonormal basis classes.
 """
 
 from typing import List, Optional, Callable, Tuple, Union
@@ -30,7 +30,7 @@ from .abstract_subsystem_operators import AbstractSubsystemOperator
 
 
 class ONBasis:
-    """Represents a list of orthogonal vectors."""
+    """Represents a list of orthonormal vectors."""
 
     def __init__(
         self,
@@ -44,8 +44,8 @@ class ONBasis:
             subsystems: A list of Subsystem instances. Tensor product ordering is assumed to be
                 reversed.
             basis_vectors: The vectors given as a 2d array, with the vectors being the columns. If
-                None, set to the standard basis.
-            labels: Labels for the basis vectors. If None, will default to integer ordering based
+                ``None``, defaults to the standard basis.
+            labels: Labels for the basis vectors. If ``None``, defaults to integer ordering based
                 on subsystem dimensions.
         """
         self._subsystems = subsystems
@@ -72,7 +72,7 @@ class ONBasis:
 
     @property
     def subsystems(self):
-        """Subsystems on which the basis is defined."""
+        """Subsystems representing the tensor product space on which the basis is defined."""
         return self._subsystems
 
     @property
@@ -82,7 +82,7 @@ class ONBasis:
 
     @property
     def basis_vectors(self):
-        """Basis vectors as the columns of an array."""
+        """Basis vectors as the columns of an 2-d array."""
         return self._basis_vectors
 
     @property
@@ -96,8 +96,13 @@ class ONBasis:
         return self.basis_vectors @ self.basis_vectors_adj
 
     def probabilities(self, x):
-        """Compute probabilities, treating x as a state vector or density matrix depending on
-        ndim.
+        """Treating x as a state vector or density matrix, compute the probabilities of observing
+        the outcomes of a measurement defined by the basis vectors.
+
+        Args:
+            x: The statevector or density matrix. Which case is determined by ``x.ndim``.
+        Returns:
+            A 1-d array representing probabilities computed according to the Born rule.
         """
         if x.ndim == 1:
             return unp.abs(self.decompose(x)) ** 2
@@ -107,16 +112,22 @@ class ONBasis:
             raise QiskitError("ONBasis.probabilities not defined for a >2d array.")
 
     def decompose(self, x):
-        """Return the coefficients of the projection of ``x`` in the basis."""
+        """Return the coefficients of the projection of a vector x in the basis."""
         return self.basis_vectors_adj @ x
 
     def project(self, x):
-        """Project ``x`` onto the subspace spanned by the basis."""
+        """Project a vector x onto the subspace spanned by the basis."""
         return self.projection @ x
 
     def subset(self, condition: Callable):
-        """Get a new ONBasis which is a subset of this one. ``condition`` is a function mapping
-        labels to boolean values.
+        """Get a new ONBasis consisting of a subset of this one filtered according to the condition
+        function defined on the basis labels. 
+        
+        Args:
+            condition: A boolean-valued function on the labels of this instance of ``ONBasis``.
+        Returns:
+            ONBasis: An ``ONBasis`` consisting of the (vector, label) pairs in this one for which
+                ``condition(label) == True``.
         """
 
         indices_to_include = []
@@ -138,7 +149,9 @@ class ONBasis:
 
 
 class DressedBasis(ONBasis):
-    """A basis with additional eigenvalue labelings."""
+    """A basis with labels of the form {"index": index, "eval": eval}, where each eval is a float
+    representing an eigenvalue.
+    """
 
     def __init__(self, subsystems, basis_vectors, evals, indices: Optional[List] = None):
         """Initialize a basis where each element has an associated eval.
@@ -165,7 +178,8 @@ class DressedBasis(ONBasis):
         subsystems: List[Subsystem],
         ordering: str = "default",
     ):
-        """Build a DressedBasis instance from a Hamiltonian.
+        """Build a DressedBasis instance from the eigendecomposition of a Hamiltonian, ordered in 
+        terms of non-decreasing eigenvalues.
 
         Args:
             hamiltonian: The Hamiltonian operator.
