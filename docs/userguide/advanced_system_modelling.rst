@@ -3,12 +3,25 @@
 How-to use advanced system modelling functionality
 ==================================================
 
-The :mod:`.systems` module contains tools for building descriptions of systems...
+The :mod:`.systems` module contains tools for building and representing models of systems on tensor
+product spaces. The high level usage of this module is demonstrated in the :ref:`Building and solving
+models of quantum systems <systems modelling tutorial>` tutorial, in which pre-built models are used
+to simulate transmon systems. This userguide walks through how to use the underlying operator 
+construction tools to build new models, or to modify models in non-trivial ways: e.g. restriction to
+a subspace of interest.
 
-1. Subsystems and building operators acting on tensor product spaces
---------------------------------------------------------------------
+This user-guide walks through the following tasks:
 
-Define some subsystems we will work with.
+1. How-to define operators acting on tensor product spaces.
+2. How-to define an operator acting on a subspace.
+3. How-to define an operator acting on the logical subspace of a multi-transmon model.
+4. How-to restrict an operator to a low energy subspace of a 3-transmon model.
+
+1. How-to build operators acting on tensor product spaces
+---------------------------------------------------------
+
+Here we will walk-through the construction of operators acting on a tri-partite system. Here, we 
+define three 2-dimensional subsystems:
 
 .. jupyter-execute::
 
@@ -18,13 +31,11 @@ Define some subsystems we will work with.
     Q2 = Subsystem("Q2", dim=2)
     Q3 = Subsystem("Q3", dim=2)
 
-    print(Q1)
-
-Import operators and define some instances.
+Define several operators acting on the individual subsystems.
 
 .. jupyter-execute::
 
-    from qiskit_dynamics.systems import I, X, Y, Z, A, Adag, N
+    from qiskit_dynamics.systems import I, X, Y, Z, N
 
     # X acting on Q1
     X1 = X(Q1)
@@ -37,66 +48,89 @@ Import operators and define some instances.
 
     print(X1)
 
+Note that while these operators are defined only on individual subsystems, if they are
+used in the context of multi-subsystem models, the operators implicitly act as the identity on the
+subsystems lying outside the operator's definition. E.g. ``X(Q1)`` is defined on ``Q1`` only, and as
+such, when thought of as an operator on :math:`Q1 \otimes Q2`, it represents the operator
+:math:`X \otimes I`. In this way we can work with operators acting on some subsystem in a larger
+tensor product space without always needing to refer to the whole space.
+
+The :meth:`matrix` method can be used to construct the matrix for a given operator. By default the
+matrix is constructed only on the subsystems the operator explicitly acts on:
 
 .. jupyter-execute::
 
     X1.matrix()
 
+To construct the matrix corresponding to ``X1`` when viewed as an operator acting on the combined
+tensor product space :math:`Q1 \otimes Q2`, explicitly pass the list of subsystems to the
+:meth:`matrix` method:
+
 .. jupyter-execute::
 
     X1.matrix([Q1, Q2])
+
+We can also reverse the ordering of the tensor product representation by reversing the order of the
+subsystem list:
 
 .. jupyter-execute::
 
     X1.matrix([Q2, Q1])
 
 
-We can do algebraic operations to build composite operators.
-
-Add two operators together.
+More complicated operators can be built through algebraic operations, e.g. addition:
 
 .. jupyter-execute::
 
     X1 + Y2
 
-.. jupyter-execute::
-    
-    type(X1 + Y2)
-
-This new composite operator now acts on the two subsystems that ``X1`` and ``Y2`` act on.
+This new composite operator acts on the combined set of subsystems that ``X1`` and ``Y2`` act on:
 
 .. jupyter-execute::
 
     (X1 + Y2).subsystems
 
+When calling the :meth:`matrix` method, a matrix will be constructed on the tensor product system
+in the above order.
 
 .. jupyter-execute::
 
     (X1 + Y2).matrix()
 
+Similarly, we can build the matrix for ``X1 + Y2`` when viewed as an operator on the tripartite
+system :math:`Q1 \otimes Q2 \otimes Q3`.
+
 .. jupyter-execute::
 
     (X1 + Y2).matrix([Q1, Q2, Q3])
 
-Multiply.
+Matrix multiplication can also be performed:
 
 .. jupyter-execute::
 
     X1 @ Z3
 
-Scalar addition and multiplication. Scalars under addition are treated as multiples of the identity.
+In the above case, as ``X1`` acts on ``Q1`` and ``Z3`` acts on ``Q3``, ``X1 @ Z3`` represents the
+operator :math:`X \otimes Z` acting on the space :math:`Q1 \otimes Q3`.
+
+Lastly, we can multiply and add scalars to operators. Scalars under addition are treated as
+multiples of the identity.
 
 .. jupyter-execute::
 
     1 + 2 * X1
 
 
-2. Define an operator acting on a subspace
-------------------------------------------
+2. How-to define an operator acting on a subspace
+-------------------------------------------------
 
-Task: Define a :math:`2`-dimensional matrix on the first two levels of a system with :math:`4`
-levels, with zeroes everywhere else. Effectively, we want to construct :math:`X \oplus 0`, where the
-:math:`0` is the :math:`2 \times 2` zero matrix.
+It is common in quantum information to define operators on *subspaces*, e.g. the computational
+subspace of a physical system. Here we walk through constructing an :math:`X` operator on the
+first two levels of a :math:`4`-dimensional system. In mathematical notation, we want to construct
+the operator :math:`X \oplus 0`, where both :math:`X` and :math:`0` are :math:`2 \times 2` matrices.
+
+First, define :class:`Subsystem` instances representing both the :math:`2`-dimensional subspace and
+the full :math:`4`-dimensional space.
 
 .. jupyter-execute::
 
@@ -106,7 +140,9 @@ levels, with zeroes everywhere else. Effectively, we want to construct :math:`X 
     # define the higher dimensional space
     C4 = Subsystem("C4", dim=4)
 
-Define a basis for the subspace of ``C4`` spanned by the first 2 standard basis elements.
+Next, define a :class:`ONBasis` instance for the subspace of ``C4`` representing how the standard
+basis elements of ``C2`` are mapped into ``C4``. Here we will use the first two standard basis
+elements of ``C4``, representing the first two levels of ``C4``.
 
 .. jupyter-execute::
 
@@ -121,8 +157,13 @@ Define a basis for the subspace of ``C4`` spanned by the first 2 standard basis 
     # view the basis vectors
     basis.basis_vectors
 
-Construct :math:`X \oplus 0` by expanding ``X(C2)`` into an operator acting on ``C4`` via the above
-basis.
+Using the basis, we explicitly construct the injection of ``C2`` into ``C4`` using the
+:class:`SubsystemMapping` class. This class represents a linear map between vector spaces
+:math:`V \rightarrow W` of the form :math:`v \mapsto Av` for an operator :math:`A`. Acting on an
+operator :math:`X`, a :class:`SubsystemMapping` will perform the transformation
+:math:`X \mapsto A X A^\dagger`.
+
+Here, the operator :math:`A` is defined as a matrix given by the first two basis elements of ``C4``:
 
 .. jupyter-execute::
 
@@ -134,33 +175,41 @@ basis.
         out_subsystems=[C4]
     )
 
-    logical_X = injection(X(C2))
-    logical_X
+:math:`X` acting on the first two levels of ``C4`` is then constructed as:
+
+.. jupyter-execute::
+
+    subspace_X = injection(X(C2))
+    subspace_X
 
 Observe the desired matrix:
 
 .. jupyter-execute::
 
-    logical_X.matrix()
+    subspace_X.matrix()
 
 
-3. Define an operator acting on the logical subspace of a transmon model
-------------------------------------------------------------------------
+3. How-to define an operator acting on the logical subspace of a multi-transmon model
+-------------------------------------------------------------------------------------
 
-Task: Given a 2 transmon system, construct the opertor "X on qubit 0 in the computational subspace".
+In this section we work through a more advanced version of the previous example. Here, we consider
+the problem of constructing the operator ":math:`X` acting on the computional subspace of the first
+qubit in a two-transmon system". Mathematically, this means the matrix
+:math:`A(X \otimes I)A^\dagger`, where :math:`X`` and :math:`I` are :math:`2 \times 2` matrices, and
+:math:`A` is the isometry mapping the two qubit computational subspace (the first 4 energy levels)
+into the two transmon physical space.
 
-Mathematically, this means the matrix :math:`A(X \otimes I)A^\dagger`, where :math:`X`` and
-:math:`I` are :math:`2 \times 2` matrices, and is the isometry mapping the two qubit logical space
-into the two transmon physical space. Note that in applications, will be defined in terms of the
-dressed basis of a Hamiltonian.
-
-To do this, we:
+For this, we walk through the following steps:
 - Define subsystems for both the logical/computational spaces, and the physical spaces.
-- Compute the dressed basis of an example 2 transmon Hamiltonian.
-- Restrict this basis to the computational states.
+- Construct the standard static Hamiltonian for a 2 transmon model, and compute the dressed basis
+(the basis of energy eigenstates).
+- Construct a basis for the computational subspace within the physical space.
 - Define the operator :math:`X` acting on the logical qubit :math:`0`.
-- "Expand" this operator into the full physical space, creating the desired operator :math:`A(X \otimes I)A^\dagger`
-    
+- "Expand" this operator into the full physical space, creating the desired operator
+:math:`A(X \otimes I)A^\dagger`
+
+First, construct the :class:`Subsystem` instances we will work with:
+
 .. jupyter-execute::
 
     # logical subsystems
@@ -171,29 +220,31 @@ To do this, we:
     Q0 = Subsystem("Q0", dim=3)
     Q1 = Subsystem("Q1", dim=3)
 
-Define a 2 qubit Hamiltonian, compute the dressed basis, and get the computational states.
+Define the 2 transmon Hamiltonian.
 
 .. jupyter-execute::
-
-    from qiskit_dynamics.systems import DressedBasis
 
     # define a standard Hamiltonian
     H = (2 * np.pi * 5. * N(Q0) +(- 0.33) * np.pi * N(Q0) @ (N(Q0) + (-1 * I(Q0))) +
         2 * np.pi * 5.5 * N(Q1) +(- 0.33) * np.pi * N(Q1) @ (N(Q1) + (-1 * I(Q1))) +
         2 * np.pi * 0.002 * X(Q0) @ X(Q1))
 
-    # Get the dressed basis and the computational states
-    dressed_basis = DressedBasis.from_hamiltonian(H, [Q0, Q1])
-    computational_states = dressed_basis.computational_states
-
-Define ``X`` acting on the logical states of qubit ``0``.
+Compute the dressed basis, and retrieve the :class:`ONBasis` instance corresponding to the
+computational states.
 
 .. jupyter-execute::
 
-    op = X(L0)
+    from qiskit_dynamics.systems import DressedBasis
 
+    # Get the dressed basis with an explicit tensor product ordering
+    dressed_basis = DressedBasis.from_hamiltonian(H, [Q0, Q1])
 
-Expand this into an operator on the combined physical system ``[Q0, Q1]``.
+    # retrieve the computational states
+    computational_states = dressed_basis.computational_states
+
+Define the mapping of the logical space :math:`L0 \otimes L1` into the computational subspace of the
+physical space :math:`Q0 \otimes Q1` specified by the matrix of basis vectors for the computational
+subspace.
 
 .. jupyter-execute::
 
@@ -203,21 +254,35 @@ Expand this into an operator on the combined physical system ``[Q0, Q1]``.
         out_subsystems=[Q0, Q1]
     )
 
+
+Finally, define ``X`` acting on ``L0``, and inject it into the full two-transmon physical space
+using ``injection``. Note that as the injection acts on the combined :math:`L0 \otimes L1` system,
+``X(L0)`` will be treated as ``X(L0) @ I(L1)`` when performing the injection (i.e. with implicit
+identity on ``L1``).
+
+.. jupyter-execute::
+
+    op = X(L0)
+
     injected_X0 = injection(op)
 
     injected_X0
 
 
-4. Restrict an operator to a low energy subspace
-------------------------------------------------
+4. How-to restrict an operator to a low energy subspace of a 3-transmon model
+-----------------------------------------------------------------------------
 
-When defining models on many subsystems, we may want to restrict the model to a low energy subspace.
-Here, we:
+Similarly to defining an operator on a subspace and expanding it into the full space, we may want to
+restrict on operator or model to a subspace. For example, restricting a model to a low energy
+subspace is a common technique to reduce the dimension of a model.
+
+Here, we walk through the problem of restricting an operator to a low energy subspace of a 3 
+transmon system with the following steps:
 - Build the static Hamiltonian of a 3 transmon system.
 - Restrict it to the at-most-2-excitation subspace.
 - Restrict the X operator acting on one of the transmons to the same subspace.
 
-Define a 3 transmon Hamiltonian:
+Define a 3 transmon static Hamiltonian:
 
 .. jupyter-execute::
 
@@ -246,7 +311,7 @@ Construct the dressed basis and view eigenvalues.
     dressed_basis.evals
 
 
-Restrict to low energy states below a given cutoff.
+Construct a basis for a low energy subspace below a given cutoff.
 
 .. jupyter-execute::
 
@@ -254,14 +319,15 @@ Restrict to low energy states below a given cutoff.
     low_energy_states.evals
 
 
-Observe standard basis labelling.
+Observe the standard basis labelling, and note that this energy cutoff happens to correspond to the
+subspace with at most 2-excitations in the full system.
 
 .. jupyter-execute::
 
     low_energy_states.labels
 
-Restrict the Hamiltonian to this low energy space. Note that we need to define a ``Subsystem`` on
-which this restriction acts.
+Restrict the Hamiltonian to this low energy space. Note that we first need to define a
+:class:`Subsystem` instance representing this subspace in isolation.
 
 .. jupyter-execute::
 
@@ -275,14 +341,19 @@ which this restriction acts.
 
     low_energy_H = restriction(H)
 
+
+Looking at the diagonal of ``low_energy_H``, we can confirm that the entries are the eigenvalues
+below the cutoff.
+
+.. jupyter-execute::
+
     np.diag(low_energy_H.matrix())
 
-
-It is a diagonal matrix whose entries are the low energy eigenvalues.
-
-We can also restrict other operators, e.g. the :math:`X` operator acting on the physical ``Q1``
-system. This operator is implicitly expanded into the input space of the ``restriction`` map
-before applying the restriction.
+With this ``restriction`` mapping, we can also restrict other operators to this subspace, e.g. the
+:math:`X` operator acting on the physical ``Q1`` system. Note that when the ``restriction`` map is
+applied to ``X(Q1)``, the operator is interpreted as ``I(Q0) @ X(Q1) @ I(Q2)``, i.e. :math:`X`
+acting on ``Q1``, and the identity on the remaining subsystems in the input space of ``restriction``
+that ``X(Q1)`` does not explicitly act on.
 
 .. jupyter-execute::
 
