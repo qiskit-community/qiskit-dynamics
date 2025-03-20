@@ -26,10 +26,17 @@ from .abstract_subsystem_operators import AbstractSubsystemOperator
 
 
 class SubsystemMapping:
-    """A mapping from one subsystem to another. Write out explicitly that this is represents
-    conjugation.
+    r"""A linear mapping from a list of subsystems representing a tensor product space to another.
 
-    Reminder: these can be applied to QuantumSystemModel instances as well
+    This class represents a linear map :math:`A : V_1 \otimes \dots \otimes V_n \rightarrow W_1
+    \otimes \dots \otimes W_m`, where :math:`A` is specified as a matrix, and the tensor factors of
+    both the input and output spaces are given as lists of :class:`Subsystem` instances.
+
+    The main usage is for mapping abstract operators or :class:`QuantumSystemModel` instances: the
+    :meth:`.conjugate` method, or simply treating the mapping as ``Callable``, conjugates an
+    operator or all operators within the :class:`QuantumSystemModel` by :math:`A`. As usual, for any
+    subsystems in the ``in_subsystems`` of the mapping that the operator are not explicitly defined
+    on, the operator is assumed to act as the identity.
     """
 
     def __init__(
@@ -38,6 +45,13 @@ class SubsystemMapping:
         in_subsystems: Union[Subsystem, List[Subsystem]],
         out_subsystems: Optional[Union[Subsystem, List[Subsystem]]] = None,
     ):
+        """Initialize.
+
+        Args:
+            matrix: The matrix form of the linear map.
+            in_subsystems: The list of input subsystems.
+            out_subsystems: The list of output subsystems.
+        """
         if in_subsystems is None or in_subsystems == []:
             raise QiskitError("in_subsystems cannot be None or [] for SystemMapping.")
 
@@ -79,7 +93,17 @@ class SubsystemMapping:
     def conjugate(
         self, operator: Union[AbstractSubsystemOperator, "quantum_system_model.QuantumSystemModel"]
     ):
-        """Conjugate a subsystem operator."""
+        r"""Conjugate a subsystem operator or model.
+        
+        Returns a subsystem operator representing :math:`A O A^\dagger`, where :math:`A` is the 
+        mapping matrix, and :math:`O` is the input operator. If applied to a
+        :class:`QuantumSystemModel`, the mapping is applied to all operators in the model.
+
+        Args:
+            operator: The operator to be conjugated.
+        Returns:
+            Union[MappedOperator, QuantumSystemModel]: The conjugated operator or model.
+        """
 
         if isinstance(operator, AbstractSubsystemOperator):
             return MappedOperator(operator, self)
@@ -93,6 +117,7 @@ class SubsystemMapping:
     def __call__(
         self, operator: Union[AbstractSubsystemOperator, "quantum_system_model.QuantumSystemModel"]
     ):
+        """Apply the conjugation function."""
         return self.conjugate(operator)
 
 
