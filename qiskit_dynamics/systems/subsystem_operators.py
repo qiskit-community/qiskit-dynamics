@@ -51,8 +51,8 @@ class SubsystemOperator(AbstractSubsystemOperator):
 
 
 class A(AbstractSubsystemOperator):
-    """Annihilation operator.
-    
+    r"""Annihilation operator.
+
     Defined as the matrix with non-zero entries :math:`0, 1, \sqrt{2}, ..., \sqrt{n - 1}` in the
     first off-diagonal, where :math:`n` is the dimension of the subsystem being acted on.
     """
@@ -65,8 +65,8 @@ class A(AbstractSubsystemOperator):
 
 
 class Adag(AbstractSubsystemOperator):
-    """Creation operator.
-    
+    r"""Creation operator.
+
     Defined as the matrix with non-zero entries :math:`0, 1, \sqrt{2}, ..., \sqrt{n - 1}` in the
     first lower off-diagonal, where :math:`n` is the dimension of the subsystem being acted on.
     """
@@ -80,7 +80,7 @@ class Adag(AbstractSubsystemOperator):
 
 class N(AbstractSubsystemOperator):
     """The number operator.
-    
+
     Defined as the diagonal matrix with with entries ``[0, ..., dim - 1]``, where ``dim`` is the
     dimension of the :class:`Subsystem` the operator is defined on.
     """
@@ -104,7 +104,7 @@ class I(AbstractSubsystemOperator):  # noqa: E742
 
 class X(AbstractSubsystemOperator):
     """X operator.
-    
+
     The standard Pauli :math:`X` operator, generalized to ``A + Adag`` for higher dimensions.
     """
 
@@ -117,7 +117,7 @@ class X(AbstractSubsystemOperator):
 
 class Y(AbstractSubsystemOperator):
     """Y operator.
-    
+
     The standard Pauli :math:`Y` operator, generalized to ``-1j * (A - Adag)`` for higher
     dimensions.
     """
@@ -131,7 +131,7 @@ class Y(AbstractSubsystemOperator):
 
 class Z(AbstractSubsystemOperator):
     """Z operator.
-    
+
     The standard Pauli :math:`Z` operator, generalized to ``I - 2 * N`` for higher dimensions.
     """
 

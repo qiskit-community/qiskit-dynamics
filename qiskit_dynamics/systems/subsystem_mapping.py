@@ -96,8 +96,8 @@ class SubsystemMapping:
         self, operator: Union[AbstractSubsystemOperator, "quantum_system_model.QuantumSystemModel"]
     ):
         r"""Conjugate a subsystem operator or model.
-        
-        Returns a subsystem operator representing :math:`A O A^\dagger`, where :math:`A` is the 
+
+        Returns a subsystem operator representing :math:`A O A^\dagger`, where :math:`A` is the
         mapping matrix, and :math:`O` is the input operator. If applied to a
         :class:`QuantumSystemModel`, the mapping is applied to all operators in the model.
 

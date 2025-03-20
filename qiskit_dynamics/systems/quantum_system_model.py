@@ -24,25 +24,25 @@ from qiskit.quantum_info.operators.base_operator import BaseOperator
 from qiskit.quantum_info.states.quantum_state import QuantumState
 
 from qiskit_dynamics import ArrayLike
-from qiskit_dynamics import Solver
+from qiskit_dynamics import Solver, Signal
 from qiskit_dynamics.systems import Subsystem, DressedBasis, I, X, N
 from qiskit_dynamics.systems.abstract_subsystem_operators import AbstractSubsystemOperator
 
 
 class QuantumSystemModel:
     """Quantum system model class.
-    
+
     This class represents an abstract quantum system model containing Hamiltonian and/or Lindblad
     terms, specified in terms of the abstract operator instances provided in this module. Once
     constructed, the :meth:`.get_Solver` method can be used to convert the model into a
     :class:`.Solver` instance with a concrete array representation to solve the system for a given
     initial state. Alternatively, the :meth:`.solve` method can be called to solve the system for an
     initial state without needing to work with the :class:`.Solver` directly. See the :mod:`.models`
-    module for a concrete description of the Schrodinger and Lindblad master equations. 
+    module for a concrete description of the Schrodinger and Lindblad master equations.
 
     Models can be summed together to build more complex models, e.g. for a system with multiple
     subsystems. See the :ref:`Systems Modelling Tutorial <systems modelling tutorial>` for an
-    example of intended usage. 
+    example of intended usage.
     """
 
     def __init__(
@@ -55,7 +55,7 @@ class QuantumSystemModel:
         drive_dissipators: Optional[List[AbstractSubsystemOperator]] = None,
     ):
         """Initialize.
-        
+
         Args:
             static_hamiltonian: The static Hamiltonian.
             drive_hamiltonian_coefficients: A list of string labels for the drive Hamiltonian terms.
@@ -206,10 +206,10 @@ class QuantumSystemModel:
             vectorized=vectorized,
         )
 
-    def map_signal_dictionary(self, signals):
+    def map_signal_dictionary(self, signals: List[Union[ArrayLike, Signal]]):
         """Map labelled signal dictionary to the required format for for the signals argument of a
         :class:`.Solver` generated from the :meth:`.get_Solver` method.
-        
+
         Args:
             signals: Signals in dictionary format ``{label: s}``, for ``label`` a string in
                 ``drive_hamiltonian_coefficients + drive_dissipator_coefficients`` and ``s`` a
@@ -244,7 +244,7 @@ class QuantumSystemModel:
         **kwargs,
     ):
         """Solve the model.
-        
+
         This method internally constructs a :class:`.Solver` instance with fully-formed arrays
         according to the abstract model specified in this instance, and then solves. Note that the
         ``signals`` argument for this method expects a dictionary format mapping the coefficient
@@ -333,8 +333,8 @@ class QuantumSystemModel:
 
 
 class IdealQubit(QuantumSystemModel):
-    r"""Simple dynamical model of a quantum system. 
-    
+    r"""Simple dynamical model of a quantum system.
+
     Intended to represent a 2 level system, though can be constructed on higher dimensional
     subsystems. A model with Hamiltonian of the form :math:`H(t) = 2 \pi \nu Z + s(t) 2 \pi r X`,
     with :math:`\nu` being the frequency, :math:`s(t)` the drive term, and :math:`r` the drive
@@ -364,10 +364,10 @@ class IdealQubit(QuantumSystemModel):
 
 class DuffingOscillator(QuantumSystemModel):
     r"""Duffing oscillator.
-    
+
     A model of a transmon with Hamiltonian:
     :math:`H(t) = 2 \pi \nu N + \pi \alpha N(N - I) + s(t) 2 \pi r X`, where :math:`\nu` is the
-    frequency, :math:`\alpha` the anharmonicity, :math:`r` is the drive strength, and :math:`s(t)` 
+    frequency, :math:`\alpha` the anharmonicity, :math:`r` is the drive strength, and :math:`s(t)`
     is the drive signal.
     """
 
@@ -396,15 +396,15 @@ class DuffingOscillator(QuantumSystemModel):
 
 
 class ExchangeInteraction(QuantumSystemModel):
-    """An exchange interaction between two systems.
-    
+    r"""An exchange interaction between two systems.
+
     Represents the Hamiltonian :math:`H = g X \otimes X`, where :math:`g` is the strength of the
     coupling, and the two :math:`X` operators act on the two subsystems.
     """
 
     def __init__(self, subsystems, g):
         """Initialize.
-        
+
         Args:
             g: The coupling strength.
         """

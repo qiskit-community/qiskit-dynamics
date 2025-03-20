@@ -95,7 +95,7 @@ class ONBasis:
         """Matrix for the orthogonal projection onto the subspace spanned by the basis."""
         return self.basis_vectors @ self.basis_vectors_adj
 
-    def probabilities(self, x):
+    def probabilities(self, x: np.ndarray):
         """Treating x as a state vector or density matrix, compute the probabilities of observing
         the outcomes of a measurement defined by the basis vectors.
 
@@ -121,8 +121,8 @@ class ONBasis:
 
     def subset(self, condition: Callable):
         """Get a new ONBasis consisting of a subset of this one filtered according to the condition
-        function defined on the basis labels. 
-        
+        function defined on the basis labels.
+
         Args:
             condition: A boolean-valued function on the labels of this instance of ``ONBasis``.
         Returns:
@@ -178,7 +178,7 @@ class DressedBasis(ONBasis):
         subsystems: List[Subsystem],
         ordering: str = "default",
     ):
-        """Build a DressedBasis instance from the eigendecomposition of a Hamiltonian, ordered in 
+        """Build a DressedBasis instance from the eigendecomposition of a Hamiltonian, ordered in
         terms of non-decreasing eigenvalues.
 
         Args:

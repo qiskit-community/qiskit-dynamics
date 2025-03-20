@@ -21,7 +21,7 @@ class Subsystem:
 
     def __init__(self, name: str, dim: int):
         """Initialize with name and dimension.
-        
+
         Args:
             name: Name of the subsystem.
             dim: Dimension of the subsystem.
