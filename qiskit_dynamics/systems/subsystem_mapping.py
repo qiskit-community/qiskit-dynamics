@@ -30,13 +30,15 @@ class SubsystemMapping:
 
     This class represents a linear map :math:`A : V_1 \otimes \dots \otimes V_n \rightarrow W_1
     \otimes \dots \otimes W_m`, where :math:`A` is specified as a matrix, and the tensor factors of
-    both the input and output spaces are given as lists of :class:`Subsystem` instances.
-
-    The main usage is for mapping abstract operators or :class:`QuantumSystemModel` instances: the
+    both the input and output spaces are given as lists of :class:`Subsystem` instances. The main
+    usage is for mapping abstract operators or :class:`QuantumSystemModel` instances: the
     :meth:`.conjugate` method, or simply treating the mapping as ``Callable``, conjugates an
     operator or all operators within the :class:`QuantumSystemModel` by :math:`A`. As usual, for any
     subsystems in the ``in_subsystems`` of the mapping that the operator are not explicitly defined
     on, the operator is assumed to act as the identity.
+
+    See the :ref:`How-to use advanced system modelling functionality <systems modelling userguide>`
+    userguide entry for example usage of this class.
     """
 
     def __init__(

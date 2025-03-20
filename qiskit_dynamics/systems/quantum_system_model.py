@@ -20,24 +20,52 @@ from copy import copy
 
 import numpy as np
 
+from qiskit.quantum_info.operators.base_operator import BaseOperator
+from qiskit.quantum_info.states.quantum_state import QuantumState
+
+from qiskit_dynamics import ArrayLike
 from qiskit_dynamics import Solver
 from qiskit_dynamics.systems import Subsystem, DressedBasis, I, X, N
 from qiskit_dynamics.systems.abstract_subsystem_operators import AbstractSubsystemOperator
 
 
 class QuantumSystemModel:
-    """Quantum system model class."""
+    """Quantum system model class.
+    
+    This class represents an abstract quantum system model containing Hamiltonian and/or Lindblad
+    terms, specified in terms of the abstract operator instances provided in this module. Once
+    constructed, the :meth:`.get_Solver` method can be used to convert the model into a
+    :class:`.Solver` instance with a concrete array representation to solve the system for a given
+    initial state. Alternatively, the :meth:`.solve` method can be called to solve the system for an
+    initial state without needing to work with the :class:`.Solver` directly. See the :mod:`.models`
+    module for a concrete description of the Schrodinger and Lindblad master equations. 
+
+    Models can be summed together to build more complex models, e.g. for a system with multiple
+    subsystems. See the :ref:`Systems Modelling Tutorial <systems modelling tutorial>` for an
+    example of intended usage. 
+    """
 
     def __init__(
         self,
-        static_hamiltonian=None,
-        drive_hamiltonian_coefficients=None,
-        drive_hamiltonians=None,
-        static_dissipators=None,
-        drive_dissipator_coefficients=None,
-        drive_dissipators=None,
+        static_hamiltonian: Optional[AbstractSubsystemOperator] = None,
+        drive_hamiltonian_coefficients: Optional[List[str]] = None,
+        drive_hamiltonians: Optional[List[AbstractSubsystemOperator]] = None,
+        static_dissipators: Optional[List[AbstractSubsystemOperator]] = None,
+        drive_dissipator_coefficients: Optional[List[str]] = None,
+        drive_dissipators: Optional[List[AbstractSubsystemOperator]] = None,
     ):
-        """Initialize. Lists of operators are assumed to be"""
+        """Initialize.
+        
+        Args:
+            static_hamiltonian: The static Hamiltonian.
+            drive_hamiltonian_coefficients: A list of string labels for the drive Hamiltonian terms.
+            drive_hamiltonians: The Hamiltonian terms with time-dependent coefficients. This is
+                mapped to ``hamiltonian_operators`` in :class:`.Solver`.
+            static_dissipators: The static dissipator terms.
+            drive_dissipator_coefficients: A list of string labels for the drive dissipator terms.
+            drive_dissipators: Dissipator terms with time-dependent rates. This is mapped to
+                ``dissipator_operators`` in :class:`.Solver`.
+        """
 
         drive_hamiltonians = drive_hamiltonians or []
         static_dissipators = static_dissipators or []
@@ -121,6 +149,11 @@ class QuantumSystemModel:
     ):
         """Build concrete operators and instantiate solver.
 
+        Note that the :meth:`.map_signal_dictionary` method can be used to map signals given in a
+        dictionary format ``{drive_coefficient: s}``, where ``drive_coefficient`` is a string in
+        ``drive_hamiltonian_coefficients + drive_dissipator_coefficients`` and ``s`` is a signal,
+        to the required formatting of the ``signals`` argument in :meth:`.Solver.solve`.
+
         Args:
             rotating_frame: Rotating frame to define the solver in.
             array_library: array library to use (e.g. "numpy", "jax", "jax_sparse", "scipy_sparse")
@@ -174,7 +207,17 @@ class QuantumSystemModel:
         )
 
     def map_signal_dictionary(self, signals):
-        """Map labelled signal dictionary to the required format for Solver."""
+        """Map labelled signal dictionary to the required format for for the signals argument of a
+        :class:`.Solver` generated from the :meth:`.get_Solver` method.
+        
+        Args:
+            signals: Signals in dictionary format ``{label: s}``, for ``label`` a string in
+                ``drive_hamiltonian_coefficients + drive_dissipator_coefficients`` and ``s`` a
+                signal.
+        Returns:
+            A container of signals formatted for the ``signals`` argument of the :class:`.Solver`
+            method :meth:`.Solver.solve`.
+        """
         # order coefficients
         hamiltonian_signals = [
             signals.get(label, 0.0) for label in self._drive_hamiltonian_coefficients
@@ -191,16 +234,42 @@ class QuantumSystemModel:
 
     def solve(
         self,
-        signals,
-        t_span,
-        y0,
-        rotating_frame=None,
-        array_library=None,
-        vectorized=False,
-        ordered_subsystems=None,
+        signals: dict,
+        t_span: ArrayLike,
+        y0: Union[ArrayLike, QuantumState, BaseOperator],
+        rotating_frame: Optional[Union[np.ndarray, AbstractSubsystemOperator]] = None,
+        array_library: Optional[str] = None,
+        vectorized: Optional[bool] = False,
+        ordered_subsystems: Optional[List[Subsystem]] = None,
         **kwargs,
     ):
-        """Solve. Internally constructs a Solver."""
+        """Solve the model.
+        
+        This method internally constructs a :class:`.Solver` instance with fully-formed arrays
+        according to the abstract model specified in this instance, and then solves. Note that the
+        ``signals`` argument for this method expects a dictionary format mapping the coefficient
+        labels for the drive terms specified at instantiation to the desired coefficient.
+
+        Args:
+            signals: Signals in dictionary format ``{label: s}``, where ``label`` is a string in
+                ``drive_hamiltonian_coefficients + drive_dissipator_coefficients``, and ``s`` is the
+                corresponding singal.
+            t_span: Time interval to integrate over.
+            y0: Initial state.
+            rotating_frame: Rotating frame to transform the model into. Rotating frames which are
+                diagonal can be supplied as a 1d array of the diagonal elements, to explicitly
+                indicate that they are diagonal.
+            array_library: Array library to use for storing operators of underlying model. See the
+                :ref:`model evaluation section of the Models API documentation <model evaluation>`
+                for a more detailed description of this argument.
+            vectorized: If including dissipator terms, whether or not to construct the
+                :class:`.LindbladModel` in vectorized form. See the
+                :ref:`model evaluation section of the Models API documentation <model evaluation>`
+                for a more detailed description of this argument.
+            ordered_subsystems: List of :class:`.Subsystem` instances explicitly specifying the
+                ordering of the subsystems desired when building the concrete model.
+            kwargs: Keyword arguments to pass through to :class:`.Solver.solve`.
+        """
 
         solver = self.get_Solver(
             rotating_frame=rotating_frame,
@@ -215,10 +284,7 @@ class QuantumSystemModel:
         return solver.solve(t_span=t_span, y0=y0, signals=signals, **kwargs)
 
     def __add__(self, other):
-        """Add two models.
-
-        To do: Merge operators with the same drive coefficients.
-        """
+        """Add two models."""
 
         new_operators = {key: op + other._operators[key] for key, op in self._operators.items()}
 
@@ -267,8 +333,12 @@ class QuantumSystemModel:
 
 
 class IdealQubit(QuantumSystemModel):
-    """Simple dynamical model of a quantum system. Intended to represent a 2 level system, though
-    can be constructed on higher dimensional subsystems.
+    r"""Simple dynamical model of a quantum system. 
+    
+    Intended to represent a 2 level system, though can be constructed on higher dimensional
+    subsystems. A model with Hamiltonian of the form :math:`H(t) = 2 \pi \nu Z + s(t) 2 \pi r X`,
+    with :math:`\nu` being the frequency, :math:`s(t)` the drive term, and :math:`r` the drive
+    strength.
     """
 
     def __init__(self, subsystem, frequency, drive_strength, drive_label=None):
@@ -293,10 +363,24 @@ class IdealQubit(QuantumSystemModel):
 
 
 class DuffingOscillator(QuantumSystemModel):
-    """Duffing oscillator."""
+    r"""Duffing oscillator.
+    
+    A model of a transmon with Hamiltonian:
+    :math:`H(t) = 2 \pi \nu N + \pi \alpha N(N - I) + s(t) 2 \pi r X`, where :math:`\nu` is the
+    frequency, :math:`\alpha` the anharmonicity, :math:`r` is the drive strength, and :math:`s(t)` 
+    is the drive signal.
+    """
 
     def __init__(self, subsystem, frequency, anharm, drive_strength, drive_label=None):
-        """Initialize."""
+        """Initialize.
+
+        Args:
+            subsystem: The subsystem to define the Duffing oscillator on.
+            frequency: The frequency of the oscillator.
+            anharm: The anharmonicity of the oscillator.
+            drive_strength: The drive strength.
+            drive_label: The label for the drive term.
+        """
         if drive_label is None:
             drive_label = f"d{subsystem.name}"
 
@@ -312,10 +396,18 @@ class DuffingOscillator(QuantumSystemModel):
 
 
 class ExchangeInteraction(QuantumSystemModel):
-    """Is this actually what's called "exchange interaction?"."""
+    """An exchange interaction between two systems.
+    
+    Represents the Hamiltonian :math:`H = g X \otimes X`, where :math:`g` is the strength of the
+    coupling, and the two :math:`X` operators act on the two subsystems.
+    """
 
     def __init__(self, subsystems, g):
-        """Add validation of correct number of subsystems."""
+        """Initialize.
+        
+        Args:
+            g: The coupling strength.
+        """
         super().__init__(
             static_hamiltonian=2 * np.pi * g * (X(subsystems[0]) @ X(subsystems[1])),
             drive_hamiltonian_coefficients=[],
