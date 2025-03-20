@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    This release introduces the new :mod:`.systems` module, containing tools for building abstract
+    models of quantum systems. The module provides high-level interfaces for building models and
+    performing non-trivial calculations, with the goal of minimizing the need for a user to
+    explicitly build and work with arrays (an error-prone process). These interfaces sit at a level
+    of abstraction above the :class:`.Solver` interface, though still utilize this underlying
+    functionality. See the :ref:`Systems Modelling Tutorial <systems modelling tutorial>` and the
+    :ref:`How-to use advanced system modelling functionality <systems modelling userguide>` for
+    detailed examples. 
