@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    The dependency ``qiskit_ibm_runtime`` has been bounded to version ``0.36.1``.
+  - |
+    Qiskit Dynamics requires a version of Qiskit Experiments ``<0.9``.

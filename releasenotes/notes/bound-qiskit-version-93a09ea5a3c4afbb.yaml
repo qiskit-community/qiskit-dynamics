@@ -5,3 +5,6 @@ upgrade:
     ``qiskit.pulse`` in Qiskit 2.0. Due to the minimal dependance of Qiskit Dynamics on other parts
     of Qiskit, any workflow not utilizing ``qiskit.pulse`` should still be compatible with the
     latest version of Qiskit.
+  - |
+    In addition to the above, while Qiskit Dynamics does not formally depend on Qiskit Experiments,
+    the :class:`.DynamicsBackend` will now only work with Qiskit Experiments `0.8` releases.
