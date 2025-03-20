@@ -147,7 +147,7 @@ the :meth:`.ONBasis.probabilities` method. For example, we can compute them for 
 
     probabilities = computational_states.probabilities(result.y[-1])
     for label, probability in zip(computational_states.labels, probabilities):
-        print(f"{label["index"]}: {probability}")
+        print(f'{label["index"]}: {probability}')
 
 
 
