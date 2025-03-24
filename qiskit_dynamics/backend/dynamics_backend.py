@@ -35,7 +35,7 @@ from qiskit.circuit.library import Measure
 from qiskit.pulse import Schedule, ScheduleBlock
 from qiskit.pulse.transforms.canonicalization import block_to_schedule
 from qiskit.providers.options import Options
-from qiskit.providers.backend import BackendV1, BackendV2
+from qiskit.providers.backend import BackendV2
 from qiskit.providers.models.pulsedefaults import PulseDefaults
 from qiskit.providers.models.backendconfiguration import PulseBackendConfiguration
 from qiskit.result import Result
@@ -47,8 +47,6 @@ from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit.quantum_info.operators.base_operator import BaseOperator
 from qiskit.quantum_info.states.quantum_state import QuantumState
 
-
-from qiskit_dynamics import RotatingFrame
 from qiskit_dynamics.arraylias.alias import ArrayLike
 from qiskit_dynamics.solvers.solver_classes import Solver
 
@@ -61,7 +59,6 @@ from .backend_utils import (
     _get_counts_from_samples,
     _get_iq_data,
 )
-from .backend_string_parser import parse_backend_hamiltonian_dict
 
 
 class DynamicsBackend(BackendV2):
@@ -91,14 +88,6 @@ class DynamicsBackend(BackendV2):
     Pulse-level simulations defined in terms of :class:`~qiskit.circuit.QuantumCircuit` instances
     can also be performed if each gate in the circuit has a corresponding pulse-level definition,
     either as an attached calibration, or as an instruction contained in ``backend.target``.
-
-    Additionally, a :class:`.DynamicsBackend` can be instantiated from an existing backend using the
-    :meth:`.DynamicsBackend.from_backend` method, utilizing the additional ``subsystem_list``
-    argument to specify which qubits to include in the model:
-
-    .. code-block:: python
-
-        backend = DynamicsBackend.from_backend(backend, subsystem_list=[0, 1])
 
 
     **Supported options**
@@ -588,217 +577,6 @@ class DynamicsBackend(BackendV2):
     def defaults(self) -> PulseDefaults:
         """Get the backend defaults."""
         return self.options.defaults
-
-    @classmethod
-    def from_backend(
-        cls,
-        backend: BackendV1,
-        subsystem_list: Optional[List[int]] = None,
-        rotating_frame: Optional[Union[ArrayLike, RotatingFrame, str]] = "auto",
-        array_library: Optional[str] = None,
-        vectorized: Optional[bool] = False,
-        rwa_cutoff_freq: Optional[float] = None,
-        **options,
-    ) -> "DynamicsBackend":
-        """Construct a DynamicsBackend instance from an existing Backend instance.
-
-        .. warning::
-
-            Due to inevitable model inaccuracies, gates calibrated on a real backend will not have
-            the same performance on the :class:`.DynamicsBackend` instance returned by this method.
-            As such, gates and calibrations are not be copied into the constructed
-            :class:`.DynamicsBackend`.
-
-        The ``backend`` must contain sufficient information in the ``target``, ``configuration``,
-        and/or ``defaults`` attributes to be able to run simulations. The following table indicates
-        which parameters are required, along with their primary and secondary sources:
-
-        .. list-table:: Backend parameter locations
-            :widths: 10 25 25
-            :header-rows: 1
-
-            * - Parameter
-              - Primary source
-              - Secondary source
-            * - ``hamiltonian`` dictionary.
-              - ``configuration.hamiltonian``
-              - N/A
-            * - Control channel frequency specification.
-              - ``configuration.u_channel_lo``
-              - N/A
-            * - Number of qubits in the backend model.
-              - ``target.num_qubits``
-              - ``configuration.n_qubits``
-            * - Pulse schedule sample size ``dt``.
-              - ``target.dt``
-              - ``configuration.dt``
-            * - Drive channel frequencies.
-              - ``target.qubit_properties``
-              - ``defaults.qubit_freq_est``
-            * - Measurement channel frequencies, if measurement channels explicitly appear in the
-                model.
-              - ``defaults.meas_freq_est``
-              - N/A
-
-        .. note::
-
-            The ``target``, ``configuration``, and ``defaults`` attributes of the original backend
-            are not copied into the constructed :class:`DynamicsBackend` instance, only the required
-            data stored within these attributes will be extracted. If necessary, these attributes
-            can be set and configured by the user.
-
-        The optional argument ``subsystem_list`` specifies which subset of qubits to model in the
-        constructed :class:`DynamicsBackend`. All other qubits are dropped from the model.
-
-        Configuration of the underlying :class:`.Solver` is controlled via the ``rotating_frame``,
-        ``array_library``, ``vectorized``, and ``rwa_cutoff_freq`` options. In contrast
-        to :class:`.Solver` initialization, ``rotating_frame`` defaults to the string ``"auto"``,
-        which allows this method to choose the rotating frame based on ``array_library``:
-
-        * If a dense ``array_library`` is chosen, the rotating frame will be set to the
-          ``static_hamiltonian`` indicated by the Hamiltonian in ``backend.configuration()``.
-        * If a sparse ``array_library`` is chosen, the rotating frame will be set to the diagonal of
-          ``static_hamiltonian``.
-
-        Otherwise the ``rotating_frame``, ``array_library``, ``vectorized``, and
-        ``rwa_cutoff_freq`` are passed directly to the :class:`.Solver` initialization.
-
-        Args:
-            backend: The ``Backend`` instance to build the :class:`.DynamicsBackend` from.
-                Note that while the type hint indicates that `backend` should be a
-                :class:`~qiskit.providers.backend.BackendV1` instance, this method also works for
-                :class:`~qiskit.providers.backend.BackendV2` instances that have been set up with
-                sufficiently populated ``configuration`` and ``defaults`` for backwards
-                compatibility.
-            subsystem_list: The list of qubits in the backend to include in the model.
-            rotating_frame: Rotating frame argument for the internal :class:`.Solver`. Defaults to
-                ``"auto"``, allowing this method to pick a rotating frame.
-            array_library: Array library with which to store the operators in the :class:`.Solver`.
-                See the
-                :ref:`model evaluation section of the Models API documentation <model evaluation>`
-                for a more detailed description of this argument.
-            vectorized: If a Lindblad terms are present, whether or not to build the
-                :class:`.Solver` in a vectorized mode.
-            rwa_cutoff_freq: Rotating wave approximation argument for the internal :class:`.Solver`.
-            **options: Additional options to be applied in construction of the
-                :class:`.DynamicsBackend`.
-
-        Returns:
-            DynamicsBackend
-
-        Raises:
-            QiskitError: If any required parameters are missing from the passed backend.
-        """
-
-        # get available target, config, and defaults objects
-        backend_target = getattr(backend, "target", None)
-
-        if not hasattr(backend, "configuration"):
-            raise QiskitError(
-                "DynamicsBackend.from_backend requires that the backend argument has a "
-                "configuration method."
-            )
-        backend_config = backend.configuration()
-
-        backend_defaults = None
-        if hasattr(backend, "defaults"):
-            backend_defaults = backend.defaults()
-
-        # get and parse Hamiltonian string dictionary
-        if backend_target is not None:
-            backend_num_qubits = backend_target.num_qubits
-        else:
-            backend_num_qubits = backend_config.n_qubits
-
-        if subsystem_list is not None:
-            subsystem_list = sorted(subsystem_list)
-            if subsystem_list[-1] >= backend_num_qubits:
-                raise QiskitError(
-                    f"subsystem_list contained {subsystem_list[-1]}, which is out of bounds for "
-                    f"backend with {backend_num_qubits} qubits."
-                )
-        else:
-            subsystem_list = list(range(backend_num_qubits))
-
-        if backend_config.hamiltonian is None:
-            raise QiskitError(
-                "DynamicsBackend.from_backend requires that backend.configuration() has a "
-                "hamiltonian."
-            )
-
-        (
-            static_hamiltonian,
-            hamiltonian_operators,
-            hamiltonian_channels,
-            subsystem_dims_dict,
-        ) = parse_backend_hamiltonian_dict(backend_config.hamiltonian, subsystem_list)
-        subsystem_dims = [subsystem_dims_dict.get(idx, 1) for idx in range(backend_num_qubits)]
-
-        # construct model frequencies dictionary from backend
-        channel_freqs = _get_backend_channel_freqs(
-            backend_target=backend_target,
-            backend_config=backend_config,
-            backend_defaults=backend_defaults,
-            channels=hamiltonian_channels,
-        )
-
-        # Add control_channel_map from backend (only if not specified before by user)
-        if "control_channel_map" not in options:
-            if hasattr(backend, "control_channels"):
-                control_channel_map_backend = {
-                    qubits: backend.control_channels[qubits][0].index
-                    for qubits in backend.control_channels
-                }
-
-            elif hasattr(backend.configuration(), "control_channels"):
-                control_channel_map_backend = {
-                    qubits: backend.configuration().control_channels[qubits][0].index
-                    for qubits in backend.configuration().control_channels
-                }
-
-            else:
-                control_channel_map_backend = {}
-
-            # Reduce control_channel_map based on which channels are in the model
-            if bool(control_channel_map_backend):
-                control_channel_map = {}
-                for label, idx in control_channel_map_backend.items():
-                    if f"u{idx}" in hamiltonian_channels:
-                        control_channel_map[label] = idx
-                options["control_channel_map"] = control_channel_map
-
-        # build the solver
-        if rotating_frame == "auto":
-            if array_library is not None and "sparse" in array_library:
-                rotating_frame = np.diag(static_hamiltonian)
-            else:
-                rotating_frame = static_hamiltonian
-
-        # get time step size
-        if backend_target is not None and backend_target.dt is not None:
-            dt = backend_target.dt
-        else:
-            # config is guaranteed to have a dt
-            dt = backend_config.dt
-
-        solver = Solver(
-            static_hamiltonian=static_hamiltonian,
-            hamiltonian_operators=hamiltonian_operators,
-            hamiltonian_channels=hamiltonian_channels,
-            channel_carrier_freqs=channel_freqs,
-            dt=dt,
-            rotating_frame=rotating_frame,
-            array_library=array_library,
-            vectorized=vectorized,
-            rwa_cutoff_freq=rwa_cutoff_freq,
-        )
-
-        return cls(
-            solver=solver,
-            target=Target(dt=dt),
-            subsystem_dims=subsystem_dims,
-            **options,
-        )
 
 
 def default_experiment_result_function(
