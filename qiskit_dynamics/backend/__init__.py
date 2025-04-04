@@ -43,3 +43,4 @@ Classes and functions
 """
 
 from .dynamics_backend import DynamicsBackend, default_experiment_result_function
+from .fixed_frequency_transmon_backend import FixedFrequencyTransmonBackend

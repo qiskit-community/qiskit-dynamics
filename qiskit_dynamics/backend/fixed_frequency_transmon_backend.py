@@ -90,13 +90,22 @@ class FixedFrequencyTransmonBackend(DynamicsBackend):
             # Add cross resonance term for the drive
             cross_resonance_tone = deepcopy(model_list[i].drive_hamiltonians[0])
             model_list[i].drive_hamiltonians.append(cross_resonance_tone)
-            model_list[i].hamiltonian_channels.append(ControlChannel(idx))
+            model_list[i].hamiltonian_channels.append(ControlChannel(idx).name)
             model_list[i].channel_carrier_freqs[ControlChannel(idx).name] = freqs[j]
             control_channel_map[(i, j)] = idx
 
-        model: QuantumSystemModel = sum(model_list)
+        model: QuantumSystemModel = model_list[0]
+        for m in model_list[1:]:
+            model += m
         solver = model.get_Solver(
             rotating_frame="static_hamiltonian", array_library=array_library, dt=dt, validate=True
         )
-
-        super().__init__(solver, target=target, **options)
+        
+        if 'control_channel_map' not in options:
+            options['control_channel_map'] = control_channel_map
+        if 'subsystem_dims' not in options:
+            options['subsystem_dims'] = dims
+        else:
+            raise QiskitError("subsystem_dims option not consistent with dims argument.")
+        
+        super().__init__(solver, target=target, subsystem_dims = dims, **options)
