@@ -302,7 +302,6 @@ class Solver:
                 raise QiskitError("dt must be specified if channel information is provided.")
 
         # setup model
-        model = None
         if static_dissipators is None and dissipator_operators is None:
             model = HamiltonianModel(
                 static_operator=static_hamiltonian,
