@@ -46,7 +46,7 @@ def is_lindblad_model_not_vectorized(obj: any) -> bool:
 def merge_t_args(t_span: ArrayLike, t_eval: Optional[ArrayLike] = None) -> np.ndarray:
     """Merge ``t_span`` and ``t_eval`` into a single array.
 
-    Validition is similar to scipy ``solve_ivp``: ``t_eval`` must be contained in ``t_span``, and be
+    Validation is similar to scipy ``solve_ivp``: ``t_eval`` must be contained in ``t_span``, and be
     increasing if ``t_span[1] > t_span[0]`` or decreasing if ``t_span[1] < t_span[0]``.
 
     Note: this is done explicitly with ``numpy``, and hence this is not differentiable or compilable
