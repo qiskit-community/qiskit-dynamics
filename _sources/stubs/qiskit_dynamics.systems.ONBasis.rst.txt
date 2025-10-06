@@ -1,0 +1,28 @@
+﻿ONBasis
+=======
+
+.. currentmodule:: qiskit_dynamics.systems
+
+.. autoclass:: ONBasis
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: ONBasis.decompose
+   .. automethod:: ONBasis.probabilities
+   .. automethod:: ONBasis.project
+   .. automethod:: ONBasis.subset
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: basis_vectors
+   .. autoattribute:: basis_vectors_adj
+   .. autoattribute:: labels
+   .. autoattribute:: projection
+   .. autoattribute:: subsystems

@@ -4,15 +4,14 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
-        <title>qiskit_dynamics.backend.dynamics_backend - Qiskit Dynamics 0.5.1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=82a976d7" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/qiskit-ecosystem.css?v=745c5aa7" />
+    <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+        <title>qiskit_dynamics.backend.dynamics_backend - Qiskit Dynamics 0.6.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=3ee1c6c6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/qiskit-sphinx-theme.css?v=8ff9dcb6" />
     <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
     
     
 
@@ -38,57 +37,39 @@
     }
   }
 </style><link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<script src="../../../_static/js/web-components/top-nav-bar.js"></script></head>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"></head>
   <body>
     
-    <script>document.body.dataset.theme = "light";</script>
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
     
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
   <symbol id="svg-toc" viewBox="0 0 24 24">
     <title>Contents</title>
-    <svg id="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-      <defs><style>.cls-1{fill:none;}</style></defs>
-      <path d="M28,4H4A2,2,0,0,0,2,6V26a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V6A2,2,0,0,0,28,4ZM4,6H20V26H4ZM28,26H22V6h6Z"/>
-      <rect id="_Transparent_Rectangle_" data-name="&lt;Transparent Rectangle&gt;" class="cls-1" width="32" height="32"/>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 2H2C1.73478 2 1.48043 2.10536 1.29289 2.29289C1.10536 2.48043 1 2.73478 1 3V13C1 13.2652 1.10536 13.5196 1.29289 13.7071C1.48043 13.8946 1.73478 14 2 14H14C14.2652 14 14.5196 13.8946 14.7071 13.7071C14.8946 13.5196 15 13.2652 15 13V3C15 2.73478 14.8946 2.48043 14.7071 2.29289C14.5196 2.10536 14.2652 2 14 2V2ZM2 3H10V13H2V3ZM14 13H11V3H14V13Z" fill="currentColor"/>
     </svg>
   </symbol>
   <symbol id="svg-menu" viewBox="0 0 24 24">
     <title>Menu</title>
-    <svg id="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-      <defs><style>.cls-1{fill:none;}</style></defs>
-      <rect x="4" y="6" width="24" height="2"/>
-      <rect x="4" y="24" width="24" height="2"/>
-      <rect x="4" y="12" width="24" height="2"/>
-      <rect x="4" y="18" width="24" height="2"/>
-      <rect id="_Transparent_Rectangle_" data-name="&lt;Transparent Rectangle&gt;" class="cls-1" width="32" height="32"/>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 3H2V4H14V3Z" fill="currentColor"/>
+      <path d="M14 12H2V13H14V12Z" fill="currentColor"/>
+      <path d="M14 6H2V7H14V6Z" fill="currentColor"/>
+      <path d="M14 9H2V10H14V9Z" fill="currentColor"/>
     </svg>
   </symbol>
   <symbol id="svg-arrow-right" viewBox="0 0 24 24">
     <title>Expand</title>
-    <svg version="1.1" id="icon" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
-         viewBox="0 0 32 32" style="enable-background:new 0 0 32 32;" xml:space="preserve"><polygon points="22,16 12,26 10.6,24.6 19.2,16 10.6,7.4 12,6 " stroke="currentColor"/>
-      <rect id="_x3C_Transparent_Rectangle_x3E_" fill="none" width="32" height="32"/>
-    </svg>
-  </symbol>
-  <symbol id="svg-new-tab" viewBox="0 0 32 32">
-    <svg id="icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-      <defs>
-        <style>
-          .cls-1 {
-            fill: none;
-          }
-        </style>
-      </defs>
-      <path fill="#6929C4" d="M26,28H6a2.0027,2.0027,0,0,1-2-2V6A2.0027,2.0027,0,0,1,6,4H16V6H6V26H26V16h2V26A2.0027,2.0027,0,0,1,26,28Z"/>
-      <polygon fill="#6929C4" points="20 2 20 4 26.586 4 18 12.586 19.414 14 28 5.414 28 12 30 12 30 2 20 2"/>
-      <rect id="_Transparent_Rectangle_" data-name="&lt;Transparent Rectangle&gt;" class="cls-1" width="32" height="32"/>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 8L6.00005 13L5.30005 12.3L9.60005 8L5.30005 3.7L6.00005 3L11 8Z" fill="currentColor"/>
     </svg>
   </symbol>
   <symbol id="svg-sun" viewBox="0 0 24 24">
     <title>Light mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
       <circle cx="12" cy="12" r="5"></circle>
       <line x1="12" y1="1" x2="12" y2="3"></line>
       <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -103,22 +84,56 @@
   <symbol id="svg-moon" viewBox="0 0 24 24">
     <title>Dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
     </svg>
   </symbol>
-  <symbol id="svg-sun-half" viewBox="0 0 24 24">
-    <title>Auto light/dark mode</title>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M13 12h5" />
-      <path d="M13 15h4" />
-      <path d="M13 18h1" />
-      <path d="M13 9h4" />
-      <path d="M13 6h1" />
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 13H1V14H15V13Z" fill="currentColor"/>
+      <path d="M12.7 4.5C13.1 4.1 13.1 3.5 12.7 3.1L10.9 1.3C10.5 0.9 9.9 0.9 9.5 1.3L2 8.8V12H5.2L12.7 4.5ZM10.2 2L12 3.8L10.5 5.3L8.7 3.5L10.2 2ZM3 11V9.2L8 4.2L9.8 6L4.8 11H3Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 13.0002C11.5523 13.0002 12 12.5525 12 12.0002C12 11.4479 11.5523 11.0002 11 11.0002C10.4477 11.0002 10 11.4479 10 12.0002C10 12.5525 10.4477 13.0002 11 13.0002Z" fill="currentColor"/>
+      <path d="M14.8884 11.7394C14.5795 10.9524 14.0464 10.2734 13.3552 9.78646C12.664 9.29954 11.8451 9.02615 11 9.00017C10.1549 9.02615 9.33604 9.29954 8.64484 9.78646C7.95365 10.2734 7.42052 10.9524 7.11155 11.7394L7 12.0002L7.11155 12.2609C7.42052 13.0479 7.95365 13.727 8.64484 14.2139C9.33604 14.7008 10.1549 14.9742 11 15.0002C11.8451 14.9742 12.664 14.7008 13.3552 14.2139C14.0464 13.727 14.5795 13.0479 14.8884 12.2609L15 12.0002L14.8884 11.7394ZM11 14.0002C10.6044 14.0002 10.2178 13.8829 9.88886 13.6631C9.55996 13.4433 9.30362 13.131 9.15224 12.7655C9.00087 12.4001 8.96126 11.998 9.03843 11.61C9.1156 11.222 9.30608 10.8657 9.58579 10.586C9.86549 10.3063 10.2219 10.1158 10.6098 10.0386C10.9978 9.96143 11.3999 10.001 11.7654 10.1524C12.1308 10.3038 12.4432 10.5601 12.6629 10.889C12.8827 11.2179 13 11.6046 13 12.0002C12.9994 12.5304 12.7885 13.0388 12.4136 13.4137C12.0386 13.7887 11.5303 13.9996 11 14.0002Z" fill="currentColor"/>
+      <path d="M6 14.0002H4V2.00017H8V5.00017C8.00077 5.26515 8.10637 5.51906 8.29374 5.70643C8.48111 5.8938 8.73502 5.99941 9 6.00017H12V8.00017H13V5.00017C13.0018 4.93446 12.9893 4.86913 12.9634 4.80871C12.9375 4.74828 12.8988 4.6942 12.85 4.65017L9.35 1.15017C9.30599 1.10134 9.2519 1.06263 9.19147 1.03674C9.13104 1.01084 9.06572 0.998364 9 1.00017H4C3.73502 1.00094 3.48111 1.10654 3.29374 1.29391C3.10637 1.48128 3.00077 1.73519 3 2.00017V14.0002C3.00077 14.2652 3.10637 14.5191 3.29374 14.7064C3.48111 14.8938 3.73502 14.9994 4 15.0002H6V14.0002ZM9 2.20017L11.8 5.00017H9V2.20017Z" fill="currentColor"/>
     </svg>
   </symbol>
 </svg>
@@ -132,6 +147,8 @@
   <div class="visually-hidden">Hide table of contents sidebar</div>
 </label>
 
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
 
 
 <div class="page">
@@ -143,13 +160,14 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Qiskit Dynamics 0.5.1 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Qiskit Dynamics 0.6.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
         <button class="theme-toggle">
           <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
           <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
@@ -163,15 +181,16 @@
   <aside class="sidebar-drawer">
     <div class="sidebar-container">
       
-      <div class="sidebar-sticky"><div class="sidebar-brand">
-  <a href="https://www.qiskit.org/ecosystem">
-    <div class="sidebar-logo-container">
-      <img class="sidebar-logo" src="../../../_static/images/ecosystem-logo.svg" alt="Qiskit Ecosystem logo"/>
-    </div>
-  </a>
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Qiskit Dynamics 0.5.1 documentation</span>
-</div><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.6.0 documentation</span>
+  
+</a>
+
+<p class="sidebar-ecosystem-link">
+  This project is part of the <a class="reference external" href="https://www.ibm.com/quantum/ecosystem">Qiskit ecosystem</a>
+</p><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
   <input type="hidden" name="area" value="default">
@@ -179,6 +198,7 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../tutorials/systems_modelling.html">Building and solving models of quantum systems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Rabi_oscillations.html">Simulating Rabi oscillations with noise and decoherence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Lindblad_dynamics_simulation.html">Solving the Lindblad dynamics of a qubit chain</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/qiskit_pulse.html">Simulating Qiskit Pulse Schedules with Qiskit Dynamics</a></li>
@@ -189,6 +209,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../userguide/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../userguide/how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../userguide/advanced_system_modelling.html">How-to use advanced system modelling functionality</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../userguide/perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
 </ul>
@@ -205,7 +226,6 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/backend.html">Backend (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.backend</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Backend (qiskit_dynamics.backend)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html">DynamicsBackend</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.backend.default_experiment_result_function.html">qiskit_dynamics.backend.default_experiment_result_function</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.backend.parse_backend_hamiltonian_dict.html">qiskit_dynamics.backend.parse_backend_hamiltonian_dict</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/models.html">Models (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.models</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Models (qiskit_dynamics.models)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -216,7 +236,27 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.models.rotating_wave_approximation.html">qiskit_dynamics.models.rotating_wave_approximation</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/signals.html">Signals (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.signals</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of Signals (qiskit_dynamics.signals)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/systems.html">Systems (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.systems</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of Systems (qiskit_dynamics.systems)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.Subsystem.html">Subsystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.SubsystemOperator.html">SubsystemOperator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.FunctionOperator.html">FunctionOperator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.ONBasis.html">ONBasis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.DressedBasis.html">DressedBasis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.SubsystemMapping.html">SubsystemMapping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.QuantumSystemModel.html">QuantumSystemModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.IdealQubit.html">IdealQubit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.DuffingOscillator.html">DuffingOscillator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.ExchangeInteraction.html">ExchangeInteraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.I.html">I</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.X.html">X</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.Y.html">Y</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.Z.html">Z</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.N.html">N</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.A.html">A</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.Adag.html">Adag</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/signals.html">Signals (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.signals</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of Signals (qiskit_dynamics.signals)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.signals.Signal.html">Signal</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.signals.DiscreteSignal.html">DiscreteSignal</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.signals.SignalSum.html">SignalSum</a></li>
@@ -226,11 +266,11 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.signals.IQMixer.html">IQMixer</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/pulse.html">Pulse (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.pulse</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of Pulse (qiskit_dynamics.pulse)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/pulse.html">Pulse (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.pulse</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of Pulse (qiskit_dynamics.pulse)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.pulse.InstructionToSignals.html">InstructionToSignals</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/perturbation.html">Perturbation Theory (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.perturbation</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of Perturbation Theory (qiskit_dynamics.perturbation)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/perturbation.html">Perturbation Theory (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.perturbation</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Perturbation Theory (qiskit_dynamics.perturbation)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.perturbation.solve_lmde_perturbation.html">qiskit_dynamics.perturbation.solve_lmde_perturbation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html">ArrayPolynomial</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.perturbation.PowerSeriesData.html">PowerSeriesData</a></li>
@@ -238,19 +278,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/array.html">Array Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.array</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Array Module (qiskit_dynamics.array)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.array.Array.html">Array</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.array.wrap.html">qiskit_dynamics.array.wrap</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/dispatch.html">Dispatch Module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.dispatch</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle navigation of Dispatch Module (qiskit_dynamics.dispatch)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.dispatch.asarray.html">qiskit_dynamics.dispatch.asarray</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.dispatch.requires_backend.html">qiskit_dynamics.dispatch.requires_backend</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../discussions/index.html">Discussions</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle navigation of Discussions</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../discussions/index.html">Discussions</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle navigation of Discussions</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../discussions/dyson_magnus.html">Time-dependent perturbation theory and multi-variable series expansions review</a></li>
 </ul>
 </li>
@@ -293,7 +323,8 @@
           <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
               <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
@@ -303,7 +334,7 @@
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
-        <article role="main">
+        <article role="main" id="furo-main-content">
           <h1>Source code for qiskit_dynamics.backend.dynamics_backend</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
@@ -324,43 +355,41 @@
 <span class="sd">Pulse-enabled simulator backend.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">inspect</span>
-<span class="kn">import</span> <span class="nn">uuid</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.integrate._ivp.ivp</span> <span class="kn">import</span> <span class="n">OdeResult</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate._ivp.ivp</span><span class="w"> </span><span class="kn">import</span> <span class="n">OdeResult</span>
 
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">pulse</span>
-<span class="kn">from</span> <span class="nn">qiskit.qobj.utils</span> <span class="kn">import</span> <span class="n">MeasLevel</span><span class="p">,</span> <span class="n">MeasReturnType</span>
-<span class="kn">from</span> <span class="nn">qiskit.qobj.common</span> <span class="kn">import</span> <span class="n">QobjHeader</span>
-<span class="kn">from</span> <span class="nn">qiskit.transpiler</span> <span class="kn">import</span> <span class="n">Target</span><span class="p">,</span> <span class="n">InstructionProperties</span>
-<span class="kn">from</span> <span class="nn">qiskit.circuit.library</span> <span class="kn">import</span> <span class="n">Measure</span>
-<span class="kn">from</span> <span class="nn">qiskit.pulse</span> <span class="kn">import</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">ScheduleBlock</span>
-<span class="kn">from</span> <span class="nn">qiskit.pulse.transforms.canonicalization</span> <span class="kn">import</span> <span class="n">block_to_schedule</span>
-<span class="kn">from</span> <span class="nn">qiskit.providers.options</span> <span class="kn">import</span> <span class="n">Options</span>
-<span class="kn">from</span> <span class="nn">qiskit.providers.backend</span> <span class="kn">import</span> <span class="n">BackendV1</span><span class="p">,</span> <span class="n">BackendV2</span>
-<span class="kn">from</span> <span class="nn">qiskit.providers.models.pulsedefaults</span> <span class="kn">import</span> <span class="n">PulseDefaults</span>
-<span class="kn">from</span> <span class="nn">qiskit.providers.models.backendconfiguration</span> <span class="kn">import</span> <span class="n">PulseBackendConfiguration</span>
-<span class="kn">from</span> <span class="nn">qiskit.result</span> <span class="kn">import</span> <span class="n">Result</span>
-<span class="kn">from</span> <span class="nn">qiskit.result.models</span> <span class="kn">import</span> <span class="n">ExperimentResult</span><span class="p">,</span> <span class="n">ExperimentResultData</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">pulse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.qobj.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">MeasLevel</span><span class="p">,</span> <span class="n">MeasReturnType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.qobj.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">QobjHeader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.transpiler</span><span class="w"> </span><span class="kn">import</span> <span class="n">Target</span><span class="p">,</span> <span class="n">InstructionProperties</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.circuit.library</span><span class="w"> </span><span class="kn">import</span> <span class="n">Measure</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.pulse</span><span class="w"> </span><span class="kn">import</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">ScheduleBlock</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.pulse.transforms.canonicalization</span><span class="w"> </span><span class="kn">import</span> <span class="n">block_to_schedule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.providers.options</span><span class="w"> </span><span class="kn">import</span> <span class="n">Options</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.providers.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">BackendV2</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.providers.models.pulsedefaults</span><span class="w"> </span><span class="kn">import</span> <span class="n">PulseDefaults</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.providers.models.backendconfiguration</span><span class="w"> </span><span class="kn">import</span> <span class="n">PulseBackendConfiguration</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.result</span><span class="w"> </span><span class="kn">import</span> <span class="n">Result</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.result.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExperimentResult</span><span class="p">,</span> <span class="n">ExperimentResultData</span>
 
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QiskitError</span><span class="p">,</span> <span class="n">QuantumCircuit</span>
-<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">schedule</span> <span class="k">as</span> <span class="n">build_schedule</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info</span> <span class="kn">import</span> <span class="n">Statevector</span><span class="p">,</span> <span class="n">DensityMatrix</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info.operators.base_operator</span> <span class="kn">import</span> <span class="n">BaseOperator</span>
-<span class="kn">from</span> <span class="nn">qiskit.quantum_info.states.quantum_state</span> <span class="kn">import</span> <span class="n">QuantumState</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitError</span><span class="p">,</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">schedule</span> <span class="k">as</span> <span class="n">build_schedule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.quantum_info</span><span class="w"> </span><span class="kn">import</span> <span class="n">Statevector</span><span class="p">,</span> <span class="n">DensityMatrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.quantum_info.operators.base_operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseOperator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.quantum_info.states.quantum_state</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumState</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_dynamics.arraylias.alias</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArrayLike</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_dynamics.solvers.solver_classes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span>
 
-<span class="kn">from</span> <span class="nn">qiskit_dynamics</span> <span class="kn">import</span> <span class="n">RotatingFrame</span>
-<span class="kn">from</span> <span class="nn">qiskit_dynamics.arraylias.alias</span> <span class="kn">import</span> <span class="n">ArrayLike</span>
-<span class="kn">from</span> <span class="nn">qiskit_dynamics.solvers.solver_classes</span> <span class="kn">import</span> <span class="n">Solver</span>
-
-<span class="kn">from</span> <span class="nn">.dynamics_job</span> <span class="kn">import</span> <span class="n">DynamicsJob</span>
-<span class="kn">from</span> <span class="nn">.backend_utils</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.dynamics_job</span><span class="w"> </span><span class="kn">import</span> <span class="n">DynamicsJob</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.backend_utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">_get_dressed_state_decomposition</span><span class="p">,</span>
     <span class="n">_get_lab_frame_static_hamiltonian</span><span class="p">,</span>
     <span class="n">_get_memory_slot_probabilities</span><span class="p">,</span>
@@ -368,12 +397,11 @@
     <span class="n">_get_counts_from_samples</span><span class="p">,</span>
     <span class="n">_get_iq_data</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">.backend_string_parser</span> <span class="kn">import</span> <span class="n">parse_backend_hamiltonian_dict</span>
 
 
 <div class="viewcode-block" id="DynamicsBackend">
 <a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend">[docs]</a>
-<span class="k">class</span> <span class="nc">DynamicsBackend</span><span class="p">(</span><span class="n">BackendV2</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DynamicsBackend</span><span class="p">(</span><span class="n">BackendV2</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Pulse-level simulator backend.</span>
 
 <span class="sd">    This class provides a :class:`~qiskit.providers.backend.BackendV2` interface wrapper around a</span>
@@ -400,14 +428,6 @@
 <span class="sd">    Pulse-level simulations defined in terms of :class:`~qiskit.circuit.QuantumCircuit` instances</span>
 <span class="sd">    can also be performed if each gate in the circuit has a corresponding pulse-level definition,</span>
 <span class="sd">    either as an attached calibration, or as an instruction contained in ``backend.target``.</span>
-
-<span class="sd">    Additionally, a :class:`.DynamicsBackend` can be instantiated from an existing backend using the</span>
-<span class="sd">    :meth:`.DynamicsBackend.from_backend` method, utilizing the additional ``subsystem_list``</span>
-<span class="sd">    argument to specify which qubits to include in the model:</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        backend = DynamicsBackend.from_backend(backend, subsystem_list=[0, 1])</span>
 
 
 <span class="sd">    **Supported options**</span>
@@ -446,7 +466,7 @@
 <span class="sd">      Must be a positive float. Defaults to ``0.2``.</span>
 <span class="sd">    * ``max_outcome_level``: For ``meas_level == 2``, the maximum outcome for each subsystem. Values</span>
 <span class="sd">      will be rounded down to be no larger than ``max_outcome_level``. Must be a positive integer or</span>
-<span class="sd">      ``None``. If ``None``, no rounding occurs. Defaults to ``1``.</span>
+<span class="sd">      ``None``. If ``None``, defaults to ``1``.</span>
 <span class="sd">    * ``memory``: Boolean indicating whether to return a list of explicit measurement outcomes for</span>
 <span class="sd">      every experimental shot. Defaults to ``True``.</span>
 <span class="sd">    * ``seed_simulator``: Seed to use in random sampling. Defaults to ``None``.</span>
@@ -464,7 +484,7 @@
 <span class="sd">      set defaults will be returned by :meth:`DynamicsBackend.defaults()`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">solver</span><span class="p">:</span> <span class="n">Solver</span><span class="p">,</span>
         <span class="n">target</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Target</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -525,11 +545,10 @@
             <span class="n">target</span><span class="o">.</span><span class="n">add_instruction</span><span class="p">(</span><span class="n">Measure</span><span class="p">(),</span> <span class="n">measure_properties</span><span class="p">)</span>
 
         <span class="n">target</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">_dt</span>
-        <span class="n">target</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">subsystem_dims</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_target</span> <span class="o">=</span> <span class="n">target</span>
 
-    <span class="k">def</span> <span class="nf">_default_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_default_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Options</span><span class="p">(</span>
             <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
             <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -553,7 +572,7 @@
 
 <div class="viewcode-block" id="DynamicsBackend.set_options">
 <a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.set_options">[docs]</a>
-    <span class="k">def</span> <span class="nf">set_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">fields</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">fields</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Set options for DynamicsBackend.&quot;&quot;&quot;</span>
 
         <span class="n">validate_subsystem_dims</span> <span class="o">=</span> <span class="kc">False</span>
@@ -639,7 +658,7 @@
                 <span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_set_solver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_solver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure simulator based on provided solver.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">solver</span><span class="o">.</span><span class="n">_dt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
@@ -656,10 +675,10 @@
 
 <div class="viewcode-block" id="DynamicsBackend.solve">
 <a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.solve">[docs]</a>
-    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">solve_input</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">ScheduleBlock</span><span class="p">]],</span>
-        <span class="n">t_span</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
+        <span class="n">t_span</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ArrayLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">y0</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">QuantumState</span><span class="p">,</span> <span class="n">BaseOperator</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">convert_results</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">validate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -675,7 +694,8 @@
 <span class="sd">        ``y0`` is not specified, it will be set from ``self.options.initial_state``.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            t_span: Time interval to integrate over.</span>
+<span class="sd">            t_span: Time interval to integrate over. Defaults to ``None``, in which case the</span>
+<span class="sd">                    interval is set to ``[[0, input.duration] for input in solve_input]]``.</span>
 <span class="sd">            y0: Initial state.</span>
 <span class="sd">            solve_input: Time evolution of the system in terms of quantum circuits or qiskit</span>
 <span class="sd">                         pulse schedules.</span>
@@ -696,7 +716,8 @@
             <span class="n">y0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">initial_state</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y0</span> <span class="o">==</span> <span class="s2">&quot;ground_state&quot;</span><span class="p">:</span>
             <span class="n">y0</span> <span class="o">=</span> <span class="n">Statevector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dressed_states</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
-
+        <span class="k">if</span> <span class="n">t_span</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">t_span</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="n">sched</span><span class="o">.</span><span class="n">duration</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">]</span> <span class="k">for</span> <span class="n">sched</span> <span class="ow">in</span> <span class="n">schedules</span><span class="p">]</span>
         <span class="n">solver_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
             <span class="n">t_span</span><span class="o">=</span><span class="n">t_span</span><span class="p">,</span>
             <span class="n">y0</span><span class="o">=</span><span class="n">y0</span><span class="p">,</span>
@@ -710,7 +731,7 @@
     <span class="c1"># pylint: disable=arguments-differ</span>
 <div class="viewcode-block" id="DynamicsBackend.run">
 <a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">run_input</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">ScheduleBlock</span><span class="p">]],</span>
         <span class="n">validate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -771,7 +792,7 @@
         <span class="k">return</span> <span class="n">dynamics_job</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">job_id</span><span class="p">,</span>
         <span class="n">t_span</span><span class="p">,</span>
@@ -836,18 +857,18 @@
         <span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">max_circuits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max_circuits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Target</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Target</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">meas_map</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">meas_map</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">meas_map</span>
 
-    <span class="k">def</span> <span class="nf">_get_qubit_channel</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_qubit_channel</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ChannelClass</span><span class="p">:</span> <span class="n">pulse</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">Channel</span><span class="p">,</span> <span class="n">method_name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a channel instance for a given qubit.&quot;&quot;&quot;</span>
@@ -858,28 +879,28 @@
 
 <div class="viewcode-block" id="DynamicsBackend.drive_channel">
 <a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.drive_channel">[docs]</a>
-    <span class="k">def</span> <span class="nf">drive_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">drive_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the drive channel for a given qubit.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_qubit_channel</span><span class="p">(</span><span class="n">qubit</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">DriveChannel</span><span class="p">,</span> <span class="s2">&quot;drive_channel&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DynamicsBackend.measure_channel">
 <a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.measure_channel">[docs]</a>
-    <span class="k">def</span> <span class="nf">measure_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pulse</span><span class="o">.</span><span class="n">MeasureChannel</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">measure_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pulse</span><span class="o">.</span><span class="n">MeasureChannel</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the measure channel for a given qubit.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_qubit_channel</span><span class="p">(</span><span class="n">qubit</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">MeasureChannel</span><span class="p">,</span> <span class="s2">&quot;measure_channel&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DynamicsBackend.acquire_channel">
 <a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.acquire_channel">[docs]</a>
-    <span class="k">def</span> <span class="nf">acquire_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pulse</span><span class="o">.</span><span class="n">AcquireChannel</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">acquire_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pulse</span><span class="o">.</span><span class="n">AcquireChannel</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the measure channel for a given qubit.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_qubit_channel</span><span class="p">(</span><span class="n">qubit</span><span class="p">,</span> <span class="n">pulse</span><span class="o">.</span><span class="n">AcquireChannel</span><span class="p">,</span> <span class="s2">&quot;acquire_channel&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DynamicsBackend.control_channel">
 <a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.control_channel">[docs]</a>
-    <span class="k">def</span> <span class="nf">control_channel</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">control_channel</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">qubits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">pulse</span><span class="o">.</span><span class="n">ControlChannel</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the control channel with a given label specified by qubits.</span>
@@ -912,237 +933,23 @@
 
 <div class="viewcode-block" id="DynamicsBackend.configuration">
 <a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.configuration">[docs]</a>
-    <span class="k">def</span> <span class="nf">configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PulseBackendConfiguration</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PulseBackendConfiguration</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the backend configuration.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">configuration</span></div>
 
 
 <div class="viewcode-block" id="DynamicsBackend.defaults">
 <a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.defaults">[docs]</a>
-    <span class="k">def</span> <span class="nf">defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PulseDefaults</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PulseDefaults</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the backend defaults.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">defaults</span></div>
-
-
-<div class="viewcode-block" id="DynamicsBackend.from_backend">
-<a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html#qiskit_dynamics.backend.DynamicsBackend.from_backend">[docs]</a>
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_backend</span><span class="p">(</span>
-        <span class="bp">cls</span><span class="p">,</span>
-        <span class="n">backend</span><span class="p">:</span> <span class="n">BackendV1</span><span class="p">,</span>
-        <span class="n">subsystem_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">rotating_frame</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">RotatingFrame</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
-        <span class="n">array_library</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">vectorized</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">rwa_cutoff_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">options</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DynamicsBackend&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a DynamicsBackend instance from an existing Backend instance.</span>
-
-<span class="sd">        .. warning::</span>
-
-<span class="sd">            Due to inevitable model inaccuracies, gates calibrated on a real backend will not have</span>
-<span class="sd">            the same performance on the :class:`.DynamicsBackend` instance returned by this method.</span>
-<span class="sd">            As such, gates and calibrations are not be copied into the constructed</span>
-<span class="sd">            :class:`.DynamicsBackend`.</span>
-
-<span class="sd">        The ``backend`` must contain sufficient information in the ``target``, ``configuration``,</span>
-<span class="sd">        and/or ``defaults`` attributes to be able to run simulations. The following table indicates</span>
-<span class="sd">        which parameters are required, along with their primary and secondary sources:</span>
-
-<span class="sd">        .. list-table:: Backend parameter locations</span>
-<span class="sd">            :widths: 10 25 25</span>
-<span class="sd">            :header-rows: 1</span>
-
-<span class="sd">            * - Parameter</span>
-<span class="sd">              - Primary source</span>
-<span class="sd">              - Secondary source</span>
-<span class="sd">            * - ``hamiltonian`` dictionary.</span>
-<span class="sd">              - ``configuration.hamiltonian``</span>
-<span class="sd">              - N/A</span>
-<span class="sd">            * - Control channel frequency specification.</span>
-<span class="sd">              - ``configuration.u_channel_lo``</span>
-<span class="sd">              - N/A</span>
-<span class="sd">            * - Number of qubits in the backend model.</span>
-<span class="sd">              - ``target.num_qubits``</span>
-<span class="sd">              - ``configuration.n_qubits``</span>
-<span class="sd">            * - Pulse schedule sample size ``dt``.</span>
-<span class="sd">              - ``target.dt``</span>
-<span class="sd">              - ``configuration.dt``</span>
-<span class="sd">            * - Drive channel frequencies.</span>
-<span class="sd">              - ``target.qubit_properties``</span>
-<span class="sd">              - ``defaults.qubit_freq_est``</span>
-<span class="sd">            * - Measurement channel frequencies, if measurement channels explicitly appear in the</span>
-<span class="sd">                model.</span>
-<span class="sd">              - ``defaults.meas_freq_est``</span>
-<span class="sd">              - N/A</span>
-
-<span class="sd">        .. note::</span>
-
-<span class="sd">            The ``target``, ``configuration``, and ``defaults`` attributes of the original backend</span>
-<span class="sd">            are not copied into the constructed :class:`DynamicsBackend` instance, only the required</span>
-<span class="sd">            data stored within these attributes will be extracted. If necessary, these attributes</span>
-<span class="sd">            can be set and configured by the user.</span>
-
-<span class="sd">        The optional argument ``subsystem_list`` specifies which subset of qubits to model in the</span>
-<span class="sd">        constructed :class:`DynamicsBackend`. All other qubits are dropped from the model.</span>
-
-<span class="sd">        Configuration of the underlying :class:`.Solver` is controlled via the ``rotating_frame``,</span>
-<span class="sd">        ``array_library``, ``vectorized``, and ``rwa_cutoff_freq`` options. In contrast</span>
-<span class="sd">        to :class:`.Solver` initialization, ``rotating_frame`` defaults to the string ``&quot;auto&quot;``,</span>
-<span class="sd">        which allows this method to choose the rotating frame based on ``array_library``:</span>
-
-<span class="sd">        * If a dense ``array_library`` is chosen, the rotating frame will be set to the</span>
-<span class="sd">          ``static_hamiltonian`` indicated by the Hamiltonian in ``backend.configuration()``.</span>
-<span class="sd">        * If a sparse ``array_library`` is chosen, the rotating frame will be set to the diagonal of</span>
-<span class="sd">          ``static_hamiltonian``.</span>
-
-<span class="sd">        Otherwise the ``rotating_frame``, ``array_library``, ``vectorized``, and</span>
-<span class="sd">        ``rwa_cutoff_freq`` are passed directly to the :class:`.Solver` initialization.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            backend: The ``Backend`` instance to build the :class:`.DynamicsBackend` from.</span>
-<span class="sd">                Note that while the type hint indicates that `backend` should be a</span>
-<span class="sd">                :class:`~qiskit.providers.backend.BackendV1` instance, this method also works for</span>
-<span class="sd">                :class:`~qiskit.providers.backend.BackendV2` instances that have been set up with</span>
-<span class="sd">                sufficiently populated ``configuration`` and ``defaults`` for backwards</span>
-<span class="sd">                compatibility.</span>
-<span class="sd">            subsystem_list: The list of qubits in the backend to include in the model.</span>
-<span class="sd">            rotating_frame: Rotating frame argument for the internal :class:`.Solver`. Defaults to</span>
-<span class="sd">                ``&quot;auto&quot;``, allowing this method to pick a rotating frame.</span>
-<span class="sd">            array_library: Array library with which to store the operators in the :class:`.Solver`.</span>
-<span class="sd">                See the</span>
-<span class="sd">                :ref:`model evaluation section of the Models API documentation &lt;model evaluation&gt;`</span>
-<span class="sd">                for a more detailed description of this argument.</span>
-<span class="sd">            vectorized: If a Lindblad terms are present, whether or not to build the</span>
-<span class="sd">                :class:`.Solver` in a vectorized mode.</span>
-<span class="sd">            rwa_cutoff_freq: Rotating wave approximation argument for the internal :class:`.Solver`.</span>
-<span class="sd">            **options: Additional options to be applied in construction of the</span>
-<span class="sd">                :class:`.DynamicsBackend`.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            DynamicsBackend</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            QiskitError: If any required parameters are missing from the passed backend.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c1"># get available target, config, and defaults objects</span>
-        <span class="n">backend_target</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s2">&quot;configuration&quot;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                <span class="s2">&quot;DynamicsBackend.from_backend requires that the backend argument has a &quot;</span>
-                <span class="s2">&quot;configuration method.&quot;</span>
-            <span class="p">)</span>
-        <span class="n">backend_config</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span>
-
-        <span class="n">backend_defaults</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s2">&quot;defaults&quot;</span><span class="p">):</span>
-            <span class="n">backend_defaults</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">defaults</span><span class="p">()</span>
-
-        <span class="c1"># get and parse Hamiltonian string dictionary</span>
-        <span class="k">if</span> <span class="n">backend_target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">backend_num_qubits</span> <span class="o">=</span> <span class="n">backend_target</span><span class="o">.</span><span class="n">num_qubits</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">backend_num_qubits</span> <span class="o">=</span> <span class="n">backend_config</span><span class="o">.</span><span class="n">n_qubits</span>
-
-        <span class="k">if</span> <span class="n">subsystem_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">subsystem_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">subsystem_list</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">subsystem_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">backend_num_qubits</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;subsystem_list contained </span><span class="si">{</span><span class="n">subsystem_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, which is out of bounds for &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;backend with </span><span class="si">{</span><span class="n">backend_num_qubits</span><span class="si">}</span><span class="s2"> qubits.&quot;</span>
-                <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">subsystem_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">backend_num_qubits</span><span class="p">))</span>
-
-        <span class="k">if</span> <span class="n">backend_config</span><span class="o">.</span><span class="n">hamiltonian</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
-                <span class="s2">&quot;DynamicsBackend.from_backend requires that backend.configuration() has a &quot;</span>
-                <span class="s2">&quot;hamiltonian.&quot;</span>
-            <span class="p">)</span>
-
-        <span class="p">(</span>
-            <span class="n">static_hamiltonian</span><span class="p">,</span>
-            <span class="n">hamiltonian_operators</span><span class="p">,</span>
-            <span class="n">hamiltonian_channels</span><span class="p">,</span>
-            <span class="n">subsystem_dims_dict</span><span class="p">,</span>
-        <span class="p">)</span> <span class="o">=</span> <span class="n">parse_backend_hamiltonian_dict</span><span class="p">(</span><span class="n">backend_config</span><span class="o">.</span><span class="n">hamiltonian</span><span class="p">,</span> <span class="n">subsystem_list</span><span class="p">)</span>
-        <span class="n">subsystem_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">subsystem_dims_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">backend_num_qubits</span><span class="p">)]</span>
-
-        <span class="c1"># construct model frequencies dictionary from backend</span>
-        <span class="n">channel_freqs</span> <span class="o">=</span> <span class="n">_get_backend_channel_freqs</span><span class="p">(</span>
-            <span class="n">backend_target</span><span class="o">=</span><span class="n">backend_target</span><span class="p">,</span>
-            <span class="n">backend_config</span><span class="o">=</span><span class="n">backend_config</span><span class="p">,</span>
-            <span class="n">backend_defaults</span><span class="o">=</span><span class="n">backend_defaults</span><span class="p">,</span>
-            <span class="n">channels</span><span class="o">=</span><span class="n">hamiltonian_channels</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="c1"># Add control_channel_map from backend (only if not specified before by user)</span>
-        <span class="k">if</span> <span class="s2">&quot;control_channel_map&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s2">&quot;control_channels&quot;</span><span class="p">):</span>
-                <span class="n">control_channel_map_backend</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="n">qubits</span><span class="p">:</span> <span class="n">backend</span><span class="o">.</span><span class="n">control_channels</span><span class="p">[</span><span class="n">qubits</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
-                    <span class="k">for</span> <span class="n">qubits</span> <span class="ow">in</span> <span class="n">backend</span><span class="o">.</span><span class="n">control_channels</span>
-                <span class="p">}</span>
-
-            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">(),</span> <span class="s2">&quot;control_channels&quot;</span><span class="p">):</span>
-                <span class="n">control_channel_map_backend</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="n">qubits</span><span class="p">:</span> <span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">control_channels</span><span class="p">[</span><span class="n">qubits</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
-                    <span class="k">for</span> <span class="n">qubits</span> <span class="ow">in</span> <span class="n">backend</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">control_channels</span>
-                <span class="p">}</span>
-
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">control_channel_map_backend</span> <span class="o">=</span> <span class="p">{}</span>
-
-            <span class="c1"># Reduce control_channel_map based on which channels are in the model</span>
-            <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">control_channel_map_backend</span><span class="p">):</span>
-                <span class="n">control_channel_map</span> <span class="o">=</span> <span class="p">{}</span>
-                <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">control_channel_map_backend</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;u</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">hamiltonian_channels</span><span class="p">:</span>
-                        <span class="n">control_channel_map</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span>
-                <span class="n">options</span><span class="p">[</span><span class="s2">&quot;control_channel_map&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">control_channel_map</span>
-
-        <span class="c1"># build the solver</span>
-        <span class="k">if</span> <span class="n">rotating_frame</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">array_library</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;sparse&quot;</span> <span class="ow">in</span> <span class="n">array_library</span><span class="p">:</span>
-                <span class="n">rotating_frame</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">static_hamiltonian</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">rotating_frame</span> <span class="o">=</span> <span class="n">static_hamiltonian</span>
-
-        <span class="c1"># get time step size</span>
-        <span class="k">if</span> <span class="n">backend_target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">backend_target</span><span class="o">.</span><span class="n">dt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">dt</span> <span class="o">=</span> <span class="n">backend_target</span><span class="o">.</span><span class="n">dt</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># config is guaranteed to have a dt</span>
-            <span class="n">dt</span> <span class="o">=</span> <span class="n">backend_config</span><span class="o">.</span><span class="n">dt</span>
-
-        <span class="n">solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span>
-            <span class="n">static_hamiltonian</span><span class="o">=</span><span class="n">static_hamiltonian</span><span class="p">,</span>
-            <span class="n">hamiltonian_operators</span><span class="o">=</span><span class="n">hamiltonian_operators</span><span class="p">,</span>
-            <span class="n">hamiltonian_channels</span><span class="o">=</span><span class="n">hamiltonian_channels</span><span class="p">,</span>
-            <span class="n">channel_carrier_freqs</span><span class="o">=</span><span class="n">channel_freqs</span><span class="p">,</span>
-            <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span>
-            <span class="n">rotating_frame</span><span class="o">=</span><span class="n">rotating_frame</span><span class="p">,</span>
-            <span class="n">array_library</span><span class="o">=</span><span class="n">array_library</span><span class="p">,</span>
-            <span class="n">vectorized</span><span class="o">=</span><span class="n">vectorized</span><span class="p">,</span>
-            <span class="n">rwa_cutoff_freq</span><span class="o">=</span><span class="n">rwa_cutoff_freq</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
-            <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span>
-            <span class="n">target</span><span class="o">=</span><span class="n">Target</span><span class="p">(</span><span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">),</span>
-            <span class="n">subsystem_dims</span><span class="o">=</span><span class="n">subsystem_dims</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">options</span><span class="p">,</span>
-        <span class="p">)</span></div>
 </div>
 
 
 
 <div class="viewcode-block" id="default_experiment_result_function">
 <a class="viewcode-back" href="../../../stubs/qiskit_dynamics.backend.default_experiment_result_function.html#qiskit_dynamics.backend.default_experiment_result_function">[docs]</a>
-<span class="k">def</span> <span class="nf">default_experiment_result_function</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">default_experiment_result_function</span><span class="p">(</span>
     <span class="n">experiment_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">solver_result</span><span class="p">:</span> <span class="n">OdeResult</span><span class="p">,</span>
     <span class="n">measurement_subsystems</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
@@ -1223,7 +1030,7 @@
 
         <span class="c1"># construct results object</span>
         <span class="n">exp_data</span> <span class="o">=</span> <span class="n">ExperimentResultData</span><span class="p">(</span>
-            <span class="n">counts</span><span class="o">=</span><span class="n">counts</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="n">memory_samples</span> <span class="k">if</span> <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">memory</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">counts</span><span class="o">=</span><span class="n">counts</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="n">memory_samples</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">if</span> <span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">memory</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">ExperimentResult</span><span class="p">(</span>
             <span class="n">shots</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">shots</span><span class="p">,</span>
@@ -1260,7 +1067,7 @@
             <span class="n">measurement_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">measurement_data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
         <span class="c1"># construct results object</span>
-        <span class="n">exp_data</span> <span class="o">=</span> <span class="n">ExperimentResultData</span><span class="p">(</span><span class="n">memory</span><span class="o">=</span><span class="n">measurement_data</span><span class="p">)</span>
+        <span class="n">exp_data</span> <span class="o">=</span> <span class="n">ExperimentResultData</span><span class="p">(</span><span class="n">memory</span><span class="o">=</span><span class="n">measurement_data</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">ExperimentResult</span><span class="p">(</span>
             <span class="n">shots</span><span class="o">=</span><span class="n">backend</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">shots</span><span class="p">,</span>
             <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -1275,7 +1082,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_validate_run_input</span><span class="p">(</span><span class="n">run_input</span><span class="p">,</span> <span class="n">accept_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">caller_func_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_validate_run_input</span><span class="p">(</span><span class="n">run_input</span><span class="p">,</span> <span class="n">accept_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">caller_func_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Raise errors if the run_input is not one of QuantumCircuit, Schedule, ScheduleBlock, or</span>
 <span class="sd">    a list of these.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1291,7 +1098,7 @@
         <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_get_acquire_instruction_timings</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_acquire_instruction_timings</span><span class="p">(</span>
     <span class="n">schedules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Schedule</span><span class="p">],</span> <span class="n">subsystem_dims</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the required data from the acquire commands in each schedule.</span>
@@ -1360,7 +1167,7 @@
     <span class="k">return</span> <span class="n">t_span_list</span><span class="p">,</span> <span class="n">measurement_subsystems_list</span><span class="p">,</span> <span class="n">memory_slot_indices_list</span>
 
 
-<span class="k">def</span> <span class="nf">_to_schedule_list</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_to_schedule_list</span><span class="p">(</span>
     <span class="n">run_input</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">Schedule</span><span class="p">,</span> <span class="n">ScheduleBlock</span><span class="p">]],</span> <span class="n">backend</span><span class="p">:</span> <span class="n">BackendV2</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert all inputs to schedules, and store the number of classical registers present</span>
@@ -1385,7 +1192,7 @@
     <span class="k">return</span> <span class="n">schedules</span><span class="p">,</span> <span class="n">num_memslots</span>
 
 
-<span class="k">def</span> <span class="nf">_get_backend_channel_freqs</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_backend_channel_freqs</span><span class="p">(</span>
     <span class="n">backend_target</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Target</span><span class="p">],</span>
     <span class="n">backend_config</span><span class="p">:</span> <span class="n">PulseBackendConfiguration</span><span class="p">,</span>
     <span class="n">backend_defaults</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PulseDefaults</span><span class="p">],</span>
@@ -1448,12 +1255,14 @@
 
     <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">drive_channels</span><span class="p">:</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">channel</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="c1"># pylint: disable=possibly-used-before-assignment</span>
         <span class="k">if</span> <span class="n">idx</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">drive_frequencies</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DriveChannel index </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> is out of bounds.&quot;</span><span class="p">)</span>
         <span class="n">channel_freqs</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">drive_frequencies</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">meas_channels</span><span class="p">:</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">channel</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="c1"># pylint: disable=possibly-used-before-assignment</span>
         <span class="k">if</span> <span class="n">idx</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meas_frequencies</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MeasureChannel index </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> is out of bounds.&quot;</span><span class="p">)</span>
         <span class="n">channel_freqs</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">meas_frequencies</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
@@ -1478,6 +1287,7 @@
         </article>
       </div>
       <footer>
+        
         <div class="related-pages">
           
           
@@ -1491,7 +1301,7 @@
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2024/03/25</div>
+              Last updated on 2025/10/06</div>
           </div>
           <div class="right-details">
             
@@ -1506,13 +1316,11 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/jquery.js?v=5d32c60e"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../../_static/documentation_options.js?v=b9afe91b"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+</div><script src="../../../_static/documentation_options.js?v=8fa8b3e9"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../_static/thebelab-helper.js"></script>
-    <script src="../../../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>

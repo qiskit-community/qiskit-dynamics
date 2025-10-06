@@ -1,0 +1,988 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="How-to use Dyson and Magnus based solvers" href="perturbative_solvers.html" /><link rel="prev" title="How-to customize simulations using model transformations and array libraries" href="how_to_configure_simulations.html" />
+
+    <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+        <title>How-to use advanced system modelling functionality - Qiskit Dynamics 0.6.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=3ee1c6c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=8ff9dcb6" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #ffffff;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 2H2C1.73478 2 1.48043 2.10536 1.29289 2.29289C1.10536 2.48043 1 2.73478 1 3V13C1 13.2652 1.10536 13.5196 1.29289 13.7071C1.48043 13.8946 1.73478 14 2 14H14C14.2652 14 14.5196 13.8946 14.7071 13.7071C14.8946 13.5196 15 13.2652 15 13V3C15 2.73478 14.8946 2.48043 14.7071 2.29289C14.5196 2.10536 14.2652 2 14 2V2ZM2 3H10V13H2V3ZM14 13H11V3H14V13Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 3H2V4H14V3Z" fill="currentColor"/>
+      <path d="M14 12H2V13H14V12Z" fill="currentColor"/>
+      <path d="M14 6H2V7H14V6Z" fill="currentColor"/>
+      <path d="M14 9H2V10H14V9Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 8L6.00005 13L5.30005 12.3L9.60005 8L5.30005 3.7L6.00005 3L11 8Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 13H1V14H15V13Z" fill="currentColor"/>
+      <path d="M12.7 4.5C13.1 4.1 13.1 3.5 12.7 3.1L10.9 1.3C10.5 0.9 9.9 0.9 9.5 1.3L2 8.8V12H5.2L12.7 4.5ZM10.2 2L12 3.8L10.5 5.3L8.7 3.5L10.2 2ZM3 11V9.2L8 4.2L9.8 6L4.8 11H3Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 13.0002C11.5523 13.0002 12 12.5525 12 12.0002C12 11.4479 11.5523 11.0002 11 11.0002C10.4477 11.0002 10 11.4479 10 12.0002C10 12.5525 10.4477 13.0002 11 13.0002Z" fill="currentColor"/>
+      <path d="M14.8884 11.7394C14.5795 10.9524 14.0464 10.2734 13.3552 9.78646C12.664 9.29954 11.8451 9.02615 11 9.00017C10.1549 9.02615 9.33604 9.29954 8.64484 9.78646C7.95365 10.2734 7.42052 10.9524 7.11155 11.7394L7 12.0002L7.11155 12.2609C7.42052 13.0479 7.95365 13.727 8.64484 14.2139C9.33604 14.7008 10.1549 14.9742 11 15.0002C11.8451 14.9742 12.664 14.7008 13.3552 14.2139C14.0464 13.727 14.5795 13.0479 14.8884 12.2609L15 12.0002L14.8884 11.7394ZM11 14.0002C10.6044 14.0002 10.2178 13.8829 9.88886 13.6631C9.55996 13.4433 9.30362 13.131 9.15224 12.7655C9.00087 12.4001 8.96126 11.998 9.03843 11.61C9.1156 11.222 9.30608 10.8657 9.58579 10.586C9.86549 10.3063 10.2219 10.1158 10.6098 10.0386C10.9978 9.96143 11.3999 10.001 11.7654 10.1524C12.1308 10.3038 12.4432 10.5601 12.6629 10.889C12.8827 11.2179 13 11.6046 13 12.0002C12.9994 12.5304 12.7885 13.0388 12.4136 13.4137C12.0386 13.7887 11.5303 13.9996 11 14.0002Z" fill="currentColor"/>
+      <path d="M6 14.0002H4V2.00017H8V5.00017C8.00077 5.26515 8.10637 5.51906 8.29374 5.70643C8.48111 5.8938 8.73502 5.99941 9 6.00017H12V8.00017H13V5.00017C13.0018 4.93446 12.9893 4.86913 12.9634 4.80871C12.9375 4.74828 12.8988 4.6942 12.85 4.65017L9.35 1.15017C9.30599 1.10134 9.2519 1.06263 9.19147 1.03674C9.13104 1.01084 9.06572 0.998364 9 1.00017H4C3.73502 1.00094 3.48111 1.10654 3.29374 1.29391C3.10637 1.48128 3.00077 1.73519 3 2.00017V14.0002C3.00077 14.2652 3.10637 14.5191 3.29374 14.7064C3.48111 14.8938 3.73502 14.9994 4 15.0002H6V14.0002ZM9 2.20017L11.8 5.00017H9V2.20017Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">Qiskit Dynamics 0.6.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.6.0 documentation</span>
+  
+</a>
+
+<p class="sidebar-ecosystem-link">
+  This project is part of the <a class="reference external" href="https://www.ibm.com/quantum/ecosystem">Qiskit ecosystem</a>
+</p><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/index.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/systems_modelling.html">Building and solving models of quantum systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/Rabi_oscillations.html">Simulating Rabi oscillations with noise and decoherence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/Lindblad_dynamics_simulation.html">Solving the Lindblad dynamics of a qubit chain</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/qiskit_pulse.html">Simulating Qiskit Pulse Schedules with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/optimizing_pulse_sequence.html">Gradient optimization of a pulse sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/dynamics_backend.html">Simulating backends at the pulse-level with <code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">User Guide</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">How-to use advanced system modelling functionality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/solvers.html">Solvers (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.solvers</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Solvers (qiskit_dynamics.solvers)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.Solver.html">Solver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.DysonSolver.html">DysonSolver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.MagnusSolver.html">MagnusSolver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.solve_ode.html">qiskit_dynamics.solvers.solve_ode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.solvers.solve_lmde.html">qiskit_dynamics.solvers.solve_lmde</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/backend.html">Backend (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.backend</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Backend (qiskit_dynamics.backend)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.backend.DynamicsBackend.html">DynamicsBackend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.backend.default_experiment_result_function.html">qiskit_dynamics.backend.default_experiment_result_function</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/models.html">Models (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.models</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Models (qiskit_dynamics.models)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.models.HamiltonianModel.html">HamiltonianModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.models.LindbladModel.html">LindbladModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.models.GeneratorModel.html">GeneratorModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.models.RotatingFrame.html">RotatingFrame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.models.rotating_wave_approximation.html">qiskit_dynamics.models.rotating_wave_approximation</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/systems.html">Systems (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.systems</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of Systems (qiskit_dynamics.systems)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.Subsystem.html">Subsystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.SubsystemOperator.html">SubsystemOperator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.FunctionOperator.html">FunctionOperator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.ONBasis.html">ONBasis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.DressedBasis.html">DressedBasis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.SubsystemMapping.html">SubsystemMapping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.QuantumSystemModel.html">QuantumSystemModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.IdealQubit.html">IdealQubit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.DuffingOscillator.html">DuffingOscillator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.ExchangeInteraction.html">ExchangeInteraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.I.html">I</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.X.html">X</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.Y.html">Y</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.Z.html">Z</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.N.html">N</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.A.html">A</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.systems.Adag.html">Adag</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/signals.html">Signals (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.signals</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of Signals (qiskit_dynamics.signals)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.signals.Signal.html">Signal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.signals.DiscreteSignal.html">DiscreteSignal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.signals.SignalSum.html">SignalSum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.signals.DiscreteSignalSum.html">DiscreteSignalSum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.signals.SignalList.html">SignalList</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.signals.Convolution.html">Convolution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.signals.IQMixer.html">IQMixer</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/pulse.html">Pulse (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.pulse</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of Pulse (qiskit_dynamics.pulse)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.pulse.InstructionToSignals.html">InstructionToSignals</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/perturbation.html">Perturbation Theory (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.perturbation</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Perturbation Theory (qiskit_dynamics.perturbation)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.solve_lmde_perturbation.html">qiskit_dynamics.perturbation.solve_lmde_perturbation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html">ArrayPolynomial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.PowerSeriesData.html">PowerSeriesData</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../apidocs/arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../discussions/index.html">Discussions</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle navigation of Discussions</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../discussions/dyson_magnus.html">Time-dependent perturbation theory and multi-variable series expansions review</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/userguide/advanced_system_modelling.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="how-to-use-advanced-system-modelling-functionality">
+<span id="systems-modelling-userguide"></span><h1>How-to use advanced system modelling functionality<a class="headerlink" href="#how-to-use-advanced-system-modelling-functionality" title="Link to this heading">¶</a></h1>
+<p>The <a class="reference internal" href="../apidocs/systems.html#module-qiskit_dynamics.systems" title="qiskit_dynamics.systems"><code class="xref py py-mod docutils literal notranslate"><span class="pre">systems</span></code></a> module contains tools for building and representing models of systems on tensor
+product spaces. The high level usage of this module is demonstrated in the <a class="reference internal" href="../tutorials/systems_modelling.html#systems-modelling-tutorial"><span class="std std-ref">Building and solving
+models of quantum systems</span></a> tutorial, in which pre-built models are used
+to simulate transmon systems. This userguide walks through how to use the underlying operator
+construction tools to build new models, or to modify models in non-trivial ways: e.g. restriction to
+a subspace of interest.</p>
+<p>This user-guide walks through the following tasks:</p>
+<ol class="arabic simple">
+<li><p>How-to define operators acting on tensor product spaces.</p></li>
+<li><p>How-to define an operator acting on a subspace.</p></li>
+<li><p>How-to define an operator acting on the logical subspace of a multi-transmon model.</p></li>
+<li><p>How-to restrict an operator to a low energy subspace of a 3-transmon model.</p></li>
+</ol>
+<section id="how-to-build-operators-acting-on-tensor-product-spaces">
+<h2>1. How-to build operators acting on tensor product spaces<a class="headerlink" href="#how-to-build-operators-acting-on-tensor-product-spaces" title="Link to this heading">¶</a></h2>
+<p>Here we will walk-through the construction of operators acting on a tri-partite system. First, we
+define three 2-dimensional subsystems:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_dynamics.systems</span><span class="w"> </span><span class="kn">import</span> <span class="n">Subsystem</span>
+
+<span class="n">Q1</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;Q1&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">Q2</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;Q2&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">Q3</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;Q3&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Define several operators acting on the individual subsystems.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_dynamics.systems</span><span class="w"> </span><span class="kn">import</span> <span class="n">I</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">N</span>
+
+<span class="c1"># X acting on Q1</span>
+<span class="n">X1</span> <span class="o">=</span> <span class="n">X</span><span class="p">(</span><span class="n">Q1</span><span class="p">)</span>
+
+<span class="c1"># Y acting on Q2</span>
+<span class="n">Y2</span> <span class="o">=</span> <span class="n">Y</span><span class="p">(</span><span class="n">Q2</span><span class="p">)</span>
+
+<span class="c1"># Z acting on Q3</span>
+<span class="n">Z3</span> <span class="o">=</span> <span class="n">Z</span><span class="p">(</span><span class="n">Q3</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">X1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-none notranslate"><div class="highlight"><pre><span></span>X(Q1)
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note that while these operators are defined only on individual subsystems, if they are used in the
+context of multi-subsystem models, the operators implicitly act as the identity on the subsystems
+lying outside the operator’s definition. E.g. <code class="docutils literal notranslate"><span class="pre">X(Q1)</span></code> is defined on <code class="docutils literal notranslate"><span class="pre">Q1</span></code> only, but when thought
+of as an operator on <span class="math notranslate nohighlight">\(Q_1 \otimes Q_2\)</span>, it represents the operator <span class="math notranslate nohighlight">\(X \otimes I\)</span>.</p>
+<p>Once an operator is construct, the <code class="xref py py-meth docutils literal notranslate"><span class="pre">matrix()</span></code> method returns its matrix form. By default, the
+matrix is constructed only on the subsystems the operator explicitly acts on:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">X1</span><span class="o">.</span><span class="n">matrix</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>array([[0.+0.j, 1.+0.j],
+       [1.+0.j, 0.+0.j]])
+</pre></div>
+</div>
+</div>
+</div>
+<p>To construct the matrix corresponding to <code class="docutils literal notranslate"><span class="pre">X1</span></code> when viewed as an operator acting on the combined
+tensor product space <span class="math notranslate nohighlight">\(Q_1 \otimes Q_2\)</span>, explicitly pass the list of subsystems to the
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">matrix()</span></code> method:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">X1</span><span class="o">.</span><span class="n">matrix</span><span class="p">([</span><span class="n">Q1</span><span class="p">,</span> <span class="n">Q2</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>array([[0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j],
+       [1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+       [0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j],
+       [0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j]])
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can also reverse the ordering of the tensor product representation by reversing the order of the
+subsystem list:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">X1</span><span class="o">.</span><span class="n">matrix</span><span class="p">([</span><span class="n">Q2</span><span class="p">,</span> <span class="n">Q1</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>array([[0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j],
+       [0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j],
+       [1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+       [0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j]])
+</pre></div>
+</div>
+</div>
+</div>
+<p>More complicated operators can be built through algebraic operations, e.g. addition:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">X1</span> <span class="o">+</span> <span class="n">Y2</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>X(Q1) + Y(Q2)
+</pre></div>
+</div>
+</div>
+</div>
+<p>This new composite operator acts on the combined set of subsystems that <code class="docutils literal notranslate"><span class="pre">X1</span></code> and <code class="docutils literal notranslate"><span class="pre">Y2</span></code> act on:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">X1</span> <span class="o">+</span> <span class="n">Y2</span><span class="p">)</span><span class="o">.</span><span class="n">subsystems</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>[Subsystem(name=Q1, dim=2), Subsystem(name=Q2, dim=2)]
+</pre></div>
+</div>
+</div>
+</div>
+<p>When calling the <code class="xref py py-meth docutils literal notranslate"><span class="pre">matrix()</span></code> method, a matrix will be constructed on the tensor product system
+in the above order.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">X1</span> <span class="o">+</span> <span class="n">Y2</span><span class="p">)</span><span class="o">.</span><span class="n">matrix</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>array([[0.+0.j, 1.+0.j, 0.-1.j, 0.+0.j],
+       [1.+0.j, 0.+0.j, 0.+0.j, 0.-1.j],
+       [0.+1.j, 0.+0.j, 0.+0.j, 1.+0.j],
+       [0.+0.j, 0.+1.j, 1.+0.j, 0.+0.j]])
+</pre></div>
+</div>
+</div>
+</div>
+<p>Similarly, we can build the matrix for <code class="docutils literal notranslate"><span class="pre">X1</span> <span class="pre">+</span> <span class="pre">Y2</span></code> when viewed as an operator on the tripartite
+system <span class="math notranslate nohighlight">\(Q_1 \otimes Q_2 \otimes Q_3\)</span>.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">X1</span> <span class="o">+</span> <span class="n">Y2</span><span class="p">)</span><span class="o">.</span><span class="n">matrix</span><span class="p">([</span><span class="n">Q1</span><span class="p">,</span> <span class="n">Q2</span><span class="p">,</span> <span class="n">Q3</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>array([[0.+0.j, 1.+0.j, 0.-1.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+       [1.+0.j, 0.+0.j, 0.+0.j, 0.-1.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+       [0.+1.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+       [0.+0.j, 0.+1.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+       [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.-1.j, 0.+0.j],
+       [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.-1.j],
+       [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+1.j, 0.+0.j, 0.+0.j, 1.+0.j],
+       [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+1.j, 1.+0.j, 0.+0.j]])
+</pre></div>
+</div>
+</div>
+</div>
+<p>Matrix multiplication can also be performed:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">X1</span> <span class="o">@</span> <span class="n">Z3</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>X(Q1) @ Z(Q3)
+</pre></div>
+</div>
+</div>
+</div>
+<p>In the above case, as <code class="docutils literal notranslate"><span class="pre">X1</span></code> acts on <code class="docutils literal notranslate"><span class="pre">Q1</span></code> and <code class="docutils literal notranslate"><span class="pre">Z3</span></code> acts on <code class="docutils literal notranslate"><span class="pre">Q3</span></code>, <code class="docutils literal notranslate"><span class="pre">X1</span> <span class="pre">&#64;</span> <span class="pre">Z3</span></code> represents the
+operator <span class="math notranslate nohighlight">\(X \otimes Z\)</span> acting on the space <span class="math notranslate nohighlight">\(Q_1 \otimes Q_3\)</span>.</p>
+<p>Lastly, we can multiply and add scalars to operators. Scalars under addition are treated as
+multiples of the identity.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">X1</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>2 * X(Q1) + 1
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="how-to-define-an-operator-acting-on-a-subspace">
+<h2>2. How-to define an operator acting on a subspace<a class="headerlink" href="#how-to-define-an-operator-acting-on-a-subspace" title="Link to this heading">¶</a></h2>
+<p>It is common in quantum information to define operators on <em>subspaces</em>, e.g. the computational
+subspace of a physical system. Here we walk through constructing an <span class="math notranslate nohighlight">\(X\)</span> operator on the
+first two levels of a <span class="math notranslate nohighlight">\(4\)</span>-dimensional system. In mathematical notation, we want to construct
+the operator <span class="math notranslate nohighlight">\(X \oplus 0\)</span>, where both <span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(0\)</span> are <span class="math notranslate nohighlight">\(2 \times 2\)</span> matrices.</p>
+<p>First, define <code class="xref py py-class docutils literal notranslate"><span class="pre">Subsystem</span></code> instances representing both the <span class="math notranslate nohighlight">\(2\)</span>-dimensional subspace and
+the full <span class="math notranslate nohighlight">\(4\)</span>-dimensional space.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># define subsystem for the subspace</span>
+<span class="n">C2</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;C2&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># define the higher dimensional space</span>
+<span class="n">C4</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;C4&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Next, define a <code class="xref py py-class docutils literal notranslate"><span class="pre">ONBasis</span></code> instance for the subspace of <code class="docutils literal notranslate"><span class="pre">C4</span></code> representing how the standard
+basis elements of <code class="docutils literal notranslate"><span class="pre">C2</span></code> are mapped into <code class="docutils literal notranslate"><span class="pre">C4</span></code>. Here we will use the first two standard basis
+elements of <code class="docutils literal notranslate"><span class="pre">C4</span></code>, representing the first two levels of <code class="docutils literal notranslate"><span class="pre">C4</span></code>.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_dynamics.systems</span><span class="w"> </span><span class="kn">import</span> <span class="n">ONBasis</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">basis</span> <span class="o">=</span> <span class="n">ONBasis</span><span class="p">(</span>
+    <span class="n">basis_vectors</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="n">subsystems</span><span class="o">=</span><span class="p">[</span><span class="n">C4</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># view the basis vectors</span>
+<span class="n">basis</span><span class="o">.</span><span class="n">basis_vectors</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>array([[1., 0.],
+       [0., 1.],
+       [0., 0.],
+       [0., 0.]])
+</pre></div>
+</div>
+</div>
+</div>
+<p>Using the basis, we explicitly construct the injection of <code class="docutils literal notranslate"><span class="pre">C2</span></code> into <code class="docutils literal notranslate"><span class="pre">C4</span></code> using the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">SubsystemMapping</span></code> class. This class represents a linear map between vector spaces
+<span class="math notranslate nohighlight">\(V \rightarrow W\)</span> of the form <span class="math notranslate nohighlight">\(v \mapsto Av\)</span> for an operator <span class="math notranslate nohighlight">\(A\)</span>. Acting on an
+operator <span class="math notranslate nohighlight">\(X\)</span>, a <code class="xref py py-class docutils literal notranslate"><span class="pre">SubsystemMapping</span></code> will perform the transformation
+<span class="math notranslate nohighlight">\(X \mapsto A X A^\dagger\)</span>.</p>
+<p>Here, the operator <span class="math notranslate nohighlight">\(A\)</span> is defined as a matrix given by the first two basis elements of <code class="docutils literal notranslate"><span class="pre">C4</span></code>:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_dynamics.systems</span><span class="w"> </span><span class="kn">import</span> <span class="n">SubsystemMapping</span>
+
+<span class="n">injection</span> <span class="o">=</span> <span class="n">SubsystemMapping</span><span class="p">(</span>
+    <span class="n">matrix</span><span class="o">=</span><span class="n">basis</span><span class="o">.</span><span class="n">basis_vectors</span><span class="p">,</span>
+    <span class="n">in_subsystems</span><span class="o">=</span><span class="p">[</span><span class="n">C2</span><span class="p">],</span>
+    <span class="n">out_subsystems</span><span class="o">=</span><span class="p">[</span><span class="n">C4</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p><span class="math notranslate nohighlight">\(X\)</span> acting on the first two levels of <code class="docutils literal notranslate"><span class="pre">C4</span></code> is then constructed as:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">subspace_X</span> <span class="o">=</span> <span class="n">injection</span><span class="p">(</span><span class="n">X</span><span class="p">(</span><span class="n">C2</span><span class="p">))</span>
+<span class="n">subspace_X</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>MappedOperator(X(C2), [Subsystem(name=C2, dim=2)] -&gt;
+                [Subsystem(name=C4, dim=4)])
+</pre></div>
+</div>
+</div>
+</div>
+<p>Observe the desired matrix:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">subspace_X</span><span class="o">.</span><span class="n">matrix</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>array([[0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j],
+       [1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+       [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+       [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j]])
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="how-to-define-an-operator-acting-on-the-logical-subspace-of-a-multi-transmon-model">
+<h2>3. How-to define an operator acting on the logical subspace of a multi-transmon model<a class="headerlink" href="#how-to-define-an-operator-acting-on-the-logical-subspace-of-a-multi-transmon-model" title="Link to this heading">¶</a></h2>
+<p>In this section we work through a more advanced version of the previous example. Here, we consider
+the problem of constructing the operator “<span class="math notranslate nohighlight">\(X\)</span> acting on the computional subspace of the first
+qubit in a two-transmon system”. Mathematically, this means the matrix
+<span class="math notranslate nohighlight">\(A(X \otimes I)A^\dagger\)</span>, where <span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(I\)</span> are <span class="math notranslate nohighlight">\(2 \times 2\)</span> matrices, and
+<span class="math notranslate nohighlight">\(A\)</span> is the isometry mapping the two qubit computational subspace (the first 4 energy levels)
+into the two transmon physical space.</p>
+<p>For this, we walk through the following steps:</p>
+<ul class="simple">
+<li><p>Define subsystems for both the logical/computational spaces, and the physical spaces.</p></li>
+<li><p>Construct the standard static Hamiltonian for a 2 transmon model, and compute the dressed basis
+(the basis of energy eigenstates).</p></li>
+<li><p>Construct a basis for the computational subspace within the physical space.</p></li>
+<li><p>Define the operator <span class="math notranslate nohighlight">\(X\)</span> acting on the logical qubit <span class="math notranslate nohighlight">\(0\)</span>.</p></li>
+<li><p>“Expand” this operator into the full physical space, creating the desired operator
+<span class="math notranslate nohighlight">\(A(X \otimes I)A^\dagger\)</span></p></li>
+</ul>
+<p>First, construct the <code class="xref py py-class docutils literal notranslate"><span class="pre">Subsystem</span></code> instances we will work with:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># logical subsystems</span>
+<span class="n">L0</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;L0&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">L1</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;L1&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># physical subsystems</span>
+<span class="n">Q0</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;Q0&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">Q1</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;Q1&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Define the 2 transmon Hamiltonian.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># define a standard Hamiltonian</span>
+<span class="n">H</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">5.</span> <span class="o">*</span> <span class="n">N</span><span class="p">(</span><span class="n">Q0</span><span class="p">)</span> <span class="o">+</span><span class="p">(</span><span class="o">-</span> <span class="mf">0.33</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">N</span><span class="p">(</span><span class="n">Q0</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">N</span><span class="p">(</span><span class="n">Q0</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">I</span><span class="p">(</span><span class="n">Q0</span><span class="p">)))</span> <span class="o">+</span>
+    <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">5.5</span> <span class="o">*</span> <span class="n">N</span><span class="p">(</span><span class="n">Q1</span><span class="p">)</span> <span class="o">+</span><span class="p">(</span><span class="o">-</span> <span class="mf">0.33</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">N</span><span class="p">(</span><span class="n">Q1</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">N</span><span class="p">(</span><span class="n">Q1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">I</span><span class="p">(</span><span class="n">Q1</span><span class="p">)))</span> <span class="o">+</span>
+    <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">0.002</span> <span class="o">*</span> <span class="n">X</span><span class="p">(</span><span class="n">Q0</span><span class="p">)</span> <span class="o">@</span> <span class="n">X</span><span class="p">(</span><span class="n">Q1</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Compute the dressed basis, and retrieve the <code class="xref py py-class docutils literal notranslate"><span class="pre">ONBasis</span></code> instance corresponding to the
+computational states.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_dynamics.systems</span><span class="w"> </span><span class="kn">import</span> <span class="n">DressedBasis</span>
+
+<span class="c1"># Get the dressed basis with an explicit tensor product ordering</span>
+<span class="n">dressed_basis</span> <span class="o">=</span> <span class="n">DressedBasis</span><span class="o">.</span><span class="n">from_hamiltonian</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="p">[</span><span class="n">Q0</span><span class="p">,</span> <span class="n">Q1</span><span class="p">])</span>
+
+<span class="c1"># retrieve the computational states</span>
+<span class="n">computational_states</span> <span class="o">=</span> <span class="n">dressed_basis</span><span class="o">.</span><span class="n">computational_states</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Define the mapping of the logical space <span class="math notranslate nohighlight">\(L_0 \otimes L_1\)</span> into the computational subspace of
+the physical space <span class="math notranslate nohighlight">\(Q_0 \otimes Q_1\)</span> specified by the matrix of basis vectors for the
+computational subspace.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">injection</span> <span class="o">=</span> <span class="n">SubsystemMapping</span><span class="p">(</span>
+    <span class="n">matrix</span><span class="o">=</span><span class="n">computational_states</span><span class="o">.</span><span class="n">basis_vectors</span><span class="p">,</span>
+    <span class="n">in_subsystems</span><span class="o">=</span><span class="p">[</span><span class="n">L0</span><span class="p">,</span> <span class="n">L1</span><span class="p">],</span>
+    <span class="n">out_subsystems</span><span class="o">=</span><span class="p">[</span><span class="n">Q0</span><span class="p">,</span> <span class="n">Q1</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Finally, define <code class="docutils literal notranslate"><span class="pre">X</span></code> acting on <code class="docutils literal notranslate"><span class="pre">L0</span></code>, and inject it into the full two-transmon physical space
+using <code class="docutils literal notranslate"><span class="pre">injection</span></code>. Note that as the injection acts on the combined <span class="math notranslate nohighlight">\(L_0 \otimes L_1\)</span> system,
+<code class="docutils literal notranslate"><span class="pre">X(L0)</span></code> will be treated as <code class="docutils literal notranslate"><span class="pre">X(L0)</span> <span class="pre">&#64;</span> <span class="pre">I(L1)</span></code> when performing the injection (i.e. with implicit
+identity on <span class="math notranslate nohighlight">\(L_1\)</span>).</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">op</span> <span class="o">=</span> <span class="n">X</span><span class="p">(</span><span class="n">L0</span><span class="p">)</span>
+
+<span class="n">injected_X0</span> <span class="o">=</span> <span class="n">injection</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+
+<span class="n">injected_X0</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>MappedOperator(X(L0), [Subsystem(name=L0, dim=2), Subsystem(name=L1, dim=2)] -&gt;
+                [Subsystem(name=Q0, dim=3), Subsystem(name=Q1, dim=3)])
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="how-to-restrict-an-operator-to-a-low-energy-subspace-of-a-3-transmon-model">
+<h2>4. How-to restrict an operator to a low energy subspace of a 3-transmon model<a class="headerlink" href="#how-to-restrict-an-operator-to-a-low-energy-subspace-of-a-3-transmon-model" title="Link to this heading">¶</a></h2>
+<p>Similarly to defining an operator on a subspace and expanding it into the full space, we may want to
+restrict on operator or model to a subspace. For example, restricting a model to a low energy
+subspace is a common technique to reduce the dimension of a model.</p>
+<p>Here, we walk through the problem of restricting an operator to a low energy subspace of a 3
+transmon system with the following steps:</p>
+<ul class="simple">
+<li><p>Build the static Hamiltonian of a 3 transmon system.</p></li>
+<li><p>Restrict it to a subspace with bounded energy.</p></li>
+<li><p>Restrict the X operator acting on one of the transmons to the same subspace.</p></li>
+</ul>
+<p>Define a 3 transmon static Hamiltonian:</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># physical subsystems</span>
+<span class="n">Q0</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;Q0&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">Q1</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;Q1&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">Q2</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;Q2&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># define a standard Hamiltonian</span>
+<span class="n">H</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">5.</span> <span class="o">*</span> <span class="n">N</span><span class="p">(</span><span class="n">Q0</span><span class="p">)</span> <span class="o">+</span><span class="p">(</span><span class="o">-</span> <span class="mf">0.33</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">N</span><span class="p">(</span><span class="n">Q0</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">N</span><span class="p">(</span><span class="n">Q0</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">I</span><span class="p">(</span><span class="n">Q0</span><span class="p">)))</span> <span class="o">+</span>
+    <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">5.5</span> <span class="o">*</span> <span class="n">N</span><span class="p">(</span><span class="n">Q1</span><span class="p">)</span> <span class="o">+</span><span class="p">(</span><span class="o">-</span> <span class="mf">0.33</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">N</span><span class="p">(</span><span class="n">Q1</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">N</span><span class="p">(</span><span class="n">Q1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">I</span><span class="p">(</span><span class="n">Q1</span><span class="p">)))</span> <span class="o">+</span>
+    <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">5.3</span> <span class="o">*</span> <span class="n">N</span><span class="p">(</span><span class="n">Q2</span><span class="p">)</span> <span class="o">+</span><span class="p">(</span><span class="o">-</span> <span class="mf">0.33</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">N</span><span class="p">(</span><span class="n">Q2</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">N</span><span class="p">(</span><span class="n">Q2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">I</span><span class="p">(</span><span class="n">Q2</span><span class="p">)))</span> <span class="o">+</span>
+    <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">0.002</span> <span class="o">*</span> <span class="n">X</span><span class="p">(</span><span class="n">Q0</span><span class="p">)</span> <span class="o">@</span> <span class="n">X</span><span class="p">(</span><span class="n">Q1</span><span class="p">)</span> <span class="o">+</span>
+    <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">0.002</span> <span class="o">*</span> <span class="n">X</span><span class="p">(</span><span class="n">Q1</span><span class="p">)</span> <span class="o">@</span> <span class="n">X</span><span class="p">(</span><span class="n">Q2</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Construct the dressed basis and view eigenvalues.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_dynamics.systems</span><span class="w"> </span><span class="kn">import</span> <span class="n">DressedBasis</span>
+
+<span class="c1"># Get the dressed basis</span>
+<span class="n">dressed_basis</span> <span class="o">=</span> <span class="n">DressedBasis</span><span class="o">.</span><span class="n">from_hamiltonian</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="p">[</span><span class="n">Q0</span><span class="p">,</span> <span class="n">Q1</span><span class="p">,</span> <span class="n">Q2</span><span class="p">])</span>
+<span class="n">dressed_basis</span><span class="o">.</span><span class="n">evals</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>array([-4.72070179e-06,  3.14158690e+01,  6.07583390e+01,  3.45576854e+01,
+        6.59733237e+01,  9.53158459e+01,  6.70414964e+01,  9.84573332e+01,
+        1.27799613e+02,  3.33007493e+01,  6.47166230e+01,  9.40590930e+01,
+        6.78589204e+01,  9.92745594e+01,  1.28617081e+02,  1.00343272e+02,
+        1.31759110e+02,  1.61101389e+02,  6.45282158e+01,  9.59440896e+01,
+        1.25286560e+02,  9.90853795e+01,  1.30501019e+02,  1.59843541e+02,
+        1.31570205e+02,  1.62986043e+02,  1.92328322e+02])
+</pre></div>
+</div>
+</div>
+</div>
+<p>Construct a basis for a low energy subspace below a given cutoff.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">low_energy_states</span> <span class="o">=</span> <span class="n">dressed_basis</span><span class="o">.</span><span class="n">low_energy_states</span><span class="p">(</span><span class="n">cutoff_energy</span><span class="o">=</span><span class="mf">70.</span><span class="p">)</span>
+<span class="n">low_energy_states</span><span class="o">.</span><span class="n">evals</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>array([-4.72070179e-06,  3.14158690e+01,  6.07583390e+01,  3.45576854e+01,
+        6.59733237e+01,  6.70414964e+01,  3.33007493e+01,  6.47166230e+01,
+        6.78589204e+01,  6.45282158e+01])
+</pre></div>
+</div>
+</div>
+</div>
+<p>Observe the standard basis labelling, and note that this energy cutoff happens to correspond to the
+subspace with at most 2-excitations in the full system.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">low_energy_states</span><span class="o">.</span><span class="n">labels</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>[{&#39;index&#39;: (0, 0, 0), &#39;eval&#39;: np.float64(-4.72070178672793e-06)},
+ {&#39;index&#39;: (1, 0, 0), &#39;eval&#39;: np.float64(31.415869000063307)},
+ {&#39;index&#39;: (2, 0, 0), &#39;eval&#39;: np.float64(60.75833903196221)},
+ {&#39;index&#39;: (0, 1, 0), &#39;eval&#39;: np.float64(34.55768535500057)},
+ {&#39;index&#39;: (1, 1, 0), &#39;eval&#39;: np.float64(65.97332367727418)},
+ {&#39;index&#39;: (0, 2, 0), &#39;eval&#39;: np.float64(67.04149638508592)},
+ {&#39;index&#39;: (0, 0, 1), &#39;eval&#39;: np.float64(33.300749290809065)},
+ {&#39;index&#39;: (1, 0, 1), &#39;eval&#39;: np.float64(64.71662302225069)},
+ {&#39;index&#39;: (0, 1, 1), &#39;eval&#39;: np.float64(67.85892038225253)},
+ {&#39;index&#39;: (0, 0, 2), &#39;eval&#39;: np.float64(64.52821584309763)}]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Restrict the Hamiltonian to this low energy space. Note that we first need to define a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Subsystem</span></code> instance representing this subspace in isolation.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">LESpace</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="s2">&quot;LES&quot;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">low_energy_states</span><span class="p">))</span>
+
+<span class="n">restriction</span> <span class="o">=</span> <span class="n">SubsystemMapping</span><span class="p">(</span>
+    <span class="n">matrix</span><span class="o">=</span><span class="n">low_energy_states</span><span class="o">.</span><span class="n">basis_vectors_adj</span><span class="p">,</span>
+    <span class="n">in_subsystems</span><span class="o">=</span><span class="p">[</span><span class="n">Q0</span><span class="p">,</span> <span class="n">Q1</span><span class="p">,</span> <span class="n">Q2</span><span class="p">],</span>
+    <span class="n">out_subsystems</span><span class="o">=</span><span class="p">[</span><span class="n">LESpace</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">low_energy_H</span> <span class="o">=</span> <span class="n">restriction</span><span class="p">(</span><span class="n">H</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+</div>
+</div>
+<p>Looking at the diagonal of <code class="docutils literal notranslate"><span class="pre">low_energy_H</span></code>, we can confirm that the entries are the eigenvalues
+below the cutoff.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">low_energy_H</span><span class="o">.</span><span class="n">matrix</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>array([-4.72070179e-06+0.00000000e+00j,  3.14158690e+01+0.00000000e+00j,
+        6.07583390e+01+0.00000000e+00j,  3.45576854e+01+0.00000000e+00j,
+        6.59733237e+01+0.00000000e+00j,  6.70414964e+01+0.00000000e+00j,
+        3.33007493e+01-7.88860905e-31j,  6.47166230e+01+0.00000000e+00j,
+        6.78589204e+01+0.00000000e+00j,  6.45282158e+01+0.00000000e+00j])
+</pre></div>
+</div>
+</div>
+</div>
+<p>With this <code class="docutils literal notranslate"><span class="pre">restriction</span></code> mapping, we can also restrict other operators to this subspace, e.g. the
+<span class="math notranslate nohighlight">\(X\)</span> operator acting on the physical <code class="docutils literal notranslate"><span class="pre">Q1</span></code> system. Note that when the <code class="docutils literal notranslate"><span class="pre">restriction</span></code> map is
+applied to <code class="docutils literal notranslate"><span class="pre">X(Q1)</span></code>, the operator is interpreted as <code class="docutils literal notranslate"><span class="pre">I(Q0)</span> <span class="pre">&#64;</span> <span class="pre">X(Q1)</span> <span class="pre">&#64;</span> <span class="pre">I(Q2)</span></code>, i.e. <span class="math notranslate nohighlight">\(X\)</span>
+acting on <code class="docutils literal notranslate"><span class="pre">Q1</span></code>, and the identity on the remaining subsystems in the input space of <code class="docutils literal notranslate"><span class="pre">restriction</span></code>
+that <code class="docutils literal notranslate"><span class="pre">X(Q1)</span></code> does not explicitly act on.</p>
+<div class="jupyter_cell jupyter_container docutils container">
+<div class="cell_input code_cell docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">drive_op</span> <span class="o">=</span> <span class="n">restriction</span><span class="p">(</span><span class="n">X</span><span class="p">(</span><span class="n">Q1</span><span class="p">))</span>
+<span class="n">drive_op</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-none notranslate"><div class="highlight"><pre><span></span>MappedOperator(X(Q1), [Subsystem(name=Q0, dim=3), Subsystem(name=Q1, dim=3), Subsystem(name=Q2, dim=3)] -&gt;
+                [Subsystem(name=LES, dim=10)])
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="perturbative_solvers.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">How-to use Dyson and Magnus based solvers</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="how_to_configure_simulations.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">How-to customize simulations using model transformations and array libraries</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2020, Qiskit Development Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            <div class="last-updated">
+              Last updated on 2025/10/06</div>
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">How-to use advanced system modelling functionality</a><ul>
+<li><a class="reference internal" href="#how-to-build-operators-acting-on-tensor-product-spaces">1. How-to build operators acting on tensor product spaces</a></li>
+<li><a class="reference internal" href="#how-to-define-an-operator-acting-on-a-subspace">2. How-to define an operator acting on a subspace</a></li>
+<li><a class="reference internal" href="#how-to-define-an-operator-acting-on-the-logical-subspace-of-a-multi-transmon-model">3. How-to define an operator acting on the logical subspace of a multi-transmon model</a></li>
+<li><a class="reference internal" href="#how-to-restrict-an-operator-to-a-low-energy-subspace-of-a-3-transmon-model">4. How-to restrict an operator to a low energy subspace of a 3-transmon model</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=8fa8b3e9"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

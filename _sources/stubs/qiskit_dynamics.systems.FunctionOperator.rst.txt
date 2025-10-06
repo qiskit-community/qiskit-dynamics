@@ -1,0 +1,25 @@
+﻿FunctionOperator
+================
+
+.. currentmodule:: qiskit_dynamics.systems
+
+.. autoclass:: FunctionOperator
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: FunctionOperator.base_matrix
+   .. automethod:: FunctionOperator.matrix
+   .. automethod:: FunctionOperator.remove_subsystems
+   .. automethod:: FunctionOperator.restrict_subsystems
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: func
+   .. autoattribute:: subsystems

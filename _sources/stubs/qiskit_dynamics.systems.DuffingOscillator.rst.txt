@@ -1,0 +1,30 @@
+﻿DuffingOscillator
+=================
+
+.. currentmodule:: qiskit_dynamics.systems
+
+.. autoclass:: DuffingOscillator
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: DuffingOscillator.dressed_basis
+   .. automethod:: DuffingOscillator.get_Solver
+   .. automethod:: DuffingOscillator.map_signal_dictionary
+   .. automethod:: DuffingOscillator.solve
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: drive_dissipator_coefficients
+   .. autoattribute:: drive_dissipators
+   .. autoattribute:: drive_hamiltonian_coefficients
+   .. autoattribute:: drive_hamiltonians
+   .. autoattribute:: static_dissipators
+   .. autoattribute:: static_hamiltonian
+   .. autoattribute:: subsystems

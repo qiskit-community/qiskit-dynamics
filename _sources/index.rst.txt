@@ -20,7 +20,7 @@ just-in-time compilation, automatic differentiation, and GPU execution of Qiskit
    This package is still in the early stages of development and it is very likely
    that there will be breaking API changes in future releases.
    If you encounter any bugs please open an issue on
-   `Github <https://github.com/Qiskit-Extensions/qiskit-dynamics/issues>`_
+   `Github <https://github.com/Qiskit-Community/qiskit-dynamics/issues>`_
 
 
 .. toctree::

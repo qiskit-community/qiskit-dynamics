@@ -1,0 +1,30 @@
+﻿QuantumSystemModel
+==================
+
+.. currentmodule:: qiskit_dynamics.systems
+
+.. autoclass:: QuantumSystemModel
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: QuantumSystemModel.dressed_basis
+   .. automethod:: QuantumSystemModel.get_Solver
+   .. automethod:: QuantumSystemModel.map_signal_dictionary
+   .. automethod:: QuantumSystemModel.solve
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: drive_dissipator_coefficients
+   .. autoattribute:: drive_dissipators
+   .. autoattribute:: drive_hamiltonian_coefficients
+   .. autoattribute:: drive_hamiltonians
+   .. autoattribute:: static_dissipators
+   .. autoattribute:: static_hamiltonian
+   .. autoattribute:: subsystems

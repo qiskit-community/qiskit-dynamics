@@ -1,0 +1,17 @@
+﻿Subsystem
+=========
+
+.. currentmodule:: qiskit_dynamics.systems
+
+.. autoclass:: Subsystem
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: dim
+   .. autoattribute:: name

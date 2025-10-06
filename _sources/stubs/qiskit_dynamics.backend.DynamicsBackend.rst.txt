@@ -17,7 +17,6 @@
    .. automethod:: DynamicsBackend.control_channel
    .. automethod:: DynamicsBackend.defaults
    .. automethod:: DynamicsBackend.drive_channel
-   .. automethod:: DynamicsBackend.from_backend
    .. automethod:: DynamicsBackend.measure_channel
    .. automethod:: DynamicsBackend.qubit_properties
    .. automethod:: DynamicsBackend.run

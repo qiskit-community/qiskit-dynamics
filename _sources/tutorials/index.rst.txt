@@ -6,6 +6,7 @@ Dynamics Tutorials
 .. toctree::
    :maxdepth: 1
 
+   systems_modelling.rst
    Rabi_oscillations.rst
    Lindblad_dynamics_simulation.rst
    qiskit_pulse.rst

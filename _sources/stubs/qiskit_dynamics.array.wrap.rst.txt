@@ -1,6 +1,0 @@
-﻿qiskit\_dynamics.array.wrap
-===========================
-
-.. currentmodule:: qiskit_dynamics.array
-
-.. autofunction:: wrap

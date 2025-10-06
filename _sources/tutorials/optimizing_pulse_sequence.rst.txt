@@ -3,6 +3,18 @@
 Gradient optimization of a pulse sequence
 =========================================
 
+.. warning::
+
+    This tutorial supresses ``DeprecationWarning`` instances raised by Qiskit Pulse in `qiskit`
+    `1.3`.
+
+.. jupyter-execute::
+    :hide-code:
+
+    # silence deprecation warnings from pulse
+    import warnings
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 Here, we walk through an example of optimizing a single-qubit gate using Qiskit Dynamics. This
 tutorial requires JAX - see the user guide on :ref:`How-to use JAX with qiskit-dynamics <how-to use
 different array libraries>`.

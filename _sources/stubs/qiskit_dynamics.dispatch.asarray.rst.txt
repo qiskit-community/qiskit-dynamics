@@ -1,6 +1,0 @@
-﻿qiskit\_dynamics.dispatch.asarray
-=================================
-
-.. currentmodule:: qiskit_dynamics.dispatch
-
-.. autofunction:: asarray

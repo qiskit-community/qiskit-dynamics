@@ -1,0 +1,23 @@
+﻿SubsystemMapping
+================
+
+.. currentmodule:: qiskit_dynamics.systems
+
+.. autoclass:: SubsystemMapping
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: SubsystemMapping.conjugate
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: in_subsystems
+   .. autoattribute:: matrix
+   .. autoattribute:: out_subsystems

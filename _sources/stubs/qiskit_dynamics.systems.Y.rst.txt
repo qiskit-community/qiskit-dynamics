@@ -1,0 +1,24 @@
+﻿Y
+=
+
+.. currentmodule:: qiskit_dynamics.systems
+
+.. autoclass:: Y
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: Y.base_matrix
+   .. automethod:: Y.matrix
+   .. automethod:: Y.remove_subsystems
+   .. automethod:: Y.restrict_subsystems
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: subsystems
