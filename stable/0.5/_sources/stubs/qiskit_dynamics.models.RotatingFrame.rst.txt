@@ -1,0 +1,37 @@
+﻿RotatingFrame
+=============
+
+.. currentmodule:: qiskit_dynamics.models
+
+.. autoclass:: RotatingFrame
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: RotatingFrame.generator_into_frame
+   .. automethod:: RotatingFrame.generator_out_of_frame
+   .. automethod:: RotatingFrame.operator_into_frame
+   .. automethod:: RotatingFrame.operator_into_frame_basis
+   .. automethod:: RotatingFrame.operator_out_of_frame
+   .. automethod:: RotatingFrame.operator_out_of_frame_basis
+   .. automethod:: RotatingFrame.state_into_frame
+   .. automethod:: RotatingFrame.state_into_frame_basis
+   .. automethod:: RotatingFrame.state_out_of_frame
+   .. automethod:: RotatingFrame.state_out_of_frame_basis
+   .. automethod:: RotatingFrame.vectorized_map_into_frame
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: dim
+   .. autoattribute:: frame_basis
+   .. autoattribute:: frame_basis_adjoint
+   .. autoattribute:: frame_diag
+   .. autoattribute:: frame_operator
+   .. autoattribute:: vectorized_frame_basis
+   .. autoattribute:: vectorized_frame_basis_adjoint

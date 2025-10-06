@@ -1,0 +1,33 @@
+﻿DiscreteSignal
+==============
+
+.. currentmodule:: qiskit_dynamics.signals
+
+.. autoclass:: DiscreteSignal
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: DiscreteSignal.add_samples
+   .. automethod:: DiscreteSignal.complex_value
+   .. automethod:: DiscreteSignal.conjugate
+   .. automethod:: DiscreteSignal.draw
+   .. automethod:: DiscreteSignal.envelope
+   .. automethod:: DiscreteSignal.from_Signal
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: carrier_freq
+   .. autoattribute:: dt
+   .. autoattribute:: duration
+   .. autoattribute:: is_constant
+   .. autoattribute:: name
+   .. autoattribute:: phase
+   .. autoattribute:: samples
+   .. autoattribute:: start_time

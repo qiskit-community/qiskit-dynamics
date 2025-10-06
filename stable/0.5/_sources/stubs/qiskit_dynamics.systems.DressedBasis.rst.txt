@@ -1,0 +1,33 @@
+﻿DressedBasis
+============
+
+.. currentmodule:: qiskit_dynamics.systems
+
+.. autoclass:: DressedBasis
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: DressedBasis.decompose
+   .. automethod:: DressedBasis.from_hamiltonian
+   .. automethod:: DressedBasis.low_energy_states
+   .. automethod:: DressedBasis.probabilities
+   .. automethod:: DressedBasis.project
+   .. automethod:: DressedBasis.subset
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: basis_vectors
+   .. autoattribute:: basis_vectors_adj
+   .. autoattribute:: computational_states
+   .. autoattribute:: evals
+   .. autoattribute:: ground_state
+   .. autoattribute:: labels
+   .. autoattribute:: projection
+   .. autoattribute:: subsystems

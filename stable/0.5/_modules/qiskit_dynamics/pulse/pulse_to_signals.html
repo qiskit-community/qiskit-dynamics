@@ -1,0 +1,795 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
+
+    <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+        <title>qiskit_dynamics.pulse.pulse_to_signals - Qiskit Dynamics 0.6.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=3ee1c6c6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/qiskit-sphinx-theme.css?v=8ff9dcb6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #ffffff;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 2H2C1.73478 2 1.48043 2.10536 1.29289 2.29289C1.10536 2.48043 1 2.73478 1 3V13C1 13.2652 1.10536 13.5196 1.29289 13.7071C1.48043 13.8946 1.73478 14 2 14H14C14.2652 14 14.5196 13.8946 14.7071 13.7071C14.8946 13.5196 15 13.2652 15 13V3C15 2.73478 14.8946 2.48043 14.7071 2.29289C14.5196 2.10536 14.2652 2 14 2V2ZM2 3H10V13H2V3ZM14 13H11V3H14V13Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 3H2V4H14V3Z" fill="currentColor"/>
+      <path d="M14 12H2V13H14V12Z" fill="currentColor"/>
+      <path d="M14 6H2V7H14V6Z" fill="currentColor"/>
+      <path d="M14 9H2V10H14V9Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 8L6.00005 13L5.30005 12.3L9.60005 8L5.30005 3.7L6.00005 3L11 8Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 13H1V14H15V13Z" fill="currentColor"/>
+      <path d="M12.7 4.5C13.1 4.1 13.1 3.5 12.7 3.1L10.9 1.3C10.5 0.9 9.9 0.9 9.5 1.3L2 8.8V12H5.2L12.7 4.5ZM10.2 2L12 3.8L10.5 5.3L8.7 3.5L10.2 2ZM3 11V9.2L8 4.2L9.8 6L4.8 11H3Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 13.0002C11.5523 13.0002 12 12.5525 12 12.0002C12 11.4479 11.5523 11.0002 11 11.0002C10.4477 11.0002 10 11.4479 10 12.0002C10 12.5525 10.4477 13.0002 11 13.0002Z" fill="currentColor"/>
+      <path d="M14.8884 11.7394C14.5795 10.9524 14.0464 10.2734 13.3552 9.78646C12.664 9.29954 11.8451 9.02615 11 9.00017C10.1549 9.02615 9.33604 9.29954 8.64484 9.78646C7.95365 10.2734 7.42052 10.9524 7.11155 11.7394L7 12.0002L7.11155 12.2609C7.42052 13.0479 7.95365 13.727 8.64484 14.2139C9.33604 14.7008 10.1549 14.9742 11 15.0002C11.8451 14.9742 12.664 14.7008 13.3552 14.2139C14.0464 13.727 14.5795 13.0479 14.8884 12.2609L15 12.0002L14.8884 11.7394ZM11 14.0002C10.6044 14.0002 10.2178 13.8829 9.88886 13.6631C9.55996 13.4433 9.30362 13.131 9.15224 12.7655C9.00087 12.4001 8.96126 11.998 9.03843 11.61C9.1156 11.222 9.30608 10.8657 9.58579 10.586C9.86549 10.3063 10.2219 10.1158 10.6098 10.0386C10.9978 9.96143 11.3999 10.001 11.7654 10.1524C12.1308 10.3038 12.4432 10.5601 12.6629 10.889C12.8827 11.2179 13 11.6046 13 12.0002C12.9994 12.5304 12.7885 13.0388 12.4136 13.4137C12.0386 13.7887 11.5303 13.9996 11 14.0002Z" fill="currentColor"/>
+      <path d="M6 14.0002H4V2.00017H8V5.00017C8.00077 5.26515 8.10637 5.51906 8.29374 5.70643C8.48111 5.8938 8.73502 5.99941 9 6.00017H12V8.00017H13V5.00017C13.0018 4.93446 12.9893 4.86913 12.9634 4.80871C12.9375 4.74828 12.8988 4.6942 12.85 4.65017L9.35 1.15017C9.30599 1.10134 9.2519 1.06263 9.19147 1.03674C9.13104 1.01084 9.06572 0.998364 9 1.00017H4C3.73502 1.00094 3.48111 1.10654 3.29374 1.29391C3.10637 1.48128 3.00077 1.73519 3 2.00017V14.0002C3.00077 14.2652 3.10637 14.5191 3.29374 14.7064C3.48111 14.8938 3.73502 14.9994 4 15.0002H6V14.0002ZM9 2.20017L11.8 5.00017H9V2.20017Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">Qiskit Dynamics 0.6.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">Qiskit Dynamics 0.6.0 documentation</span>
+  
+</a>
+
+<p class="sidebar-ecosystem-link">
+  This project is part of the <a class="reference external" href="https://www.ibm.com/quantum/ecosystem">Qiskit ecosystem</a>
+</p><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../tutorials/systems_modelling.html">Building and solving models of quantum systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Rabi_oscillations.html">Simulating Rabi oscillations with noise and decoherence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Lindblad_dynamics_simulation.html">Solving the Lindblad dynamics of a qubit chain</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tutorials/qiskit_pulse.html">Simulating Qiskit Pulse Schedules with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tutorials/optimizing_pulse_sequence.html">Gradient optimization of a pulse sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tutorials/dynamics_backend.html">Simulating backends at the pulse-level with <code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicsBackend</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../userguide/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../userguide/how_to_use_different_array_libraries.html">How-to use different array libraries and types with Qiskit Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../userguide/how_to_configure_simulations.html">How-to customize simulations using model transformations and array libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../userguide/advanced_system_modelling.html">How-to use advanced system modelling functionality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../userguide/perturbative_solvers.html">How-to use Dyson and Magnus based solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../userguide/how_to_use_pulse_schedule_for_jax_jit.html">How-to use pulse schedules generated by Qiskit Pulse with JAX transformations</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/solvers.html">Solvers (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.solvers</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Solvers (qiskit_dynamics.solvers)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.solvers.Solver.html">Solver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.solvers.DysonSolver.html">DysonSolver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.solvers.MagnusSolver.html">MagnusSolver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.solvers.solve_ode.html">qiskit_dynamics.solvers.solve_ode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.solvers.solve_lmde.html">qiskit_dynamics.solvers.solve_lmde</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/backend.html">Backend (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.backend</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Backend (qiskit_dynamics.backend)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.backend.DynamicsBackend.html">DynamicsBackend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.backend.default_experiment_result_function.html">qiskit_dynamics.backend.default_experiment_result_function</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/models.html">Models (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.models</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Models (qiskit_dynamics.models)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.models.HamiltonianModel.html">HamiltonianModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.models.LindbladModel.html">LindbladModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.models.GeneratorModel.html">GeneratorModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.models.RotatingFrame.html">RotatingFrame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.models.rotating_wave_approximation.html">qiskit_dynamics.models.rotating_wave_approximation</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/systems.html">Systems (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.systems</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of Systems (qiskit_dynamics.systems)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.Subsystem.html">Subsystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.SubsystemOperator.html">SubsystemOperator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.FunctionOperator.html">FunctionOperator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.ONBasis.html">ONBasis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.DressedBasis.html">DressedBasis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.SubsystemMapping.html">SubsystemMapping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.QuantumSystemModel.html">QuantumSystemModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.IdealQubit.html">IdealQubit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.DuffingOscillator.html">DuffingOscillator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.ExchangeInteraction.html">ExchangeInteraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.I.html">I</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.X.html">X</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.Y.html">Y</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.Z.html">Z</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.N.html">N</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.A.html">A</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.systems.Adag.html">Adag</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/signals.html">Signals (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.signals</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of Signals (qiskit_dynamics.signals)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.signals.Signal.html">Signal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.signals.DiscreteSignal.html">DiscreteSignal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.signals.SignalSum.html">SignalSum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.signals.DiscreteSignalSum.html">DiscreteSignalSum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.signals.SignalList.html">SignalList</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.signals.Convolution.html">Convolution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.signals.IQMixer.html">IQMixer</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/pulse.html">Pulse (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.pulse</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of Pulse (qiskit_dynamics.pulse)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.pulse.InstructionToSignals.html">InstructionToSignals</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/perturbation.html">Perturbation Theory (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.perturbation</span></code>)</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of Perturbation Theory (qiskit_dynamics.perturbation)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.perturbation.solve_lmde_perturbation.html">qiskit_dynamics.perturbation.solve_lmde_perturbation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.perturbation.ArrayPolynomial.html">ArrayPolynomial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.perturbation.PowerSeriesData.html">PowerSeriesData</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../stubs/qiskit_dynamics.perturbation.DysonLikeData.html">DysonLikeData</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/arraylias.html">Arraylias (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_dynamics.arraylias</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../discussions/index.html">Discussions</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle navigation of Discussions</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../discussions/dyson_magnus.html">Time-dependent perturbation theory and multi-variable series expansions review</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../release_notes.html">Release Notes</a></li>
+</ul>
+
+</div><div class="qiskit-previous-releases-container">
+    <input id="previous-releases-checkbox" name="previous-releases-checkbox" role="switch" type="checkbox">
+    <div class="qiskit-previous-releases-header-container"><label for="previous-releases-checkbox">
+            <p role="note">Previous Releases</p>
+            <div class="qiskit-previous-releases-toggle-container">
+                <div class="visually-hidden">Toggle navigation of Previous Releases</div>
+                <i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i>
+            </div>
+        </label>
+    </div>
+    <div class="qiskit-previous-releases-list-container">
+        <ul>
+        
+            <li><a href="/qiskit-dynamics/stable/0.4/index.html" rel="nofollow noindex">0.4</a></li>
+        
+        </ul>
+    </div>
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for qiskit_dynamics.pulse.pulse_to_signals</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This code is part of Qiskit.</span>
+<span class="c1">#</span>
+<span class="c1"># (C) Copyright IBM 2020.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is licensed under the Apache License, Version 2.0. You may</span>
+<span class="c1"># obtain a copy of this license in the LICENSE.txt file in the root directory</span>
+<span class="c1"># of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.</span>
+<span class="c1">#</span>
+<span class="c1"># Any modifications or derivative works of this code must retain this</span>
+<span class="c1"># copyright notice, and modified files need to carry a notice indicating</span>
+<span class="c1"># that they have been altered from the originals.</span>
+<span class="c1"># pylint: disable=invalid-name</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Pulse schedule to Signals converter.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sympy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sym</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.pulse</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Schedule</span><span class="p">,</span>
+    <span class="n">Play</span><span class="p">,</span>
+    <span class="n">ShiftPhase</span><span class="p">,</span>
+    <span class="n">SetPhase</span><span class="p">,</span>
+    <span class="n">ShiftFrequency</span><span class="p">,</span>
+    <span class="n">SetFrequency</span><span class="p">,</span>
+    <span class="n">Waveform</span><span class="p">,</span>
+    <span class="n">MeasureChannel</span><span class="p">,</span>
+    <span class="n">DriveChannel</span><span class="p">,</span>
+    <span class="n">ControlChannel</span><span class="p">,</span>
+    <span class="n">AcquireChannel</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.pulse.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">PulseError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.pulse.library</span><span class="w"> </span><span class="kn">import</span> <span class="n">SymbolicPulse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitError</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_dynamics</span><span class="w"> </span><span class="kn">import</span> <span class="n">DYNAMICS_NUMPY</span> <span class="k">as</span> <span class="n">unp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_dynamics</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArrayLike</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_dynamics.signals</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiscreteSignal</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="InstructionToSignals">
+<a class="viewcode-back" href="../../../stubs/qiskit_dynamics.pulse.InstructionToSignals.html#qiskit_dynamics.pulse.InstructionToSignals">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InstructionToSignals</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Converts pulse instructions to signals to be used in models.</span>
+
+<span class="sd">    The :class:`InstructionsToSignals` class converts a pulse schedule to a list of signals that can</span>
+<span class="sd">    be given to a model. This conversion is done by calling the :meth:`get_signals` method on a</span>
+<span class="sd">    schedule. The converter applies to instances of :class:`~qiskit.pulse.Schedule`. Instances of</span>
+<span class="sd">    :class:`~qiskit.pulse.ScheduleBlock` must first be converted to :class:`~qiskit.pulse.Schedule`</span>
+<span class="sd">    using the :func:`~qiskit.pulse.transforms.block_to_schedule` function in Qiskit Pulse.</span>
+
+<span class="sd">    The converter can be initialized with the optional arguments ``carriers`` and ``channels``. When</span>
+<span class="sd">    ``channels`` is given, only the signals specified by name in ``channels`` are returned. The</span>
+<span class="sd">    ``carriers`` dictionary specifies the analog carrier frequency of each channel. Here, the keys</span>
+<span class="sd">    are the channel name, e.g. ``d12`` for drive channel number ``12``, and the values are the</span>
+<span class="sd">    corresponding frequency. If a channel is not present in ``carriers`` it is assumed that the</span>
+<span class="sd">    analog carrier frequency is zero.</span>
+
+<span class="sd">    See the :meth:`get_signals` method documentation for a detailed description of how pulse</span>
+<span class="sd">    schedules are interpreted and translated into :class:`.DiscreteSignal` objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">carriers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">channels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize pulse schedule to signals converter.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dt: Length of the samples. This is required by the converter as pulse schedule are</span>
+<span class="sd">                specified in units of dt and typically do not carry the value of dt with them.</span>
+<span class="sd">            carriers: A dict of analog carrier frequencies. The keys are the names of the channels</span>
+<span class="sd">                and the values are the corresponding carrier frequency.</span>
+<span class="sd">            channels: A list of channels that the :meth:`get_signals` method should return. This</span>
+<span class="sd">                argument will cause :meth:`get_signals` to return the signals in the same order as</span>
+<span class="sd">                the channels. Channels present in the schedule but absent from channels will not be</span>
+<span class="sd">                included in the returned object. If None is given (the default) then all channels</span>
+<span class="sd">                present in the pulse schedule are returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span> <span class="o">=</span> <span class="n">dt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span> <span class="o">=</span> <span class="n">channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_carriers</span> <span class="o">=</span> <span class="n">carriers</span> <span class="ow">or</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="InstructionToSignals.get_signals">
+<a class="viewcode-back" href="../../../stubs/qiskit_dynamics.pulse.InstructionToSignals.html#qiskit_dynamics.pulse.InstructionToSignals.get_signals">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schedule</span><span class="p">:</span> <span class="n">Schedule</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">DiscreteSignal</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Convert a schedule to a corresponding list of DiscreteSignal instances.</span>
+
+<span class="sd">        Which channels are converted, and the order they are returned, is controlled by the</span>
+<span class="sd">        ``channels`` argument at instantiation. The ``carriers`` instantiation argument sets the</span>
+<span class="sd">        analog carrier frequency for each channel, which is fixed for the full duration. For a given</span>
+<span class="sd">        channel, the :math:`k^{th}` envelope sample for the corresponding :class:`.DiscreteSignal`</span>
+<span class="sd">        is determined according to the following formula:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            f(k) \exp(i(2\pi \Delta\nu(k) k dt + \phi(k) + 2 \pi \phi_a(k))),</span>
+
+<span class="sd">        where:</span>
+
+<span class="sd">        * :math:`f(k)` is the waveform value at the :math:`k^{th}` time step as specified by</span>
+<span class="sd">          ``Play`` instructions.</span>
+<span class="sd">        * :math:`\Delta\nu(k)` is the frequency deviation at time step :math:`k` from the analog</span>
+<span class="sd">          carrier as the result of ``SetFrequency`` and ``ShiftFrequency`` instructions. As evident</span>
+<span class="sd">          by the formula, carrier frequency deviations as a result of these instructions are handled</span>
+<span class="sd">          digitally, with the analog carrier frequency being fixed for the entirety of the schedule.</span>
+<span class="sd">        * :math:`dt` is the sample rate as specified by the ``dt`` instantiation argument.</span>
+<span class="sd">        * :math:`\phi(k)` is the channel phase at time step :math:`k`, as determined by</span>
+<span class="sd">          ``ShiftPhase`` and ``SetPhase`` instructions.</span>
+<span class="sd">        * :math:`\phi_a(k)` is the phase correction term at time step :math:`k`, impacted by</span>
+<span class="sd">          ``SetFrequency`` and ``ShiftFrequency`` instructions, described below.</span>
+
+<span class="sd">        In detail, the sample array for the output signal for each channel is generated by iterating</span>
+<span class="sd">        over each instruction in the schedule in temporal order. New samples are appended with every</span>
+<span class="sd">        ``Play`` instruction on the given channel, using the waveform values and the current value</span>
+<span class="sd">        of the tracked parameters :math:`\Delta\nu`, :math:`\phi`, and :math:`\phi_a`, which are</span>
+<span class="sd">        initialized to :math:`0`. Explicitly, each instruction is interpreted as follows:</span>
+
+<span class="sd">        * ``Play`` instructions add new samples to the sample array, according to the above formula,</span>
+<span class="sd">          using the waveform specified in the instruction and the current values of</span>
+<span class="sd">          :math:`\Delta\nu`, :math:`\phi`, and :math:`\phi_a`.</span>
+<span class="sd">        * ``ShiftPhase``, with a phase value :math:`\psi`, updates :math:`\phi \mapsto \phi + \psi`.</span>
+<span class="sd">        * ``SetPhase``, with a phase value :math:`\psi`, updates :math:`\phi \mapsto \psi`.</span>
+<span class="sd">        * ``ShiftFrequency``, with a frequency value :math:`\mu` at time-step :math:`k`, updates</span>
+<span class="sd">          :math:`\phi_a \mapsto \phi_a - \mu k dt` and :math:`\Delta\nu \mapsto \Delta\nu + \mu`.</span>
+<span class="sd">          The simultaneous shifting of both :math:`\Delta\nu` and :math:`\phi_a` ensures that the</span>
+<span class="sd">          carrier wave, as a combination of the analog and digital components, is continuous across</span>
+<span class="sd">          ``ShiftFrequency`` instructions (up to the sampling rate :math:`dt`).</span>
+<span class="sd">        * ``SetFrequency``, with a frequency value :math:`\mu` at time-step :math:`k`, updates</span>
+<span class="sd">          :math:`\phi_a \mapsto \phi_a - (\mu - (\Delta\nu + \nu)) k dt` and</span>
+<span class="sd">          :math:`\Delta\nu \mapsto \mu - \nu`, where :math:`\nu` is the analog carrier frequency.</span>
+<span class="sd">          Similarly to ``ShiftFrequency``, the shift rule for :math:`\phi_a` is defined to maintain</span>
+<span class="sd">          carrier wave continuity.</span>
+
+<span class="sd">        If, at any sample point :math:`k`, :math:`\Delta\nu(k)` is larger than the Nyquist sampling</span>
+<span class="sd">        rate given by ``dt``, a warning will be raised.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            schedule: The schedule to represent in terms of signals. Instances of</span>
+<span class="sd">                :class:`~qiskit.pulse.ScheduleBlock` must first be converted to</span>
+<span class="sd">                :class:`~qiskit.pulse.Schedule` using the</span>
+<span class="sd">                :func:`~qiskit.pulse.transforms.block_to_schedule` function in Qiskit Pulse.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of :class:`.DiscreteSignal` instances.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">signals</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">frequency_shifts</span><span class="p">,</span> <span class="n">phase_accumulations</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{},</span> <span class="p">{},</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">schedule</span> <span class="o">=</span> <span class="n">schedule</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_channel</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="n">schedule</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+            <span class="n">phases</span><span class="p">[</span><span class="n">chan</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">frequency_shifts</span><span class="p">[</span><span class="n">chan</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">phase_accumulations</span><span class="p">[</span><span class="n">chan</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+            <span class="n">carrier_freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_carriers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">chan</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+            <span class="n">signals</span><span class="p">[</span><span class="n">chan</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">DiscreteSignal</span><span class="p">(</span>
+                <span class="n">samples</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">dt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dt</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">chan</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">carrier_freq</span><span class="o">=</span><span class="n">carrier_freq</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">start_sample</span><span class="p">,</span> <span class="n">inst</span> <span class="ow">in</span> <span class="n">schedule</span><span class="o">.</span><span class="n">instructions</span><span class="p">:</span>
+            <span class="c1"># get channel name if instruction has it</span>
+            <span class="n">chan</span> <span class="o">=</span> <span class="n">inst</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="s2">&quot;channel&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">Play</span><span class="p">):</span>
+                <span class="c1"># get the instruction samples</span>
+                <span class="n">inst_samples</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="o">.</span><span class="n">pulse</span><span class="p">,</span> <span class="n">Waveform</span><span class="p">):</span>
+                    <span class="n">inst_samples</span> <span class="o">=</span> <span class="n">inst</span><span class="o">.</span><span class="n">pulse</span><span class="o">.</span><span class="n">samples</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">inst_samples</span> <span class="o">=</span> <span class="n">get_samples</span><span class="p">(</span><span class="n">inst</span><span class="o">.</span><span class="n">pulse</span><span class="p">)</span>
+
+                <span class="c1"># build sample array to append to signal</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span> <span class="o">*</span> <span class="p">(</span><span class="n">start_sample</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">inst_samples</span><span class="p">)))</span>
+                <span class="n">samples</span> <span class="o">=</span> <span class="n">inst_samples</span> <span class="o">*</span> <span class="n">unp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+                    <span class="mf">2.0</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">frequency_shifts</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">*</span> <span class="n">times</span>
+                    <span class="o">+</span> <span class="mf">1.0</span><span class="n">j</span> <span class="o">*</span> <span class="n">phases</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="mf">2.0</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">phase_accumulations</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">signals</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span><span class="o">.</span><span class="n">add_samples</span><span class="p">(</span><span class="n">start_sample</span><span class="p">,</span> <span class="n">samples</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">ShiftPhase</span><span class="p">):</span>
+                <span class="n">phases</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">+=</span> <span class="n">inst</span><span class="o">.</span><span class="n">phase</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">SetPhase</span><span class="p">):</span>
+                <span class="n">phases</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">=</span> <span class="n">inst</span><span class="o">.</span><span class="n">phase</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">ShiftFrequency</span><span class="p">):</span>
+                <span class="n">frequency_shifts</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">=</span> <span class="n">frequency_shifts</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">+</span> <span class="n">inst</span><span class="o">.</span><span class="n">frequency</span>
+                <span class="n">phase_accumulations</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">phase_accumulations</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">-</span> <span class="n">inst</span><span class="o">.</span><span class="n">frequency</span> <span class="o">*</span> <span class="n">start_sample</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span>
+                <span class="p">)</span>
+                <span class="n">_nyquist_warn</span><span class="p">(</span><span class="n">frequency_shifts</span><span class="p">[</span><span class="n">chan</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span><span class="p">,</span> <span class="n">chan</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">SetFrequency</span><span class="p">):</span>
+                <span class="n">phase_accumulations</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">=</span> <span class="n">phase_accumulations</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span>
+                    <span class="p">(</span><span class="n">inst</span><span class="o">.</span><span class="n">frequency</span> <span class="o">-</span> <span class="p">(</span><span class="n">frequency_shifts</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">+</span> <span class="n">signals</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span><span class="o">.</span><span class="n">carrier_freq</span><span class="p">))</span>
+                    <span class="o">*</span> <span class="n">start_sample</span>
+                    <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span>
+                <span class="p">)</span>
+                <span class="n">frequency_shifts</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">=</span> <span class="n">inst</span><span class="o">.</span><span class="n">frequency</span> <span class="o">-</span> <span class="n">signals</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span><span class="o">.</span><span class="n">carrier_freq</span>
+                <span class="n">_nyquist_warn</span><span class="p">(</span><span class="n">frequency_shifts</span><span class="p">[</span><span class="n">chan</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span><span class="p">,</span> <span class="n">chan</span><span class="p">)</span>
+
+        <span class="c1"># ensure all signals have the same number of samples</span>
+        <span class="n">max_duration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="n">signals</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">max_duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_duration</span><span class="p">,</span> <span class="n">sig</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="n">signals</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">sig</span><span class="o">.</span><span class="n">duration</span> <span class="o">&lt;</span> <span class="n">max_duration</span><span class="p">:</span>
+                <span class="n">sig</span><span class="o">.</span><span class="n">add_samples</span><span class="p">(</span>
+                    <span class="n">start_sample</span><span class="o">=</span><span class="n">sig</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+                    <span class="n">samples</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">max_duration</span> <span class="o">-</span> <span class="n">sig</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span>
+                <span class="p">)</span>
+
+        <span class="c1"># filter the channels</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">signals</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="n">return_signals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">chan_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">:</span>
+            <span class="n">signal</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="n">chan_name</span><span class="p">,</span> <span class="n">DiscreteSignal</span><span class="p">(</span><span class="n">samples</span><span class="o">=</span><span class="p">[],</span> <span class="n">dt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dt</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">chan_name</span><span class="p">,</span> <span class="n">carrier_freq</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="n">return_signals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">return_signals</span></div>
+
+
+<div class="viewcode-block" id="InstructionToSignals.get_awg_signals">
+<a class="viewcode-back" href="../../../stubs/qiskit_dynamics.pulse.InstructionToSignals.html#qiskit_dynamics.pulse.InstructionToSignals.get_awg_signals">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_awg_signals</span><span class="p">(</span>
+        <span class="n">signals</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">DiscreteSignal</span><span class="p">],</span> <span class="n">if_modulation</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">DiscreteSignal</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create signals that correspond to the output ports of an Arbitrary Waveform Generator to be</span>
+<span class="sd">        used with IQ mixers. For each signal in the list the number of signals is double to create</span>
+<span class="sd">        the I and Q components. The I and Q signals represent the real and imaginary parts,</span>
+<span class="sd">        respectively, of</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \Omega(t) e^{i \omega_{if} t}</span>
+
+<span class="sd">        where :math:`\Omega` is the complex-valued pulse envelope and :math:`\omega_{if}` is the</span>
+<span class="sd">        intermediate frequency.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            signals: A list of signals for which to create I and Q.</span>
+<span class="sd">            if_modulation: The intermediate frequency with which the AWG modulates the pulse</span>
+<span class="sd">                envelopes.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            iq signals: A list of signals which is twice as long as the input list of signals. For</span>
+<span class="sd">                each input signal get_awg_signals returns two</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_signals</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="n">signals</span><span class="p">:</span>
+            <span class="n">new_freq</span> <span class="o">=</span> <span class="n">sig</span><span class="o">.</span><span class="n">carrier_freq</span> <span class="o">+</span> <span class="n">if_modulation</span>
+
+            <span class="n">samples_i</span> <span class="o">=</span> <span class="n">sig</span><span class="o">.</span><span class="n">samples</span>
+            <span class="n">samples_q</span> <span class="o">=</span> <span class="n">unp</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">samples_i</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="n">j</span> <span class="o">*</span> <span class="n">unp</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">samples_i</span><span class="p">)</span>
+
+            <span class="n">sig_i</span> <span class="o">=</span> <span class="n">DiscreteSignal</span><span class="p">(</span>
+                <span class="n">sig</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+                <span class="n">samples_i</span><span class="p">,</span>
+                <span class="n">sig</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+                <span class="n">new_freq</span><span class="p">,</span>
+                <span class="n">sig</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+                <span class="n">sig</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;_i&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">sig_q</span> <span class="o">=</span> <span class="n">DiscreteSignal</span><span class="p">(</span>
+                <span class="n">sig</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+                <span class="n">samples_q</span><span class="p">,</span>
+                <span class="n">sig</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+                <span class="n">new_freq</span><span class="p">,</span>
+                <span class="n">sig</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+                <span class="n">sig</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;_q&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">new_signals</span> <span class="o">+=</span> <span class="p">[</span><span class="n">sig_i</span><span class="p">,</span> <span class="n">sig_q</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">new_signals</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the channel corresponding to the given name.&quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="n">channel_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">channel_name</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+            <span class="k">if</span> <span class="n">prefix</span> <span class="o">==</span> <span class="s2">&quot;d&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">DriveChannel</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">prefix</span> <span class="o">==</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">MeasureChannel</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">prefix</span> <span class="o">==</span> <span class="s2">&quot;u&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">ControlChannel</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">prefix</span> <span class="o">==</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">AcquireChannel</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unsupported channel name </span><span class="si">{</span><span class="n">channel_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QiskitError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Invalid channel name </span><span class="si">{</span><span class="n">channel_name</span><span class="si">}</span><span class="s2"> given to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_samples</span><span class="p">(</span><span class="n">pulse</span><span class="p">:</span> <span class="n">SymbolicPulse</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ArrayLike</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return samples filled according to the formula that the pulse represents and the parameter</span>
+<span class="sd">    values it contains.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pulse: SymbolicPulse class.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Samples of the pulse.</span>
+<span class="sd">    Raises:</span>
+<span class="sd">        PulseError: When parameters are not assigned.</span>
+<span class="sd">        PulseError: When expression for pulse envelope is not assigned.</span>
+<span class="sd">        PulseError: When a free symbol value is not defined in the pulse instance parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">envelope</span> <span class="o">=</span> <span class="n">pulse</span><span class="o">.</span><span class="n">envelope</span>
+    <span class="n">pulse_params</span> <span class="o">=</span> <span class="n">pulse</span><span class="o">.</span><span class="n">parameters</span>
+    <span class="k">if</span> <span class="n">pulse</span><span class="o">.</span><span class="n">is_parameterized</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;Unassigned parameter exists. All parameters must be assigned.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">envelope</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span><span class="s2">&quot;Pulse envelope expression is not assigned.&quot;</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">backend</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;jax&quot;</span> <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">Tracer</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pulse_params</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="k">else</span> <span class="s2">&quot;numpy&quot;</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">NameError</span><span class="p">):</span>
+        <span class="n">backend</span> <span class="o">=</span> <span class="s2">&quot;numpy&quot;</span>
+    <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">envelope</span><span class="o">.</span><span class="n">free_symbols</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">symbol</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;t&quot;</span><span class="p">:</span>
+            <span class="n">times</span> <span class="o">=</span> <span class="n">unp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pulse_params</span><span class="p">[</span><span class="s2">&quot;duration&quot;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pulse_params</span><span class="p">[</span><span class="n">symbol</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PulseError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Pulse parameter &#39;</span><span class="si">{</span><span class="n">symbol</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; is not defined for this instance. &quot;</span>
+                <span class="s2">&quot;Please check your waveform expression is correct.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">ex</span>
+    <span class="k">return</span> <span class="n">_lru_cache_expr</span><span class="p">(</span>
+        <span class="n">envelope</span><span class="p">,</span>
+        <span class="n">backend</span><span class="p">,</span>
+    <span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_lru_cache_expr</span><span class="p">(</span><span class="n">expr</span><span class="p">:</span> <span class="n">sym</span><span class="o">.</span><span class="n">Expr</span><span class="p">,</span> <span class="n">backend</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A helper function to get lambdified expression.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        expr: Symbolic expression to evaluate.</span>
+<span class="sd">        backend: Array backend.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        lambdified expression.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">free_symbols</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;t&quot;</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sym</span><span class="o">.</span><span class="n">lambdify</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">modules</span><span class="o">=</span><span class="n">backend</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_nyquist_warn</span><span class="p">(</span><span class="n">frequency_shift</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raise a warning if the frequency shift is above the Nyquist frequency given by ``dt``.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">frequency_shift</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span>
+        <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">jax</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">Tracer</span><span class="p">)</span>
+    <span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">frequency_shift</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">/</span> <span class="n">dt</span><span class="p">:</span>
+        <span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Due to SetFrequency and ShiftFrequency instructions, the digital carrier frequency &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;of channel </span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="s2"> is larger than the Nyquist frequency of the envelope sample &quot;</span>
+            <span class="s2">&quot;size dt. As shifts of the frequency from the analog frequency are handled digitally, &quot;</span>
+            <span class="s2">&quot;this will result in aliasing effects.&quot;</span>
+        <span class="p">)</span>
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2020, Qiskit Development Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            <div class="last-updated">
+              Last updated on 2025/10/06</div>
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=8fa8b3e9"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="../../../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

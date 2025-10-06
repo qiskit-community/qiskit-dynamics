@@ -1,0 +1,27 @@
+﻿Signal
+======
+
+.. currentmodule:: qiskit_dynamics.signals
+
+.. autoclass:: Signal
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: Signal.complex_value
+   .. automethod:: Signal.conjugate
+   .. automethod:: Signal.draw
+   .. automethod:: Signal.envelope
+
+
+
+   .. rubric:: Attributes
+
+   .. autoattribute:: carrier_freq
+   .. autoattribute:: is_constant
+   .. autoattribute:: name
+   .. autoattribute:: phase

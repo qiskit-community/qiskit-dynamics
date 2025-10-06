@@ -1,0 +1,18 @@
+﻿InstructionToSignals
+====================
+
+.. currentmodule:: qiskit_dynamics.pulse
+
+.. autoclass:: InstructionToSignals
+   :no-members:
+   :show-inheritance:
+   :no-inherited-members:
+   :no-special-members:
+
+   .. rubric:: Methods
+
+
+   .. automethod:: InstructionToSignals.get_awg_signals
+   .. automethod:: InstructionToSignals.get_signals
+
+
