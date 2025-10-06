@@ -1,0 +1,7 @@
+---
+prelude: >
+
+    | Qiskit Dynamics ``0.6.0`` is the last release of the package for the foreseeable future. This
+      release contains a series of bug fixes, as well as a new module :mod:`.systems` for building
+      and operating on models of quantum systems. The readme has been modified to note that the
+      package is no longer being maintained.
