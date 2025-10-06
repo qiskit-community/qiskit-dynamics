@@ -16,16 +16,16 @@ import os
 import setuptools
 
 requirements = [
-    "numpy>=1.17",
-    "scipy>=1.4",
-    "matplotlib>=3.0",
-    "qiskit<=1.3",
-    "multiset>=3.0.1",
-    "sympy>=1.12",
-    "arraylias"
+    "numpy==2.3.3",
+    "scipy==1.16.2",
+    "matplotlib==3.10.6",
+    "qiskit==2.2.1",
+    "multiset==3.2.0",
+    "sympy==1.14.0",
+    "arraylias==0.1.1"
 ]
 
-jax_extras = ['jax', 'jaxlib']
+jax_extras = ['jax==0.7.2', 'jaxlib==0.7.2']
 
 PACKAGES = setuptools.find_packages(exclude=['test*'])
 
