@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Install Deps
-        run: pip install -U wheel
+        run: pip install -U wheel setupools
       - name: Build Artifacts
         run: |
           python setup.py sdist
