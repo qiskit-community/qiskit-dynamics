@@ -71,7 +71,7 @@ class LindbladModel(BaseGeneratorModel):
           commutator and anti-commutator,
         - :math:`H(t)` denotes the Hamiltonian,
         - :math:`N_j` denotes the operators appearing in the static dissipator,
-        - :math:`L_j` denotes the operators appearing in the time-dpendent portion of the
+        - :math:`L_j` denotes the operators appearing in the time-dependent portion of the
           dissipator, and
         - :math:`\gamma_j(t)` denotes the signal corresponding to the
           :math:`j^{th}` time-dependent dissipator operator.
@@ -121,7 +121,7 @@ class LindbladModel(BaseGeneratorModel):
             static_dissipators: List of dissipators with coefficient 1.
             dissipator_operators: List of dissipator operators with time-dependent coefficients.
             dissipator_signals: Time-dependent coefficients for dissipator_operators.
-            rotating_frame: Rotating frame in which calcualtions are to be done. If provided, it is
+            rotating_frame: Rotating frame in which calculations are to be done. If provided, it is
                 assumed that all operators were already in the frame basis.
             in_frame_basis: Whether to represent the model in the basis in which the rotating
                 frame operator is diagonalized.
@@ -154,7 +154,7 @@ class LindbladModel(BaseGeneratorModel):
 
         if validate:
             if (static_hamiltonian is not None) and (not is_hermitian(static_hamiltonian)):
-                raise QiskitError("""LinbladModel static_hamiltonian must be Hermitian.""")
+                raise QiskitError("""LindbladModel static_hamiltonian must be Hermitian.""")
             if (hamiltonian_operators is not None) and any(
                 not is_hermitian(op) for op in hamiltonian_operators
             ):

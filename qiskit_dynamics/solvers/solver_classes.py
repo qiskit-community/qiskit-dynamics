@@ -113,7 +113,7 @@ class Solver:
     Transformations on the model can be specified via the optional arguments:
 
     * ``rotating_frame``: Transforms the model into a rotating frame. Note that the operator
-      specifying the frame will be substracted from the ``static_hamiltonian``. If supplied as a 1d
+      specifying the frame will be subtracted from the ``static_hamiltonian``. If supplied as a 1d
       array, ``rotating_frame`` is interpreted as the diagonal elements of a diagonal matrix. Given
       a frame operator :math:`F = -i H_0`, for the Schrodinger equation entering the rotating frame
       of :math:`F`, corresponds to transforming the solution as :math:`y(t) \mapsto exp(-tF)y(t)`,

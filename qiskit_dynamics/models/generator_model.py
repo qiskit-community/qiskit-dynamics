@@ -92,7 +92,7 @@ class BaseGeneratorModel(ABC):
         """
 
     def __call__(self, time: float, y: Optional[ArrayLike] = None) -> ArrayLike:
-        r"""Evaluate generator RHS functions. If ``y is None``, attemps to evaluate
+        r"""Evaluate generator RHS functions. If ``y is None``, attempts to evaluate
         :math:`\Lambda(t, \cdot)`, otherwise, calculates :math:`\Lambda(t, y)`.
 
         Args:
@@ -106,7 +106,7 @@ class BaseGeneratorModel(ABC):
 
 
 class GeneratorModel(BaseGeneratorModel):
-    r"""A model for a a linear matrix differential equation in standard form.
+    r"""A model for a linear matrix differential equation in standard form.
 
     :class:`GeneratorModel` is a concrete instance of :class:`BaseGeneratorModel`, where the map
     :math:`\Lambda(t, y)` is explicitly constructed as:
