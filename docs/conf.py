@@ -70,7 +70,7 @@ autosummary_generate = True
 autosummary_generate_overwrite = False
 autoclass_content = "both"
 intersphinx_mapping = {
-    "qiskit": ("https://docs.quantum.ibm.com/api/qiskit", None),
+    "qiskit": ("https://quantum.cloud.ibm.com/docs/api/qiskit", None),
     "qiskit_experiments": ("https://qiskit-community.github.io/qiskit-experiments/", None),
     "arraylias": ("https://qiskit-community.github.io/arraylias/", None)
 }
