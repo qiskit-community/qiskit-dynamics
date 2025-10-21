@@ -78,6 +78,16 @@ intermediate times for which the solution is requested, and solve the evolution.
 
     sol = solver.solve(t_span=[0., t_final], y0=y0, signals=signals, t_eval=t_eval)
 
+In general, a total hamiltonian :math:`H` of a system is described with its quantum mechanical operators
+and time dependent external functions. The initialization of the :class:`.Solver` class does not
+include those time dependent external functions which are specified by :class:`.Signal` class independently.
+Then, the :class:`.Signal` instances are incorporated in the :class:`.Solver` instance by
+the ``solve()`` method. In this example, the :class:`.Signal` instance just gives the function,
+
+.. math:: \cos(2 \pi \nu_d t),
+
+in the second term of :math:`H`.
+
 3. Plot the qubit state
 -----------------------
 

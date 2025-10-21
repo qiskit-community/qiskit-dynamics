@@ -1,0 +1,6 @@
+---
+other:
+  - |
+    Add an explanation on how to make a driving term in the total hamiltonian
+    from :class:`.Signal` instances and ``hamiltonian_operators`` in the
+    instantiation of :class:`.Solver` class in the tutorial (#274)
