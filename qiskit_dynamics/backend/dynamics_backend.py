@@ -110,7 +110,7 @@ class DynamicsBackend(BackendV2):
       indicating that the ground state for the system Hamiltonian should be used, or an arbitrary
       ``Statevector`` or ``DensityMatrix``. Defaults to ``"ground_state"``.
     * ``normalize_states``: Boolean indicating whether to normalize states before computing outcome
-      probabilities, and normalize probablities before sampling. Defaults to ``True``. Setting to
+      probabilities, and normalize probabilities before sampling. Defaults to ``True``. Setting to
       ``False`` can result in errors if the solution tolerance results in probabilities with
       significant numerical deviation from a proper probability distribution.
     * ``meas_level``: Form of measurement output. Supported values are ``1`` and ``2``. ``1``
