@@ -22,6 +22,9 @@ Simulating backends at the pulse-level with :class:`.DynamicsBackend`
     warnings.filterwarnings("ignore", message="Could not determine job completion")
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+    # silence future warning from qiskit-experiments
+    warnings.filterwarnings("ignore", category=FutureWarning)
+
 
 In this tutorial we walk through how to use the :class:`.DynamicsBackend` class as a Qiskit
 Dynamics-backed, pulse-level simulator of a real backend. In particular, we demonstrate how to
