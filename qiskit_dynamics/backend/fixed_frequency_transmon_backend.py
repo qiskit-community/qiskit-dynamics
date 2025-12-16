@@ -108,4 +108,4 @@ class FixedFrequencyTransmonBackend(DynamicsBackend):
         else:
             raise QiskitError("subsystem_dims option not consistent with dims argument.")
         
-        super().__init__(solver, target=target, subsystem_dims = dims, **options)
+        super().__init__(solver, target=target, **options)
