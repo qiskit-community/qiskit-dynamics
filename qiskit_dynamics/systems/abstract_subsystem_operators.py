@@ -22,6 +22,7 @@ from copy import copy
 import numpy as np
 
 from qiskit import QiskitError
+from qiskit.quantum_info import Operator
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics import ArrayLike
@@ -41,6 +42,16 @@ class AbstractSubsystemOperator(ABC):
     @abstractmethod
     def base_matrix(self):
         """Return the matrix defined on the internal subsystems."""
+
+    def base_operator(self) -> Operator:
+        """
+        Return the Qiskit operator defined on the internal subsystems.
+        """
+        return Operator(
+            self.base_matrix(),
+            input_dims=(self._subsystems[0].dim,),
+            output_dims=(self._subsystems[0].dim,),
+        )
 
     @abstractmethod
     def __str__(self):
@@ -64,6 +75,17 @@ class AbstractSubsystemOperator(ABC):
             raise QiskitError("Attempted to build matrix but missing subsystem.")
 
         return _matrix_implicit_identity(self.base_matrix(), self.subsystems, ordered_subsystems)
+
+    def to_operator(self, ordered_subsystems: Optional[List[Subsystem]] = None) -> Operator:
+        """
+        Build the Qiskit operator for the operator relative to the ordered subsystems.
+        """
+        if ordered_subsystems is None:
+            ordered_subsystems = self.subsystems
+        subsystem_dims = tuple((subsystem.dim for subsystem in ordered_subsystems))
+        return Operator(
+            self.matrix(ordered_subsystems), input_dims=subsystem_dims, output_dims=subsystem_dims
+        )
 
     def restrict_subsystems(self, subsystems: List[Subsystem]) -> "AbstractSubsystemOperator":
         """Reduce the operator to the list of subsystems.

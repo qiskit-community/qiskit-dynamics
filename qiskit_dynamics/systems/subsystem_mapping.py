@@ -19,6 +19,7 @@ from typing import Optional, Union, List
 from qiskit import QiskitError
 
 import numpy as np
+from qiskit.quantum_info import Operator
 
 from qiskit_dynamics import DYNAMICS_NUMPY as unp
 from qiskit_dynamics.systems import Subsystem, quantum_system_model
@@ -91,6 +92,15 @@ class SubsystemMapping:
     def matrix(self):
         """Concrete matrix encoding the action of the mapping."""
         return self._matrix
+
+    @property
+    def operator(self):
+        """
+        Qiskit Operator representing the mapping.
+        """
+        input_dims = tuple((subsystem.dim for subsystem in self._in_subsystems))
+        output_dims = tuple((subsystem.dim for subsystem in self._out_subsystems))
+        return Operator(self._matrix, input_dims=input_dims, output_dims=output_dims)
 
     def conjugate(
         self, operator: Union[AbstractSubsystemOperator, "quantum_system_model.QuantumSystemModel"]

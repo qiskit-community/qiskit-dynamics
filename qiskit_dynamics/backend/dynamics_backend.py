@@ -185,7 +185,8 @@ class DynamicsBackend(BackendV2):
 
         # self._target = target or Target() doesn't work as bool(target) can be False
         if target is None:
-            target = Target()
+            target = Target(num_qubits=len(self.options.subsystem_dims),
+                            dt=solver._dt,)
         else:
             target = copy.copy(target)
 

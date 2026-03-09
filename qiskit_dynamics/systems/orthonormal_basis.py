@@ -211,7 +211,7 @@ class DressedBasis(ONBasis):
 
     @property
     def computational_states(self):
-        """Get subspace of all states with subsystem indices <=0."""
+        """Get subspace of all states with subsystem indices <=1."""
 
         def condition(label):
             return not any(x > 1 for x in label["index"])
