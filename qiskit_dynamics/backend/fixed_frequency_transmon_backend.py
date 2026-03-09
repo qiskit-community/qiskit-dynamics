@@ -2,7 +2,9 @@ from copy import deepcopy
 
 from qiskit import QiskitError
 from qiskit.transpiler import Target
+from typing import List, Optional, Dict, Tuple
 
+from qiskit.pulse import DriveChannel, ControlChannel
 from .dynamics_backend import DynamicsBackend
 from ..systems import (
     ExchangeInteraction,
@@ -13,8 +15,6 @@ from ..systems import (
     IdealQubit,
     QuantumSystemModel,
 )
-from typing import List, Optional, Dict, Tuple
-from qiskit.pulse import DriveChannel, ControlChannel
 
 
 class FixedFrequencyTransmonBackend(DynamicsBackend):
@@ -22,7 +22,7 @@ class FixedFrequencyTransmonBackend(DynamicsBackend):
         self,
         dims: List[int],
         freqs: List[float],
-        drive_freqs: List[float],
+        drive_strengths: List[float],
         couplings: Optional[Dict[Tuple[int, int], float]] = None,
         anharmonicities: Optional[List[float]] = None,
         t1s: Optional[List[Optional[float]]] = None,
@@ -38,7 +38,7 @@ class FixedFrequencyTransmonBackend(DynamicsBackend):
         Args:
             dims: List of dimensions for each qubit.
             freqs: List of frequencies for each qubit.
-            drive_freqs: List of drive frequencies for each qubit.
+            drive_strengths: List of drive strengths for each qubit.
             couplings: Dictionary of coupling strengths between qubits.
             anharmonicities: List of anharmonicities for each qubit.
             t1s: List of T1 relaxation times for each qubit.
@@ -48,7 +48,7 @@ class FixedFrequencyTransmonBackend(DynamicsBackend):
             options: Additional options for the DynamicsBackend.
         """
 
-        if not len(dims) == len(freqs) == len(drive_freqs):
+        if not len(dims) == len(freqs) == len(drive_strengths):
             raise QiskitError("Number of dimensions and frequencies must match.")
         if anharmonicities is None:
             anharmonicities = [None for _ in range(len(freqs))]
@@ -60,28 +60,35 @@ class FixedFrequencyTransmonBackend(DynamicsBackend):
             t2s = [None for _ in range(len(freqs))]
 
         subsystems = [Subsystem(f"Q{i}", dim) for i, dim in enumerate(dims)]
-        model_list = []
-        for i in range(len(subsystems)):
+        model_list: List[QuantumSystemModel] = []
+        for i, subsystem in enumerate(subsystems):
+            drive_channel = DriveChannel(i)
+            drive_label = drive_channel.name
+            drive_strength = drive_strengths[i]   
+            frequency = freqs[i]
             if anharmonicities[i] is not None:
+                anharm = anharmonicities[i]
                 model_list.append(
                     DuffingOscillator(
-                        subsystems[i],
-                        freqs[i],
-                        anharmonicities[i],
-                        drive_freqs[i],
-                        drive_channel=DriveChannel(i),
+                        subsystem,
+                        frequency,
+                        anharm,
+                        drive_strength,
+                        drive_label=drive_label,
+                        drive_channel=drive_channel,
                     )
                 )
             else:
                 model_list.append(
                     IdealQubit(
-                        subsystems[i], freqs[i], drive_freqs[i], drive_channel=DriveChannel(i)
+                        subsystem, frequency, drive_strength, drive_label=drive_label,
+                        drive_channel=drive_channel,
                     )
                 )
             if t1s[i] is not None:
-                model_list.append(T1Relaxation(subsystems[i], t1s[i]))
+                model_list.append(T1Relaxation(subsystem, t1s[i]))
             if t2s[i] is not None:
-                model_list.append(T2Relaxation(subsystems[i], t2s[i]))
+                model_list.append(T2Relaxation(subsystem, t2s[i]))
 
         control_channel_map = {}
         for idx, (qubits, coupling) in enumerate(couplings.items()):
@@ -107,5 +114,5 @@ class FixedFrequencyTransmonBackend(DynamicsBackend):
             options['subsystem_dims'] = dims
         else:
             raise QiskitError("subsystem_dims option not consistent with dims argument.")
-        
+        self.model = model
         super().__init__(solver, target=target, **options)

@@ -71,6 +71,8 @@ class QuantumSystemModel:
             drive_dissipator_coefficients: A list of string labels for the drive dissipator terms.
             drive_dissipators: Dissipator terms with time-dependent rates. This is mapped to
                 ``dissipator_operators`` in :class:`.Solver`.
+            dissipator_channels: The channels of the dissipators.
+            channel_carrier_freqs: The carrier frequencies of the channels.
         """
 
         drive_hamiltonians = drive_hamiltonians or []
